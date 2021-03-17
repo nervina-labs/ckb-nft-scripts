@@ -1,2 +1,13 @@
 # ckb-nft-scripts
-The NFT Type Scripts of Nervos CKB
+
+Build contracts:
+
+``` sh
+capsule build
+```
+
+Run tests:
+
+``` sh
+capsule test
+```

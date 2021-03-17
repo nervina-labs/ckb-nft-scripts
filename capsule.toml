@@ -1,0 +1,14 @@
+version = "0.4.3 13d6f1d"
+deployment = "deployment.toml"
+
+[[contracts]]
+name = "issuer-type"
+template_type = "Rust"
+
+[[contracts]]
+name = "class-type"
+template_type = "Rust"
+
+[[contracts]]
+name = "nft-type"
+template_type = "Rust"
