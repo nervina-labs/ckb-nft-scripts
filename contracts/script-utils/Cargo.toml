@@ -1,8 +1,7 @@
 [package]
-name = "issuer-type"
+name = "script-utils"
 version = "0.1.0"
 edition = "2018"
 
 [dependencies]
 ckb-std = "0.7.1"
-script-utils = { path = "../script-utils" }

@@ -1,16 +1,15 @@
-use core::result::Result;
 use alloc::{vec, vec::Vec};
+use core::result::Result;
 
 use ckb_std::{
+    ckb_types::{bytes::Bytes, prelude::*},
     debug,
     high_level::{load_script, load_tx_hash},
-    ckb_types::{bytes::Bytes, prelude::*},
 };
 
-use crate::error::Error;
+use script_utils::error::Error;
 
 pub fn main() -> Result<(), Error> {
-
     let script = load_script()?;
     let args: Bytes = script.args().unpack();
     debug!("script args is {:?}", args);
@@ -22,4 +21,3 @@ pub fn main() -> Result<(), Error> {
 
     Ok(())
 }
-

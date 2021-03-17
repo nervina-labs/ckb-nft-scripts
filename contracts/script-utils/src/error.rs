@@ -7,6 +7,7 @@ pub enum Error {
     ItemMissing,
     LengthNotEnough,
     Encoding,
+    IssuerDataInvalid,
 }
 
 impl From<SysError> for Error {
@@ -21,4 +22,3 @@ impl From<SysError> for Error {
         }
     }
 }
-

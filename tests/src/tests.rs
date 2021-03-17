@@ -1,13 +1,8 @@
 use super::*;
 use ckb_testtool::context::Context;
-use ckb_tool::ckb_types::{
-    bytes::Bytes,
-    core::TransactionBuilder,
-    packed::*,
-    prelude::*,
-};
 use ckb_tool::ckb_error::assert_error_eq;
 use ckb_tool::ckb_script::ScriptError;
+use ckb_tool::ckb_types::{bytes::Bytes, core::TransactionBuilder, packed::*, prelude::*};
 
 const MAX_CYCLES: u64 = 10_000_000;
 
@@ -25,9 +20,7 @@ fn test_success() {
     let lock_script = context
         .build_script(&out_point, Bytes::from(vec![42]))
         .expect("script");
-    let lock_script_dep = CellDep::new_builder()
-        .out_point(out_point)
-        .build();
+    let lock_script_dep = CellDep::new_builder().out_point(out_point).build();
 
     // prepare cells
     let input_out_point = context.create_cell(
@@ -80,9 +73,7 @@ fn test_empty_args() {
     let lock_script = context
         .build_script(&out_point, Default::default())
         .expect("script");
-    let lock_script_dep = CellDep::new_builder()
-        .out_point(out_point)
-        .build();
+    let lock_script_dep = CellDep::new_builder().out_point(out_point).build();
 
     // prepare cells
     let input_out_point = context.create_cell(
@@ -118,9 +109,7 @@ fn test_empty_args() {
     let tx = context.complete_tx(tx);
 
     // run
-    let err = context
-        .verify_tx(&tx, MAX_CYCLES)
-        .unwrap_err();
+    let err = context.verify_tx(&tx, MAX_CYCLES).unwrap_err();
     // we expect an error raised from 0-indexed cell's lock script
     let script_cell_index = 0;
     assert_error_eq!(
