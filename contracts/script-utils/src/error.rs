@@ -8,6 +8,9 @@ pub enum Error {
     LengthNotEnough,
     Encoding,
     IssuerDataInvalid,
+    IssuerCellsCountError,
+    TypeArgsInvalid,
+    IssuerClassCountOrSetCountError,
 }
 
 impl From<SysError> for Error {

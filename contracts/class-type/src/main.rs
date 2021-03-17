@@ -5,7 +5,6 @@
 #![feature(panic_info_message)]
 
 mod entry;
-mod error;
 
 use ckb_std::default_alloc;
 
