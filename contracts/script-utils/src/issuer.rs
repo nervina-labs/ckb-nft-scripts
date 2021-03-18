@@ -4,6 +4,7 @@ use core::result::Result;
 use crate::error::Error;
 
 const ISSUER_MIN_LEN: usize = 11;
+pub const ISSUER_TYPE_ARGS_LEN: usize = 20;
 
 pub struct Issuer {
     pub version:     u8,
