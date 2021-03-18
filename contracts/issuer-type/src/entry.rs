@@ -36,6 +36,12 @@ fn parse_issuer_action(args: &Bytes) -> Result<Action, Error> {
     }
 }
 
+fn count_class_cell(args: &Bytes) -> usize {
+    count_cells_with_type_args(Source::Input, &|type_args: &Bytes| {
+        type_args.len() == CLASS_TYPE_ARGS_LEN && type_args[0..ISSUER_TYPE_ARGS_LEN] == args[..]
+    })
+}
+
 fn handle_creation(args: &Bytes) -> Result<(), Error> {
     let out_point = load_input_out_point(0, Source::Input)?;
     if args[..] != blake2b_160(out_point.as_slice()) {
@@ -47,12 +53,6 @@ fn handle_creation(args: &Bytes) -> Result<(), Error> {
         return Err(Error::IssuerClassCountOrSetCountError);
     }
     Ok(())
-}
-
-fn count_class_cell(args: &Bytes) -> usize {
-    count_cells_with_type_args(Source::Input, &|type_args: &Bytes| {
-        type_args.len() == CLASS_TYPE_ARGS_LEN && type_args[0..ISSUER_TYPE_ARGS_LEN] == args[..]
-    })
 }
 
 fn handle_update(args: &Bytes) -> Result<(), Error> {
@@ -74,13 +74,25 @@ fn handle_update(args: &Bytes) -> Result<(), Error> {
     Ok(())
 }
 
+fn handle_destroying() -> Result<(), Error> {
+    let issuer_input_data = load_cell_data(0, Source::GroupInput)?;
+    let input_issuer = Issuer::from_data(&issuer_input_data[..])?;
+    if input_issuer.class_count != 0 || input_issuer.set_count != 0 {
+        return Err(Error::IssuerCellCannotDestroyed);
+    }
+    Ok(())
+}
+
 pub fn main() -> Result<(), Error> {
     let script = load_script()?;
     let args: Bytes = script.args().unpack();
+    if args.len() != ISSUER_TYPE_ARGS_LEN {
+        return Err(Error::TypeArgsInvalid);
+    }
 
     match parse_issuer_action(&args)? {
         Action::Create => handle_creation(&args),
         Action::Update => handle_update(&args),
-        Action::Destroy => Ok(()),
+        Action::Destroy => handle_destroying(),
     }
 }
