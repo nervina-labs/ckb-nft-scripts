@@ -1,0 +1,29 @@
+name: CI
+
+on: [push, pull_request]
+
+jobs:
+  Build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: nightly-2020-09-28
+          override: true
+
+      - uses: docker-practice/actions-setup-docker@master
+        with:
+          docker_channel: nightly
+          docker_nightly_version: snapshot-20201008
+
+      - name: Install Capsule
+        run: |
+          mkdir -p ./capsule && curl -L https://github.com/nervosnetwork/capsule/releases/download/v0.4.3/capsule_v0.4.3_x86_64-linux.tar.gz | tar xvz -C ./capsule --strip-components=1
+          chmod +x ./capsule/capsule
+      - name: Build contracts
+        run: ./capsule/capsule build
+
+      - name: Test contracts
+        run: ./capsule/capsule test
