@@ -30,12 +30,14 @@ enum Action {
 
 enum IssuerError {
     NoError,
+    NoClassCellsError,
     DataLenInvalid,
     ClassCountInvalid,
     SetCountInvalid,
     VersionInvalid,
     TypeArgsInvalid,
     IssuerCellCannotDestroyed,
+    ClassCellCountError,
 }
 
 pub fn blake160(data: &[u8]) -> [u8; 20] {
@@ -50,6 +52,12 @@ fn create_test_context(action: Action, issuer_error: IssuerError) -> (Context, T
     let mut context = Context::default();
     let issuer_bin: Bytes = Loader::default().load_binary("issuer-type");
     let issuer_out_point = context.deploy_cell(issuer_bin);
+
+    let class_bin: Bytes = Loader::default().load_binary("class-type");
+    let class_out_point = context.deploy_cell(class_bin);
+    let class_type_script_dep = CellDep::new_builder()
+        .out_point(class_out_point.clone())
+        .build();
 
     // deploy always_success script
     let always_success_out_point = context.deploy_cell(ALWAYS_SUCCESS.clone());
@@ -70,21 +78,32 @@ fn create_test_context(action: Action, issuer_error: IssuerError) -> (Context, T
             .build(),
         Bytes::new(),
     );
+    let normal_input = CellInput::new_builder()
+        .previous_output(normal_input_out_point.clone())
+        .build();
 
-    let out_point_hash = blake160(&normal_input_out_point.as_slice());
+    let first_input_hash = blake160(&normal_input.as_slice());
     let issuer_type_args = match issuer_error {
-        IssuerError::TypeArgsInvalid => Bytes::copy_from_slice(&out_point_hash[0..10]),
-        _ => Bytes::copy_from_slice(&out_point_hash),
+        IssuerError::TypeArgsInvalid => Bytes::copy_from_slice(&first_input_hash[0..10]),
+        _ => Bytes::copy_from_slice(&first_input_hash),
     };
 
     let issuer_type_script = context
         .build_script(&issuer_out_point, issuer_type_args)
         .expect("script");
-    let issuer_type_script_dep = CellDep::new_builder().out_point(issuer_out_point).build();
+    let issuer_type_script_dep = CellDep::new_builder()
+        .out_point(issuer_out_point.clone())
+        .build();
 
     let issuer_input_data = match issuer_error {
         IssuerError::IssuerCellCannotDestroyed => {
             Bytes::from(hex::decode("0000000000000000080000").unwrap())
+        }
+        IssuerError::ClassCellCountError => {
+            Bytes::from(hex::decode("0000000005000000000000").unwrap())
+        }
+        IssuerError::NoClassCellsError => {
+            Bytes::from(hex::decode("0000000005000000000000").unwrap())
         }
         _ => Bytes::from(hex::decode("0000000000000000000000").unwrap()),
     };
@@ -98,9 +117,7 @@ fn create_test_context(action: Action, issuer_error: IssuerError) -> (Context, T
         issuer_input_data,
     );
 
-    let mut inputs = vec![CellInput::new_builder()
-        .previous_output(normal_input_out_point)
-        .build()];
+    let mut inputs = vec![normal_input.clone()];
     match action {
         Action::Update(count) => {
             for _ in 0..count {
@@ -110,14 +127,14 @@ fn create_test_context(action: Action, issuer_error: IssuerError) -> (Context, T
                         .build(),
                 );
             }
-        },
+        }
         Action::Destroy => {
             inputs.push(
                 CellInput::new_builder()
                     .previous_output(issuer_input_out_point.clone())
                     .build(),
             );
-        },
+        }
         Action::Create => (),
     }
 
@@ -152,6 +169,42 @@ fn create_test_context(action: Action, issuer_error: IssuerError) -> (Context, T
         _ => (),
     }
 
+    let mut class_type_args = blake2b_256(&normal_input.clone().as_slice()).to_vec();
+    let mut end_args = blake160(&normal_input.clone().as_slice()).to_vec();
+    class_type_args.append(&mut end_args);
+
+    let class_type_script = context
+        .build_script(
+            &class_out_point.clone(),
+            Bytes::copy_from_slice(&class_type_args[..]),
+        )
+        .expect("script");
+    match issuer_error {
+        IssuerError::ClassCellCountError => {
+            for _ in 0..2 {
+                outputs.push(
+                    CellOutput::new_builder()
+                        .capacity(250u64.pack())
+                        .lock(lock_script.clone())
+                        .type_(Some(class_type_script.clone()).pack())
+                        .build(),
+                );
+            }
+        }
+        IssuerError::NoClassCellsError => {
+            for _ in 0..3 {
+                outputs.push(
+                    CellOutput::new_builder()
+                        .capacity(160u64.pack())
+                        .lock(lock_script.clone())
+                        .type_(Some(class_type_script.clone()).pack())
+                        .build(),
+                );
+            }
+        }
+        _ => (),
+    }
+
     let outputs_data: Vec<_> = outputs
         .iter()
         .map(|_output| match issuer_error {
@@ -164,6 +217,12 @@ fn create_test_context(action: Action, issuer_error: IssuerError) -> (Context, T
             }
             IssuerError::VersionInvalid => {
                 Bytes::from(hex::decode("0100000000000000000000").unwrap())
+            }
+            IssuerError::ClassCellCountError => {
+                Bytes::from(hex::decode("0000000008000000000000").unwrap())
+            }
+            IssuerError::NoClassCellsError => {
+                Bytes::from(hex::decode("0000000008000000000000").unwrap())
             }
             _ => Bytes::from(hex::decode("0000000000000000000000").unwrap()),
         })
@@ -181,6 +240,7 @@ fn create_test_context(action: Action, issuer_error: IssuerError) -> (Context, T
         .outputs_data(outputs_data.pack())
         .cell_dep(lock_script_dep)
         .cell_dep(issuer_type_script_dep)
+        .cell_dep(class_type_script_dep)
         .witnesses(witnesses.pack())
         .build();
     (context, tx)
@@ -201,6 +261,18 @@ fn test_create_issuer_success() {
 #[test]
 fn test_update_issuer_success() {
     let (mut context, tx) = create_test_context(Action::Update(1), IssuerError::NoError);
+
+    let tx = context.complete_tx(tx);
+    // run
+    let cycles = context
+        .verify_tx(&tx, MAX_CYCLES)
+        .expect("pass verification");
+    println!("consume cycles: {}", cycles);
+}
+
+#[test]
+fn test_update_issuer_with_class_cells_success() {
+    let (mut context, tx) = create_test_context(Action::Update(1), IssuerError::NoClassCellsError);
 
     let tx = context.complete_tx(tx);
     // run
@@ -263,6 +335,22 @@ fn test_create_issuer_class_count_error() {
         err,
         ScriptError::ValidationFailure(ISSUER_CLASS_COUNT_ERROR)
             .output_type_script(script_cell_index)
+    );
+}
+
+#[test]
+fn test_update_issuer_class_count_error() {
+    let (mut context, tx) =
+        create_test_context(Action::Update(1), IssuerError::ClassCellCountError);
+
+    let tx = context.complete_tx(tx);
+    // run
+    let err = context.verify_tx(&tx, MAX_CYCLES).unwrap_err();
+    let script_cell_index = 1;
+    assert_error_eq!(
+        err,
+        ScriptError::ValidationFailure(ISSUER_CLASS_COUNT_ERROR)
+            .input_type_script(script_cell_index)
     );
 }
 

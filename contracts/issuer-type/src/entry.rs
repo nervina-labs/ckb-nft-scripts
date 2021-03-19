@@ -1,7 +1,7 @@
 use ckb_std::{
     ckb_constants::Source,
     ckb_types::{bytes::Bytes, prelude::*},
-    high_level::{load_cell_data, load_input_out_point, load_script},
+    high_level::{load_cell_data, load_input, load_script},
 };
 use core::result::Result;
 use script_utils::{
@@ -37,14 +37,14 @@ fn parse_issuer_action(args: &Bytes) -> Result<Action, Error> {
 }
 
 fn count_class_cell(args: &Bytes) -> usize {
-    count_cells_with_type_args(Source::Input, &|type_args: &Bytes| {
+    count_cells_with_type_args(Source::Output, &|type_args: &Bytes| {
         type_args.len() == CLASS_TYPE_ARGS_LEN && type_args[0..ISSUER_TYPE_ARGS_LEN] == args[..]
     })
 }
 
 fn handle_creation(args: &Bytes) -> Result<(), Error> {
-    let out_point = load_input_out_point(0, Source::Input)?;
-    if args[..] != blake2b_160(out_point.as_slice()) {
+    let first_input = load_input(0, Source::Input)?;
+    if args[..] != blake2b_160(first_input.as_slice()) {
         return Err(Error::TypeArgsInvalid);
     }
     let issuer_cell_data = load_cell_data(0, Source::GroupOutput)?;
