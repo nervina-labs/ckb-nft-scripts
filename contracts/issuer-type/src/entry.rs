@@ -49,8 +49,11 @@ fn handle_creation(args: &Bytes) -> Result<(), Error> {
     }
     let issuer_cell_data = load_cell_data(0, Source::GroupOutput)?;
     let issuer = Issuer::from_data(&issuer_cell_data[..])?;
-    if issuer.class_count != 0 || issuer.set_count != 0 {
-        return Err(Error::IssuerClassCountOrSetCountError);
+    if issuer.class_count != 0 {
+        return Err(Error::IssuerClassCountError);
+    }
+    if issuer.set_count != 0 {
+        return Err(Error::IssuerSetCountError);
     }
     Ok(())
 }
@@ -61,15 +64,15 @@ fn handle_update(args: &Bytes) -> Result<(), Error> {
     let input_issuer = Issuer::from_data(&issuer_input_data[..])?;
     let output_issuer = Issuer::from_data(&issuer_output_data[..])?;
     if input_issuer.set_count != 0 || output_issuer.set_count != 0 {
-        return Err(Error::IssuerClassCountOrSetCountError);
+        return Err(Error::IssuerSetCountError);
     }
     if output_issuer.class_count < input_issuer.class_count {
-        return Err(Error::IssuerClassCountOrSetCountError);
+        return Err(Error::IssuerClassCountError);
     }
     let class_cells_count = (output_issuer.class_count - input_issuer.class_count) as usize;
     let class_outputs_count = count_class_cell(args);
     if class_outputs_count != class_cells_count {
-        return Err(Error::IssuerClassCountOrSetCountError);
+        return Err(Error::IssuerClassCountError);
     }
     Ok(())
 }

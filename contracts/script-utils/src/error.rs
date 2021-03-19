@@ -10,8 +10,10 @@ pub enum Error {
     IssuerDataInvalid = 5,
     IssuerCellsCountError,
     TypeArgsInvalid,
-    IssuerClassCountOrSetCountError,
-    IssuerCellCannotDestroyed,
+    IssuerClassCountError,
+    IssuerSetCountError,
+    IssuerCellCannotDestroyed = 10,
+    VersionInvalid,
 }
 
 impl From<SysError> for Error {
