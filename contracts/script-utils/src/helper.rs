@@ -1,5 +1,3 @@
-use alloc::vec::Vec;
-
 use ckb_std::{
     ckb_constants::Source,
     ckb_types::{bytes::Bytes, prelude::*},
@@ -7,7 +5,7 @@ use ckb_std::{
 };
 
 pub fn count_cells_with_type_args(source: Source, condition: &dyn Fn(&Bytes) -> bool) -> usize {
-    let type_scripts = QueryIter::new(load_cell_type, source)
+    QueryIter::new(load_cell_type, source)
         .filter(|type_opt| match type_opt {
             Some(type_) => {
                 let type_args: Bytes = type_.args().unpack();
@@ -15,6 +13,5 @@ pub fn count_cells_with_type_args(source: Source, condition: &dyn Fn(&Bytes) -> 
             }
             None => false,
         })
-        .collect::<Vec<_>>();
-    type_scripts.len()
+        .count()
 }
