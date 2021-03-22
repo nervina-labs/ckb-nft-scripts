@@ -1,6 +1,5 @@
-use core::result::Result;
-
 use crate::error::Error;
+use core::result::Result;
 
 const ISSUER_MIN_LEN: usize = 11;
 pub const ISSUER_TYPE_ARGS_LEN: usize = 20;

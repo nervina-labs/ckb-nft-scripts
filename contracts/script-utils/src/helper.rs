@@ -4,6 +4,12 @@ use ckb_std::{
     high_level::{load_cell_type, QueryIter},
 };
 
+pub enum Action {
+    Create,
+    Update,
+    Destroy,
+}
+
 pub fn count_cells_with_type_args(source: Source, condition: &dyn Fn(&Bytes) -> bool) -> usize {
     QueryIter::new(load_cell_type, source)
         .filter(|type_opt| match type_opt {
