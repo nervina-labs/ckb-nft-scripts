@@ -22,12 +22,12 @@ impl Class {
             return Err(Error::VersionInvalid);
         }
 
-        let mut total_slice = [0u8; 4];
-        let mut issued_slice = [0u8; 4];
-        total_slice.copy_from_slice(&data[1..5]);
-        issued_slice.copy_from_slice(&data[5..9]);
-        let total = u32::from_be_bytes(total_slice);
-        let issued = u32::from_be_bytes(issued_slice);
+        let mut total_list = [0u8; 4];
+        let mut issued_list = [0u8; 4];
+        total_list.copy_from_slice(&data[1..5]);
+        issued_list.copy_from_slice(&data[5..9]);
+        let total = u32::from_be_bytes(total_list);
+        let issued = u32::from_be_bytes(issued_list);
 
         if total > 0 && issued >= total {
             return Err(Error::ClassTotalSmallerThanIssued);

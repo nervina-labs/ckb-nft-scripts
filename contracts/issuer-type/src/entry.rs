@@ -6,7 +6,6 @@ use ckb_std::{
 use blake2b_rs::Blake2bBuilder;
 use core::result::Result;
 use script_utils::{
-    class::CLASS_TYPE_ARGS_LEN,
     error::Error,
     helper::{count_cells_with_type_args, load_output_index_by_type_args, Action},
     issuer::{Issuer, ISSUER_TYPE_ARGS_LEN},
@@ -14,8 +13,8 @@ use script_utils::{
 
 fn parse_issuer_action(args: &Bytes) -> Result<Action, Error> {
     let check_args_equal = |type_args: &Bytes| type_args[..] == args[..];
-    let inputs_count = count_cells_with_type_args(Source::Input, &check_args_equal);
-    let outputs_count = count_cells_with_type_args(Source::Output, &check_args_equal);
+    let inputs_count = count_cells_by_type_args(Source::Input, &check_args_equal);
+    let outputs_count = count_cells_by_type_args(Source::Output, &check_args_equal);
 
     match (inputs_count, outputs_count) {
         (0, 1) => Ok(Action::Create),
@@ -23,12 +22,6 @@ fn parse_issuer_action(args: &Bytes) -> Result<Action, Error> {
         (1, 0) => Ok(Action::Destroy),
         _ => Err(Error::IssuerCellsCountError),
     }
-}
-
-fn count_class_cell(args: &Bytes, source: Source) -> usize {
-    count_cells_with_type_args(source, &|type_args: &Bytes| {
-        type_args.len() == CLASS_TYPE_ARGS_LEN && type_args[0..ISSUER_TYPE_ARGS_LEN] == args[..]
-    })
 }
 
 fn handle_creation(args: &Bytes) -> Result<(), Error> {
@@ -59,11 +52,7 @@ fn handle_creation(args: &Bytes) -> Result<(), Error> {
     Ok(())
 }
 
-fn handle_update(args: &Bytes) -> Result<(), Error> {
-    let class_inputs_count = count_class_cell(args, Source::Input);
-    if class_inputs_count > 0 {
-        return Err(Error::IssuerClassCountError);
-    }
+fn handle_update() -> Result<(), Error> {
     let issuer_input_data = load_cell_data(0, Source::GroupInput)?;
     let issuer_output_data = load_cell_data(0, Source::GroupOutput)?;
     let input_issuer = Issuer::from_data(&issuer_input_data[..])?;
@@ -72,11 +61,6 @@ fn handle_update(args: &Bytes) -> Result<(), Error> {
         return Err(Error::IssuerSetCountError);
     }
     if output_issuer.class_count < input_issuer.class_count {
-        return Err(Error::IssuerClassCountError);
-    }
-    let class_cells_count = (output_issuer.class_count - input_issuer.class_count) as usize;
-    let class_cells_increased_count = count_class_cell(args, Source::Output);
-    if class_outputs_count != class_cells_increased_count {
         return Err(Error::IssuerClassCountError);
     }
     Ok(())
@@ -100,7 +84,7 @@ pub fn main() -> Result<(), Error> {
 
     match parse_issuer_action(&args)? {
         Action::Create => handle_creation(&args),
-        Action::Update => handle_update(&args),
+        Action::Update => handle_update(),
         Action::Destroy => handle_destroying(),
     }
 }

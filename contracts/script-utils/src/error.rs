@@ -17,6 +17,7 @@ pub enum Error {
     ClassDataInvalid,
     ClassTotalSmallerThanIssued,
     ClassCellsCountError,
+    ClassIssuedInvalid = 15,
 }
 
 impl From<SysError> for Error {

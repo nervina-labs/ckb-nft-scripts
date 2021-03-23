@@ -30,14 +30,12 @@ enum Action {
 
 enum IssuerError {
     NoError,
-    NoClassCellsError,
     DataLenInvalid,
     ClassCountInvalid,
     SetCountInvalid,
     VersionInvalid,
     TypeArgsInvalid,
     IssuerCellCannotDestroyed,
-    ClassCellCountError,
 }
 
 fn create_test_context(action: Action, issuer_error: IssuerError) -> (Context, TransactionView) {
@@ -45,12 +43,6 @@ fn create_test_context(action: Action, issuer_error: IssuerError) -> (Context, T
     let mut context = Context::default();
     let issuer_bin: Bytes = Loader::default().load_binary("issuer-type");
     let issuer_out_point = context.deploy_cell(issuer_bin);
-
-    let class_bin: Bytes = Loader::default().load_binary("class-type");
-    let class_out_point = context.deploy_cell(class_bin);
-    let class_type_script_dep = CellDep::new_builder()
-        .out_point(class_out_point.clone())
-        .build();
 
     // deploy always_success script
     let always_success_out_point = context.deploy_cell(ALWAYS_SUCCESS.clone());
@@ -98,12 +90,6 @@ fn create_test_context(action: Action, issuer_error: IssuerError) -> (Context, T
         IssuerError::IssuerCellCannotDestroyed => {
             Bytes::from(hex::decode("0000000000000000080000").unwrap())
         }
-        IssuerError::ClassCellCountError => {
-            Bytes::from(hex::decode("0000000005000000000000").unwrap())
-        }
-        IssuerError::NoClassCellsError => {
-            Bytes::from(hex::decode("0000000005000000000000").unwrap())
-        }
         _ => Bytes::from(hex::decode("0000000000000000000000").unwrap()),
     };
 
@@ -143,12 +129,12 @@ fn create_test_context(action: Action, issuer_error: IssuerError) -> (Context, T
             .lock(lock_script.clone())
             .type_(Some(issuer_type_script.clone()).pack())
             .build()],
-        Action::Destroy => vec![CellOutput::new_builder()
-            .capacity(1000u64.pack())
+        Action::Update(_) => vec![CellOutput::new_builder()
+            .capacity(500u64.pack())
             .lock(lock_script.clone())
             .build()],
-        _ => vec![CellOutput::new_builder()
-            .capacity(500u64.pack())
+        Action::Destroy => vec![CellOutput::new_builder()
+            .capacity(1000u64.pack())
             .lock(lock_script.clone())
             .build()],
     };
@@ -161,42 +147,6 @@ fn create_test_context(action: Action, issuer_error: IssuerError) -> (Context, T
                         .capacity(500u64.pack())
                         .lock(lock_script.clone())
                         .type_(Some(issuer_type_script.clone()).pack())
-                        .build(),
-                );
-            }
-        }
-        _ => (),
-    }
-
-    let mut class_type_args = ret.clone().to_vec();
-    let mut end_args = ret.clone()[0..20].to_vec();
-    class_type_args.append(&mut end_args);
-
-    let class_type_script = context
-        .build_script(
-            &class_out_point.clone(),
-            Bytes::copy_from_slice(&class_type_args[..]),
-        )
-        .expect("script");
-    match issuer_error {
-        IssuerError::ClassCellCountError => {
-            for _ in 0..2 {
-                outputs.push(
-                    CellOutput::new_builder()
-                        .capacity(250u64.pack())
-                        .lock(lock_script.clone())
-                        .type_(Some(class_type_script.clone()).pack())
-                        .build(),
-                );
-            }
-        }
-        IssuerError::NoClassCellsError => {
-            for _ in 0..3 {
-                outputs.push(
-                    CellOutput::new_builder()
-                        .capacity(160u64.pack())
-                        .lock(lock_script.clone())
-                        .type_(Some(class_type_script.clone()).pack())
                         .build(),
                 );
             }
@@ -217,12 +167,6 @@ fn create_test_context(action: Action, issuer_error: IssuerError) -> (Context, T
             IssuerError::VersionInvalid => {
                 Bytes::from(hex::decode("0100000000000000000000").unwrap())
             }
-            IssuerError::ClassCellCountError => {
-                Bytes::from(hex::decode("0000000008000000000000").unwrap())
-            }
-            IssuerError::NoClassCellsError => {
-                Bytes::from(hex::decode("0000000008000000000000").unwrap())
-            }
             _ => Bytes::from(hex::decode("0000000000000000000000").unwrap()),
         })
         .collect();
@@ -239,7 +183,6 @@ fn create_test_context(action: Action, issuer_error: IssuerError) -> (Context, T
         .outputs_data(outputs_data.pack())
         .cell_dep(lock_script_dep)
         .cell_dep(issuer_type_script_dep)
-        .cell_dep(class_type_script_dep)
         .witnesses(witnesses.pack())
         .build();
     (context, tx)
@@ -260,18 +203,6 @@ fn test_create_issuer_success() {
 #[test]
 fn test_update_issuer_success() {
     let (mut context, tx) = create_test_context(Action::Update(1), IssuerError::NoError);
-
-    let tx = context.complete_tx(tx);
-    // run
-    let cycles = context
-        .verify_tx(&tx, MAX_CYCLES)
-        .expect("pass verification");
-    println!("consume cycles: {}", cycles);
-}
-
-#[test]
-fn test_update_issuer_with_class_cells_success() {
-    let (mut context, tx) = create_test_context(Action::Update(1), IssuerError::NoClassCellsError);
 
     let tx = context.complete_tx(tx);
     // run
@@ -334,22 +265,6 @@ fn test_create_issuer_class_count_error() {
         err,
         ScriptError::ValidationFailure(ISSUER_CLASS_COUNT_ERROR)
             .output_type_script(script_cell_index)
-    );
-}
-
-#[test]
-fn test_update_issuer_class_count_error() {
-    let (mut context, tx) =
-        create_test_context(Action::Update(1), IssuerError::ClassCellCountError);
-
-    let tx = context.complete_tx(tx);
-    // run
-    let err = context.verify_tx(&tx, MAX_CYCLES).unwrap_err();
-    let script_cell_index = 1;
-    assert_error_eq!(
-        err,
-        ScriptError::ValidationFailure(ISSUER_CLASS_COUNT_ERROR)
-            .input_type_script(script_cell_index)
     );
 }
 

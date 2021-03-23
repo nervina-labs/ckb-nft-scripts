@@ -21,12 +21,12 @@ impl Issuer {
             return Err(Error::VersionInvalid);
         }
 
-        let mut class_count_slice = [0u8; 4];
-        let mut set_count_slice = [0u8; 4];
-        class_count_slice.copy_from_slice(&data[1..5]);
-        set_count_slice.copy_from_slice(&data[5..9]);
-        let class_count = u32::from_be_bytes(class_count_slice);
-        let set_count = u32::from_be_bytes(set_count_slice);
+        let mut class_counts = [0u8; 4];
+        let mut set_counts = [0u8; 4];
+        class_counts.copy_from_slice(&data[1..5]);
+        set_counts.copy_from_slice(&data[5..9]);
+        let class_count = u32::from_be_bytes(class_counts);
+        let set_count = u32::from_be_bytes(set_counts);
 
         Ok(Issuer {
             version,
