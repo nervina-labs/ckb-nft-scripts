@@ -18,7 +18,8 @@ pub enum Error {
     ClassTotalSmallerThanIssued,
     ClassCellsCountError,
     ClassIssuedInvalid = 15,
-    ClassImmutableFieldsNotEqual,
+    ClassImmutableFieldsNotSame,
+    ClassCellCannotDestroyed,
 }
 
 impl From<SysError> for Error {

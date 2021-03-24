@@ -72,7 +72,17 @@ fn handle_update() -> Result<(), Error> {
     let output_class = Class::from_data(&class_output_data[..])?;
 
     if !input_class.immutable_equal(&output_class) {
-        return Err(Error::ClassImmutableFieldsNotEqual);
+        return Err(Error::ClassImmutableFieldsNotSame);
+    }
+    Ok(())
+}
+
+fn handle_destroying() -> Result<(), Error> {
+    let class_input_data = load_cell_data(0, Source::GroupInput)?;
+    let input_class = Class::from_data(&class_input_data[..])?;
+
+    if input_class.issued > 0 {
+        return Err(Error::ClassCellCannotDestroyed);
     }
     Ok(())
 }
@@ -87,6 +97,6 @@ pub fn main() -> Result<(), Error> {
     match parse_class_action(&args)? {
         Action::Create => handle_creation(&args),
         Action::Update => handle_update(),
-        Action::Destroy => Ok(()),
+        Action::Destroy => handle_destroying(),
     }
 }
