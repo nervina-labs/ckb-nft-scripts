@@ -1,9 +1,9 @@
+use blake2b_rs::Blake2bBuilder;
 use ckb_std::{
     ckb_constants::Source,
     ckb_types::{bytes::Bytes, prelude::*},
     high_level::{load_cell_data, load_input, load_script},
 };
-use blake2b_rs::Blake2bBuilder;
 use core::result::Result;
 use script_utils::{
     error::Error,
@@ -31,8 +31,8 @@ fn handle_creation(args: &Bytes) -> Result<(), Error> {
         None => Err(Error::Encoding),
     }?;
     let mut blake2b = Blake2bBuilder::new(32)
-                .personal(b"ckb-default-hash")
-                .build();
+        .personal(b"ckb-default-hash")
+        .build();
     blake2b.update(first_input.as_slice());
     blake2b.update(&(fist_output_index as u64).to_le_bytes());
     let mut ret = [0; 32];

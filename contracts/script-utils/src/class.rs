@@ -1,14 +1,32 @@
 use crate::error::Error;
+use crate::helper::parse_dyn_vec_len;
+use alloc::vec::Vec;
 use core::result::Result;
 
 const CLASS_MIN_LEN: usize = 16;
 pub const CLASS_TYPE_ARGS_LEN: usize = 52;
 
+/// class cell data structure
+/// This structure contains the following information:
+/// 1) version: u8
+/// 2) total: u32
+/// 3) issued: u32
+/// 4) configure: u8
+/// 5) name: <size: u16> + <content>
+/// 6) description: <size: u16> + <content>
+/// 7) renderer: <size: u16> + <content>
+/// 8) extinfo_data: <size: u16> + <content>
+/// The fields of 1), 2), 4), 5) and 6) cannot be changed after they are set and they cannot be
+/// missing. The filed of 3) and 7) can be changed and it cannot be missing.
+/// The filed of 8) can be changed and it also can be missing.
+/// The fields of 7) and 8) will not be validated.
 pub struct Class {
-    pub version:   u8,
-    pub total:     u32,
-    pub issued:    u32,
-    pub configure: u8,
+    pub version:     u8,
+    pub total:       u32,
+    pub issued:      u32,
+    pub configure:   u8,
+    pub name:        Vec<u8>,
+    pub description: Vec<u8>,
 }
 
 impl Class {
@@ -22,12 +40,12 @@ impl Class {
             return Err(Error::VersionInvalid);
         }
 
-        let mut total_list = [0u8; 4];
-        let mut issued_list = [0u8; 4];
-        total_list.copy_from_slice(&data[1..5]);
-        issued_list.copy_from_slice(&data[5..9]);
-        let total = u32::from_be_bytes(total_list);
-        let issued = u32::from_be_bytes(issued_list);
+        let mut total_buf = [0u8; 4];
+        let mut issued_buf = [0u8; 4];
+        total_buf.copy_from_slice(&data[1..5]);
+        issued_buf.copy_from_slice(&data[5..9]);
+        let total = u32::from_be_bytes(total_buf);
+        let issued = u32::from_be_bytes(issued_buf);
 
         if total > 0 && issued >= total {
             return Err(Error::ClassTotalSmallerThanIssued);
@@ -35,11 +53,33 @@ impl Class {
 
         let configure: u8 = data[9];
 
+        let name_len = parse_dyn_vec_len(&data[10..12]);
+        if data.len() < name_len + 12 {
+            return Err(Error::ClassDataInvalid);
+        }
+        let name = data[10..(name_len + 10)].to_vec();
+
+        let description_len = parse_dyn_vec_len(&data[(name_len + 10)..(name_len + 12)]);
+        let data_min_len = name_len + description_len + 10 + 2;
+        if data.len() < data_min_len {
+            return Err(Error::ClassDataInvalid);
+        }
+        let description = data[(name_len + 10)..(name_len + description_len + 10)].to_vec();
+
         Ok(Class {
             version,
             total,
             issued,
             configure,
+            name,
+            description,
         })
+    }
+
+    pub fn immutable_equal(&self, other: &Class) -> bool {
+        self.total == other.total
+            && self.configure == other.configure
+            && self.name == other.name
+            && self.description == other.description
     }
 }

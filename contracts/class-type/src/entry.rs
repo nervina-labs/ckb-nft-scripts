@@ -2,7 +2,7 @@ use alloc::vec;
 use ckb_std::{
     ckb_constants::Source,
     ckb_types::{bytes::Bytes, prelude::*},
-    high_level::load_script,
+    high_level::{load_cell_data, load_script},
 };
 use core::result::Result;
 use script_utils::{
@@ -20,7 +20,6 @@ fn parse_class_action(args: &Bytes) -> Result<Action, Error> {
     let outputs_count = count_cells_by_type_args(Source::Output, &check_args_equal);
 
     match (inputs_count, outputs_count) {
-        (0, 0) => Err(Error::ClassCellsCountError),
         (0, _outputs_count) => Ok(Action::Create),
         (1, 1) => Ok(Action::Update),
         (1, 0) => Ok(Action::Destroy),
@@ -51,18 +50,29 @@ fn handle_creation(args: &Bytes) -> Result<(), Error> {
     if output_issuer.class_count < input_issuer.class_count {
         return Err(Error::IssuerClassCountError);
     }
-    let mut class_cells_type_args_ids = vec![input_issuer.class_count];
-    for id in (input_issuer.class_count + 1)..output_issuer.class_count {
-        class_cells_type_args_ids.push(id);
+    let mut issuer_cell_class_ids = vec![input_issuer.class_count];
+    for class_id in (input_issuer.class_count + 1)..output_issuer.class_count {
+        issuer_cell_class_ids.push(class_id);
     }
 
     let check_args_equal = |type_args: &Bytes| type_args[..] == args[..];
-    let mut class_outputs_type_args_ids =
-        load_output_type_args_ids(ISSUER_TYPE_ARGS_LEN, &check_args_equal);
-    class_outputs_type_args_ids.sort();
+    let mut outputs_class_ids = load_output_type_args_ids(ISSUER_TYPE_ARGS_LEN, &check_args_equal);
+    outputs_class_ids.sort();
 
-    if &class_outputs_type_args_ids[..] == &class_cells_type_args_ids[..] {
+    if &outputs_class_ids[..] == &issuer_cell_class_ids[..] {
         return Err(Error::ClassCellsCountError);
+    }
+    Ok(())
+}
+
+fn handle_update() -> Result<(), Error> {
+    let class_input_data = load_cell_data(0, Source::GroupInput)?;
+    let class_output_data = load_cell_data(0, Source::GroupOutput)?;
+    let input_class = Class::from_data(&class_input_data[..])?;
+    let output_class = Class::from_data(&class_output_data[..])?;
+
+    if !input_class.immutable_equal(&output_class) {
+        return Err(Error::ClassImmutableFieldsNotEqual);
     }
     Ok(())
 }
@@ -76,7 +86,7 @@ pub fn main() -> Result<(), Error> {
 
     match parse_class_action(&args)? {
         Action::Create => handle_creation(&args),
-        Action::Update => Ok(()),
+        Action::Update => handle_update(),
         Action::Destroy => Ok(()),
     }
 }

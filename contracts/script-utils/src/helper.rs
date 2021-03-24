@@ -42,12 +42,11 @@ pub fn count_cells_by_type_args(source: Source, predicate: &dyn Fn(&Bytes) -> bo
 }
 
 pub fn load_output_index_by_type_args(args: &Bytes) -> Option<usize> {
-    QueryIter::new(load_cell_type, Source::Output)
-        .position(|type_opt| match type_opt {
-            Some(type_) => load_type_args(&type_)[..] == args[..],
-            None => false,
-        })
-    }
+    QueryIter::new(load_cell_type, Source::Output).position(|type_opt| match type_opt {
+        Some(type_) => load_type_args(&type_)[..] == args[..],
+        None => false,
+    })
+}
 
 pub fn load_cell_data_by_type_args(
     source: Source,
@@ -69,4 +68,11 @@ pub fn load_output_type_args_ids(
             None => None,
         })
         .collect()
+}
+
+pub fn parse_dyn_vec_len(data: &[u8]) -> usize {
+    let mut size_buf = [0u8; 2];
+    size_buf.copy_from_slice(&data[..]);
+    let size = u16::from_be_bytes(size_buf) as usize;
+    size + 2
 }
