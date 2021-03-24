@@ -1,7 +1,6 @@
 use core::result::Result;
-use crate::error::Error;
+use script_utils::error::Error;
 
 pub fn main() -> Result<(), Error> {
     Ok(())
 }
-

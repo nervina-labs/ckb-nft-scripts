@@ -7,6 +7,13 @@ pub enum Error {
     ItemMissing,
     LengthNotEnough,
     Encoding,
+    IssuerDataInvalid = 5,
+    IssuerCellsCountError,
+    TypeArgsInvalid,
+    IssuerClassCountError,
+    IssuerSetCountError,
+    IssuerCellCannotDestroyed = 10,
+    VersionInvalid,
 }
 
 impl From<SysError> for Error {
@@ -21,4 +28,3 @@ impl From<SysError> for Error {
         }
     }
 }
-
