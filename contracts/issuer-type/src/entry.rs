@@ -7,7 +7,7 @@ use blake2b_rs::Blake2bBuilder;
 use core::result::Result;
 use script_utils::{
     error::Error,
-    helper::{count_cells_with_type_args, load_output_index_by_type_args, Action},
+    helper::{count_cells_by_type_args, load_output_index_by_type_args, Action},
     issuer::{Issuer, ISSUER_TYPE_ARGS_LEN},
 };
 

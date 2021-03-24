@@ -44,7 +44,7 @@ pub fn count_cells_by_type_args(source: Source, predicate: &dyn Fn(&Bytes) -> bo
 pub fn load_output_index_by_type_args(args: &Bytes) -> Option<usize> {
     QueryIter::new(load_cell_type, Source::Output)
         .position(|type_opt| match type_opt {
-            Some(type_) => load_type_args(type_)[..] == args[..],
+            Some(type_) => load_type_args(&type_)[..] == args[..],
             None => false,
         })
     }
