@@ -20,6 +20,7 @@ pub enum Error {
     ClassIssuedInvalid = 15,
     ClassImmutableFieldsNotSame,
     ClassCellCannotDestroyed,
+    ClassIdIncreaseError,
 }
 
 impl From<SysError> for Error {
