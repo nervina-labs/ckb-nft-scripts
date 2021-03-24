@@ -1,7 +1,7 @@
 use super::*;
 use ckb_testtool::{builtin::ALWAYS_SUCCESS, context::Context};
 use ckb_tool::ckb_error::assert_error_eq;
-use ckb_tool::ckb_hash::blake2b_256;
+use ckb_tool::ckb_hash::Blake2bBuilder;
 use ckb_tool::ckb_script::ScriptError;
 use ckb_tool::ckb_types::{
     bytes::Bytes,
@@ -40,13 +40,6 @@ enum IssuerError {
     ClassCellCountError,
 }
 
-pub fn blake160(data: &[u8]) -> [u8; 20] {
-    let mut buf = [0u8; 20];
-    let hash = blake2b_256(data);
-    buf.clone_from_slice(&hash[..20]);
-    buf
-}
-
 fn create_test_context(action: Action, issuer_error: IssuerError) -> (Context, TransactionView) {
     // deploy contract
     let mut context = Context::default();
@@ -82,10 +75,16 @@ fn create_test_context(action: Action, issuer_error: IssuerError) -> (Context, T
         .previous_output(normal_input_out_point.clone())
         .build();
 
-    let first_input_hash = blake160(&normal_input.as_slice());
+    let mut blake2b = Blake2bBuilder::new(32)
+        .personal(b"ckb-default-hash")
+        .build();
+    blake2b.update(normal_input.as_slice());
+    blake2b.update(&(0u64).to_le_bytes());
+    let mut ret = [0; 32];
+    blake2b.finalize(&mut ret);
     let issuer_type_args = match issuer_error {
-        IssuerError::TypeArgsInvalid => Bytes::copy_from_slice(&first_input_hash[0..10]),
-        _ => Bytes::copy_from_slice(&first_input_hash),
+        IssuerError::TypeArgsInvalid => Bytes::copy_from_slice(&ret[0..10]),
+        _ => Bytes::copy_from_slice(&ret[0..20]),
     };
 
     let issuer_type_script = context
@@ -169,8 +168,8 @@ fn create_test_context(action: Action, issuer_error: IssuerError) -> (Context, T
         _ => (),
     }
 
-    let mut class_type_args = blake2b_256(&normal_input.clone().as_slice()).to_vec();
-    let mut end_args = blake160(&normal_input.clone().as_slice()).to_vec();
+    let mut class_type_args = ret.clone().to_vec();
+    let mut end_args = ret.clone()[0..20].to_vec();
     class_type_args.append(&mut end_args);
 
     let class_type_script = context

@@ -5,4 +5,5 @@ edition = "2018"
 
 [dependencies]
 ckb-std = "0.7.1"
+blake2b-rs = "0.2.0"
 script-utils = { path = "../script-utils" }

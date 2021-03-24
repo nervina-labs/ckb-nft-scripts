@@ -15,3 +15,14 @@ pub fn count_cells_with_type_args(source: Source, condition: &dyn Fn(&Bytes) -> 
         })
         .count()
 }
+
+pub fn load_output_index_by_type_args(args: &Bytes) -> Option<usize> {
+    QueryIter::new(load_cell_type, Source::Output)
+        .position(|type_opt| match type_opt {
+            Some(type_) => {
+                let type_args: Bytes = type_.args().unpack();
+                type_args[..] == args[..]
+            }
+            None => false,
+        })
+}
