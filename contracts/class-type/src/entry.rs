@@ -23,7 +23,7 @@ fn parse_class_action(class_args: &Bytes) -> Result<Action, Error> {
     let outputs_count = count_cells_by_type_args(Source::Output, &check_class_args);
 
     match (inputs_count, outputs_count) {
-        (0, _outputs_count) => Ok(Action::Create),
+        (0, _) => Ok(Action::Create),
         (1, 1) => Ok(Action::Update),
         (1, 0) => Ok(Action::Destroy),
         _ => Err(Error::ClassCellsCountError),
@@ -37,13 +37,14 @@ fn handle_creation(class_args: &Bytes) -> Result<(), Error> {
         return Err(Error::ClassIssuedInvalid);
     }
 
-    let check_issuer_args = |type_args: &Bytes| type_args[..] == class_args[0..ISSUER_TYPE_ARGS_LEN];
+    let check_issuer_args =
+        |type_args: &Bytes| type_args[..] == class_args[0..ISSUER_TYPE_ARGS_LEN];
     let issuer_inputs_count = count_cells_by_type_args(Source::Input, &check_issuer_args);
     let issuer_outputs_count = count_cells_by_type_args(Source::Output, &check_issuer_args);
     if issuer_inputs_count != 1 || issuer_outputs_count != 1 {
         return Err(Error::IssuerCellsCountError);
     }
-    
+
     let input_issuer = match load_cell_data_by_type_args(Source::Input, &check_issuer_args) {
         Some(issuer_input_data) => Ok(Issuer::from_data(&issuer_input_data[..])?),
         None => Err(Error::IssuerDataInvalid),
@@ -56,7 +57,8 @@ fn handle_creation(class_args: &Bytes) -> Result<(), Error> {
     if output_issuer.class_count < input_issuer.class_count {
         return Err(Error::IssuerClassCountError);
     }
-    let class_outputs_increased_count = (output_issuer.class_count - input_issuer.class_count) as usize;
+    let class_outputs_increased_count =
+        (output_issuer.class_count - input_issuer.class_count) as usize;
 
     let check_class_args = |type_args: &Bytes| {
         type_args.len() == CLASS_TYPE_ARGS_LEN
@@ -80,8 +82,10 @@ fn handle_creation(class_args: &Bytes) -> Result<(), Error> {
 }
 
 fn handle_update() -> Result<(), Error> {
-    let class_input_data = load_cell_data(0, Source::GroupInput)?;
-    let class_output_data = load_cell_data(0, Source::GroupOutput)?;
+    let class_input_data =
+        load_cell_data(0, Source::GroupInput).map_err(|_| Error::ClassDataInvalid)?;
+    let class_output_data =
+        load_cell_data(0, Source::GroupOutput).map_err(|_| Error::ClassDataInvalid)?;
     let input_class = Class::from_data(&class_input_data[..])?;
     let output_class = Class::from_data(&class_output_data[..])?;
 

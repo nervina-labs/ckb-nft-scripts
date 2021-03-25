@@ -4,7 +4,7 @@ use alloc::vec::Vec;
 use core::result::Result;
 
 const CLASS_MIN_LEN: usize = 16;
-pub const CLASS_TYPE_ARGS_LEN: usize = 52;
+pub const CLASS_TYPE_ARGS_LEN: usize = 24;
 
 /// class cell data structure
 /// This structure contains the following information:

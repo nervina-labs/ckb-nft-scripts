@@ -1,11 +1,15 @@
+use ckb_tool::ckb_error::Error;
 use ckb_tool::ckb_types::bytes::Bytes;
 use std::env;
 use std::fs;
 use std::path::PathBuf;
 use std::str::FromStr;
 
+// #[cfg(test)]
+// mod issuer_tests;
+
 #[cfg(test)]
-mod issuer_tests;
+mod class_tests;
 
 const TEST_ENV_VAR: &str = "CAPSULE_TEST_ENV";
 
@@ -58,4 +62,18 @@ impl Loader {
         path.push(name);
         fs::read(path).expect("binary").into()
     }
+}
+
+#[macro_export]
+macro_rules! assert_errors_contain {
+    ($err:expr, $errors:expr) => {
+        let err_ = Into::<Error>::into($err).to_string();
+        let result = $errors
+            .into_iter()
+            .any(|error| err_ == Into::<Error>::into(Error::from(error)).to_string());
+        assert!(result);
+    };
+    ($err:expr, $errors:expr,) => {
+        $crate::assert_errors_contain!($err, $errors);
+    };
 }
