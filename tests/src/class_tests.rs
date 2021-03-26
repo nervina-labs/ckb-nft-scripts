@@ -139,6 +139,7 @@ fn create_test_context(action: Action, class_error: ClassError) -> (Context, Tra
     let mut class_type_args = issuer_type_args.clone().to_vec();
     let mut args_class_id = match class_error {
         ClassError::TypeArgsClassIdNotSame => 6u32.to_be_bytes().to_vec(),
+        ClassError::ClassTypeArgsInvalid => 8u16.to_be_bytes().to_vec(),
         _ => 8u32.to_be_bytes().to_vec(),
     };
     class_type_args.append(&mut args_class_id);
