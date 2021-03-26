@@ -14,13 +14,20 @@ use script_utils::{
     issuer::{Issuer, ISSUER_TYPE_ARGS_LEN},
 };
 
-fn parse_class_action(class_args: &Bytes) -> Result<Action, Error> {
-    let check_class_args = |type_args: &Bytes| {
+fn check_issuer_args<'a>(class_args: &'a Bytes) -> impl Fn(&Bytes) -> bool + 'a {
+    move |type_args: &Bytes| type_args[..] == class_args[0..ISSUER_TYPE_ARGS_LEN]
+}
+
+fn check_class_args<'a>(class_args: &'a Bytes) -> impl Fn(&Bytes) -> bool + 'a {
+    move |type_args: &Bytes| {
         type_args.len() == CLASS_TYPE_ARGS_LEN
             && type_args[0..ISSUER_TYPE_ARGS_LEN] == class_args[0..ISSUER_TYPE_ARGS_LEN]
-    };
-    let inputs_count = count_cells_by_type_args(Source::Input, &check_class_args);
-    let outputs_count = count_cells_by_type_args(Source::Output, &check_class_args);
+    }
+}
+
+fn parse_class_action(class_args: &Bytes) -> Result<Action, Error> {
+    let inputs_count = count_cells_by_type_args(Source::Input, &check_class_args(class_args));
+    let outputs_count = count_cells_by_type_args(Source::Output, &check_class_args(class_args));
 
     match (inputs_count, outputs_count) {
         (0, _) => Ok(Action::Create),
@@ -37,42 +44,42 @@ fn handle_creation(class_args: &Bytes) -> Result<(), Error> {
         return Err(Error::ClassIssuedInvalid);
     }
 
-    let check_issuer_args =
-        |type_args: &Bytes| type_args[..] == class_args[0..ISSUER_TYPE_ARGS_LEN];
-    let issuer_inputs_count = count_cells_by_type_args(Source::Input, &check_issuer_args);
-    let issuer_outputs_count = count_cells_by_type_args(Source::Output, &check_issuer_args);
+    let issuer_inputs_count =
+        count_cells_by_type_args(Source::Input, &check_issuer_args(class_args));
+    let issuer_outputs_count =
+        count_cells_by_type_args(Source::Output, &check_issuer_args(class_args));
     if issuer_inputs_count != 1 || issuer_outputs_count != 1 {
         return Err(Error::IssuerCellsCountError);
     }
 
-    let input_issuer = match load_cell_data_by_type_args(Source::Input, &check_issuer_args) {
-        Some(issuer_input_data) => Ok(Issuer::from_data(&issuer_input_data[..])?),
-        None => Err(Error::IssuerDataInvalid),
-    }?;
-    let output_issuer = match load_cell_data_by_type_args(Source::Output, &check_issuer_args) {
-        Some(issuer_output_data) => Ok(Issuer::from_data(&issuer_output_data[..])?),
-        None => Err(Error::IssuerDataInvalid),
-    }?;
+    let input_issuer =
+        match load_cell_data_by_type_args(Source::Input, &check_issuer_args(class_args)) {
+            Some(data) => Ok(Issuer::from_data(&data[..])?),
+            None => Err(Error::IssuerDataInvalid),
+        }?;
+    let output_issuer =
+        match load_cell_data_by_type_args(Source::Output, &check_issuer_args(class_args)) {
+            Some(data) => Ok(Issuer::from_data(&data[..])?),
+            None => Err(Error::IssuerDataInvalid),
+        }?;
 
     if output_issuer.class_count < input_issuer.class_count {
         return Err(Error::IssuerClassCountError);
     }
+
+    let mut outputs_class_ids =
+        load_output_type_args_ids(ISSUER_TYPE_ARGS_LEN, &check_class_args(class_args));
     let class_outputs_increased_count =
         (output_issuer.class_count - input_issuer.class_count) as usize;
-    let mut issuer_cell_class_ids = Vec::new();
-    for class_id in input_issuer.class_count..output_issuer.class_count {
-        issuer_cell_class_ids.push(class_id);
-    }
-
-    let check_class_args = |type_args: &Bytes| {
-        type_args.len() == CLASS_TYPE_ARGS_LEN
-            && type_args[0..ISSUER_TYPE_ARGS_LEN] == class_args[0..ISSUER_TYPE_ARGS_LEN]
-    };
-    let mut outputs_class_ids = load_output_type_args_ids(ISSUER_TYPE_ARGS_LEN, &check_class_args);
     if class_outputs_increased_count != outputs_class_ids.len() {
         return Err(Error::ClassCellsCountError);
     }
     outputs_class_ids.sort();
+
+    let mut issuer_cell_class_ids = Vec::new();
+    for class_id in input_issuer.class_count..output_issuer.class_count {
+        issuer_cell_class_ids.push(class_id);
+    }
 
     if &outputs_class_ids[..] != &issuer_cell_class_ids[..] {
         return Err(Error::ClassIdIncreaseError);

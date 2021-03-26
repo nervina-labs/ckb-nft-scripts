@@ -26,10 +26,7 @@ fn parse_issuer_action(args: &Bytes) -> Result<Action, Error> {
 
 fn handle_creation(args: &Bytes) -> Result<(), Error> {
     let first_input = load_input(0, Source::Input)?;
-    let fist_output_index = match load_output_index_by_type_args(args) {
-        Some(index) => Ok(index),
-        None => Err(Error::Encoding),
-    }?;
+    let fist_output_index = load_output_index_by_type_args(args).ok_or(Error::Encoding)?;
     let mut blake2b = Blake2bBuilder::new(32)
         .personal(b"ckb-default-hash")
         .build();
@@ -38,7 +35,7 @@ fn handle_creation(args: &Bytes) -> Result<(), Error> {
     let mut ret = [0; 32];
     blake2b.finalize(&mut ret);
 
-    if args[..] != ret[0..20] {
+    if args[..] != ret[0..ISSUER_TYPE_ARGS_LEN] {
         return Err(Error::TypeArgsInvalid);
     }
     let issuer_cell_data = load_cell_data(0, Source::GroupOutput)?;
@@ -53,8 +50,10 @@ fn handle_creation(args: &Bytes) -> Result<(), Error> {
 }
 
 fn handle_update() -> Result<(), Error> {
-    let issuer_input_data = load_cell_data(0, Source::GroupInput)?;
-    let issuer_output_data = load_cell_data(0, Source::GroupOutput)?;
+    let issuer_input_data =
+        load_cell_data(0, Source::GroupInput).map_err(|_| Error::IssuerDataInvalid)?;
+    let issuer_output_data =
+        load_cell_data(0, Source::GroupOutput).map_err(|_| Error::IssuerDataInvalid)?;
     let input_issuer = Issuer::from_data(&issuer_input_data[..])?;
     let output_issuer = Issuer::from_data(&issuer_output_data[..])?;
     if output_issuer.set_count < input_issuer.set_count {

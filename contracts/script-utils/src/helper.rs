@@ -42,10 +42,8 @@ pub fn count_cells_by_type_args(source: Source, predicate: &dyn Fn(&Bytes) -> bo
 }
 
 pub fn load_output_index_by_type_args(args: &Bytes) -> Option<usize> {
-    QueryIter::new(load_cell_type, Source::Output).position(|type_opt| match type_opt {
-        Some(type_) => load_type_args(&type_)[..] == args[..],
-        None => false,
-    })
+    QueryIter::new(load_cell_type, Source::Output)
+        .position(|type_opt| type_opt.map_or(false, |type_| load_type_args(&type_)[..] == args[..]))
 }
 
 pub fn load_cell_data_by_type_args(
@@ -63,9 +61,8 @@ pub fn load_output_type_args_ids(
 ) -> Vec<u32> {
     QueryIter::new(load_cell_type, Source::Output)
         .filter(|type_opt| parse_type_opt(type_opt, predicate))
-        .filter_map(|type_opt| match type_opt {
-            Some(type_) => parse_type_args_id(type_, slice_start),
-            None => None,
+        .filter_map(|type_opt| {
+            type_opt.map_or(None, |type_| parse_type_args_id(type_, slice_start))
         })
         .collect()
 }
