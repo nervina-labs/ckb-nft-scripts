@@ -1,4 +1,4 @@
-use alloc::vec;
+use alloc::vec::Vec;
 use ckb_std::{
     ckb_constants::Source,
     ckb_types::{bytes::Bytes, prelude::*},
@@ -59,6 +59,10 @@ fn handle_creation(class_args: &Bytes) -> Result<(), Error> {
     }
     let class_outputs_increased_count =
         (output_issuer.class_count - input_issuer.class_count) as usize;
+    let mut issuer_cell_class_ids = Vec::new();
+    for class_id in input_issuer.class_count..output_issuer.class_count {
+        issuer_cell_class_ids.push(class_id);
+    }
 
     let check_class_args = |type_args: &Bytes| {
         type_args.len() == CLASS_TYPE_ARGS_LEN
@@ -70,12 +74,7 @@ fn handle_creation(class_args: &Bytes) -> Result<(), Error> {
     }
     outputs_class_ids.sort();
 
-    let mut issuer_cell_class_ids = vec![0u32; class_outputs_increased_count];
-    for class_id in input_issuer.class_count..output_issuer.class_count {
-        issuer_cell_class_ids.push(class_id);
-    }
-
-    if &outputs_class_ids[..] == &issuer_cell_class_ids[..] {
+    if &outputs_class_ids[..] != &issuer_cell_class_ids[..] {
         return Err(Error::ClassIdIncreaseError);
     }
     Ok(())
@@ -86,6 +85,7 @@ fn handle_update() -> Result<(), Error> {
         load_cell_data(0, Source::GroupInput).map_err(|_| Error::ClassDataInvalid)?;
     let class_output_data =
         load_cell_data(0, Source::GroupOutput).map_err(|_| Error::ClassDataInvalid)?;
+
     let input_class = Class::from_data(&class_input_data[..])?;
     let output_class = Class::from_data(&class_output_data[..])?;
 

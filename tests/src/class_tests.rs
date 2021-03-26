@@ -1,7 +1,6 @@
 use super::*;
 use ckb_testtool::{builtin::ALWAYS_SUCCESS, context::Context};
 use ckb_tool::ckb_error::assert_error_eq;
-use ckb_tool::ckb_error::Error;
 use ckb_tool::ckb_script::ScriptError;
 use ckb_tool::ckb_types::{
     bytes::Bytes,
@@ -13,6 +12,7 @@ use ckb_tool::ckb_types::{
 const MAX_CYCLES: u64 = 10_000_000;
 
 // error numbers
+const TYPE_ARGS_INVALID: i8 = 7;
 const CLASS_DATA_INVALID: i8 = 12;
 const CLASS_TOTAL_SMALLER_THAN_ISSUED: i8 = 13;
 const CLASS_CELLS_COUNT_ERROR: i8 = 14;
@@ -33,6 +33,12 @@ enum ClassError {
     ClassDataInvalid,
     TotalSmallerThanIssued,
     ClassCellsCountError,
+    ClassIssuedInvalid,
+    ClassImmutableFieldsNotSame,
+    ClassCellCannotDestroyed,
+    ClassIdIncreaseError,
+    ClassTypeArgsInvalid,
+    TypeArgsClassIdNotSame,
 }
 
 fn create_test_context(action: Action, class_error: ClassError) -> (Context, TransactionView) {
@@ -90,14 +96,20 @@ fn create_test_context(action: Action, class_error: ClassError) -> (Context, Tra
         Action::Update => {
             Bytes::from(hex::decode("000000000f0000000500000155000266660003898989").unwrap())
         }
-        Action::Destroy => {
-            Bytes::from(hex::decode("000000000f0000000000000155000266660003898989").unwrap())
-        }
+        Action::Destroy => match class_error {
+            ClassError::ClassCellCannotDestroyed => {
+                Bytes::from(hex::decode("000000000f0000000500000155000266660003898989").unwrap())
+            }
+            _ => Bytes::from(hex::decode("000000000f0000000000000155000266660003898989").unwrap()),
+        },
         Action::Create => Bytes::new(),
     };
 
     let mut class_type_args = issuer_type_args.clone().to_vec();
-    let mut args_class_id = 8u32.to_be_bytes().to_vec();
+    let mut args_class_id = match class_error {
+        ClassError::ClassTypeArgsInvalid => 8u16.to_be_bytes().to_vec(),
+        _ => 8u32.to_be_bytes().to_vec(),
+    };
     class_type_args.append(&mut args_class_id);
 
     let class_type_script = context
@@ -124,6 +136,20 @@ fn create_test_context(action: Action, class_error: ClassError) -> (Context, Tra
         _ => vec![class_input],
     };
 
+    let mut class_type_args = issuer_type_args.clone().to_vec();
+    let mut args_class_id = match class_error {
+        ClassError::TypeArgsClassIdNotSame => 6u32.to_be_bytes().to_vec(),
+        _ => 8u32.to_be_bytes().to_vec(),
+    };
+    class_type_args.append(&mut args_class_id);
+
+    let class_type_script = context
+        .build_script(
+            &class_out_point,
+            Bytes::copy_from_slice(&class_type_args[..]),
+        )
+        .expect("script");
+
     let mut outputs = match action {
         Action::Create => vec![CellOutput::new_builder()
             .capacity(500u64.pack())
@@ -143,7 +169,11 @@ fn create_test_context(action: Action, class_error: ClassError) -> (Context, Tra
 
     match action {
         Action::Create => {
-            for class_id in [10u32, 8u32, 9u32].iter() {
+            let class_ids = match class_error {
+                ClassError::ClassIdIncreaseError => [10u32, 8u32, 8u32],
+                _ => [10u32, 8u32, 9u32],
+            };
+            for class_id in class_ids.iter() {
                 let mut class_type_args = issuer_type_args.clone().to_vec();
                 let mut args_class_id = class_id.to_be_bytes().to_vec();
                 class_type_args.append(&mut args_class_id);
@@ -168,18 +198,32 @@ fn create_test_context(action: Action, class_error: ClassError) -> (Context, Tra
     }
 
     let outputs_data: Vec<_> = match action {
-        Action::Create => vec![
-            Bytes::from(hex::decode("000000000b000000000000").unwrap()),
-            Bytes::from(hex::decode("000000000f0000000000000155000266660003898989").unwrap()),
-            Bytes::from(hex::decode("000000000f0000000000000155000266660003898989").unwrap()),
-            Bytes::from(hex::decode("000000000f0000000000000155000266660003898989").unwrap()),
-        ],
+        Action::Create => match class_error {
+            ClassError::ClassIssuedInvalid => vec![
+                Bytes::from(hex::decode("000000000b000000000000").unwrap()),
+                Bytes::from(hex::decode("000000000f0000000600000155000266660003898989").unwrap()),
+                Bytes::from(hex::decode("000000000f0000000000000155000266660003898989").unwrap()),
+                Bytes::from(hex::decode("000000000f0000000000000155000266660003898989").unwrap()),
+            ],
+            _ => vec![
+                Bytes::from(hex::decode("000000000b000000000000").unwrap()),
+                Bytes::from(hex::decode("000000000f0000000000000155000266660003898989").unwrap()),
+                Bytes::from(hex::decode("000000000f0000000000000155000266660003898989").unwrap()),
+                Bytes::from(hex::decode("000000000f0000000000000155000266660003898989").unwrap()),
+            ],
+        },
         Action::Update => match class_error {
             ClassError::ClassDataInvalid => vec![Bytes::from(
                 hex::decode("000000000f000000050000015500026666").unwrap(),
             )],
             ClassError::TotalSmallerThanIssued => vec![Bytes::from(
                 hex::decode("000000000f000000150000015500026666000489898949").unwrap(),
+            )],
+            ClassError::ClassIssuedInvalid => vec![Bytes::from(
+                hex::decode("000000000f000000030000015500026666000489898949").unwrap(),
+            )],
+            ClassError::ClassImmutableFieldsNotSame => vec![Bytes::from(
+                hex::decode("000000000f0000000700000199000266660003898989").unwrap(),
             )],
             _ => vec![Bytes::from(
                 hex::decode("000000000f000000050000015500026666000489898949").unwrap(),
@@ -243,7 +287,7 @@ fn test_destroy_class_cell_success() {
 }
 
 #[test]
-fn test_update_class_data_error() {
+fn test_update_class_data_len_error() {
     let (mut context, tx) = create_test_context(Action::Update, ClassError::ClassDataInvalid);
 
     let tx = context.complete_tx(tx);
@@ -254,6 +298,21 @@ fn test_update_class_data_error() {
         err,
         ScriptError::ValidationFailure(CLASS_DATA_INVALID).input_type_script(script_cell_index)
     );
+}
+
+#[test]
+fn test_update_class_data_error() {
+    let (mut context, tx) = create_test_context(Action::Update, ClassError::TypeArgsClassIdNotSame);
+
+    let tx = context.complete_tx(tx);
+    // run
+    let err = context.verify_tx(&tx, MAX_CYCLES).unwrap_err();
+    let script_cell_index = 0;
+    let errors = vec![
+        ScriptError::ValidationFailure(CLASS_DATA_INVALID).input_type_script(script_cell_index),
+        ScriptError::ValidationFailure(CLASS_DATA_INVALID).output_type_script(script_cell_index),
+    ];
+    assert_errors_contain!(err, errors);
 }
 
 #[test]
@@ -288,4 +347,97 @@ fn test_create_class_cells_count_error() {
         .collect::<Vec<_>>();
 
     assert_errors_contain!(err, errors);
+}
+
+#[test]
+fn test_create_class_issued_not_zero_error() {
+    let (mut context, tx) = create_test_context(Action::Create, ClassError::ClassIssuedInvalid);
+
+    let tx = context.complete_tx(tx);
+    // run
+    let err = context.verify_tx(&tx, MAX_CYCLES).unwrap_err();
+    let script_cell_index = 1;
+    assert_error_eq!(
+        err,
+        ScriptError::ValidationFailure(CLASS_ISSUED_INVALID).output_type_script(script_cell_index)
+    );
+}
+
+#[test]
+fn test_update_class_issued_invalid_error() {
+    let (mut context, tx) = create_test_context(Action::Update, ClassError::ClassIssuedInvalid);
+
+    let tx = context.complete_tx(tx);
+    // run
+    let err = context.verify_tx(&tx, MAX_CYCLES).unwrap_err();
+    let script_cell_index = 0;
+    assert_error_eq!(
+        err,
+        ScriptError::ValidationFailure(CLASS_ISSUED_INVALID).input_type_script(script_cell_index)
+    );
+}
+
+#[test]
+fn test_update_class_immutable_fields_not_same_error() {
+    let (mut context, tx) =
+        create_test_context(Action::Update, ClassError::ClassImmutableFieldsNotSame);
+
+    let tx = context.complete_tx(tx);
+    // run
+    let err = context.verify_tx(&tx, MAX_CYCLES).unwrap_err();
+    let script_cell_index = 0;
+    assert_error_eq!(
+        err,
+        ScriptError::ValidationFailure(CLASS_IMMUTABLE_FIELDS_NOT_SAME)
+            .input_type_script(script_cell_index)
+    );
+}
+
+#[test]
+fn test_class_cell_cannot_destroyed_error() {
+    let (mut context, tx) =
+        create_test_context(Action::Destroy, ClassError::ClassCellCannotDestroyed);
+
+    let tx = context.complete_tx(tx);
+    // run
+    let err = context.verify_tx(&tx, MAX_CYCLES).unwrap_err();
+    let script_cell_index = 0;
+    assert_error_eq!(
+        err,
+        ScriptError::ValidationFailure(CLASS_CELL_CANNOT_DESTROYED)
+            .input_type_script(script_cell_index)
+    );
+}
+
+#[test]
+fn test_create_class_cells_increase_error() {
+    let (mut context, tx) = create_test_context(Action::Create, ClassError::ClassIdIncreaseError);
+
+    let tx = context.complete_tx(tx);
+    // run
+    let err = context.verify_tx(&tx, MAX_CYCLES).unwrap_err();
+    let script_cell_indexes = [1, 2, 3];
+
+    let errors = script_cell_indexes
+        .iter()
+        .map(|index| {
+            ScriptError::ValidationFailure(CLASS_ID_INCREASE_ERROR).output_type_script(*index)
+        })
+        .collect::<Vec<_>>();
+
+    assert_errors_contain!(err, errors);
+}
+
+#[test]
+fn test_update_class_type_args_invalid_error() {
+    let (mut context, tx) = create_test_context(Action::Update, ClassError::ClassTypeArgsInvalid);
+
+    let tx = context.complete_tx(tx);
+    // run
+    let err = context.verify_tx(&tx, MAX_CYCLES).unwrap_err();
+    let script_cell_index = 0;
+    assert_error_eq!(
+        err,
+        ScriptError::ValidationFailure(TYPE_ARGS_INVALID).input_type_script(script_cell_index)
+    );
 }
