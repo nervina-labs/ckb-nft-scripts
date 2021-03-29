@@ -1,15 +1,19 @@
 use ckb_std::{
     ckb_constants::Source,
     ckb_types::{bytes::Bytes, prelude::*},
-    high_level::load_script,
+    high_level::{load_cell_data, load_script},
 };
 use core::result::Result;
 use script_utils::{
+    class::CLASS_TYPE_ARGS_LEN,
     error::Error,
     helper::{count_cells_by_type_args, Action},
-    nft::{NFT_TYPE_ARGS_LEN},
-    class::{CLASS_TYPE_ARGS_LEN},
+    nft::{Nft, NFT_TYPE_ARGS_LEN},
 };
+
+fn check_class_args<'a>(nft_args: &'a Bytes) -> impl Fn(&Bytes) -> bool + 'a {
+    move |type_args: &Bytes| type_args[..] == nft_args[0..CLASS_TYPE_ARGS_LEN]
+}
 
 fn check_nft_args<'a>(nft_args: &'a Bytes) -> impl Fn(&Bytes) -> bool + 'a {
     move |type_args: &Bytes| {
@@ -19,15 +23,26 @@ fn check_nft_args<'a>(nft_args: &'a Bytes) -> impl Fn(&Bytes) -> bool + 'a {
 }
 
 fn parse_nft_action(nft_args: &Bytes) -> Result<Action, Error> {
-    let inputs_count = count_cells_by_type_args(Source::Input, &check_nft_args(nft_args));
-    let outputs_count = count_cells_by_type_args(Source::Output, &check_nft_args(nft_args));
-
-    match (inputs_count, outputs_count) {
+    let count_cells = |source| count_cells_by_type_args(source, &check_nft_args(nft_args));
+    let nft_cells_count = (count_cells(Source::Input), count_cells(Source::Output));
+    match nft_cells_count {
         (0, _) => Ok(Action::Create),
         (1, 1) => Ok(Action::Update),
         (1, 0) => Ok(Action::Destroy),
         _ => Err(Error::NFTCellsCountError),
     }
+}
+
+fn handle_creation(nft_args: &Bytes) -> Result<(), Error> {
+    let _ = Nft::from_data(&load_cell_data(0, Source::GroupOutput)?[..])?;
+
+    let count_cells = |source| count_cells_by_type_args(source, &check_class_args(nft_args));
+    let class_cells_count = (count_cells(Source::Input), count_cells(Source::Output));
+    if class_cells_count != (1, 1) {
+        return Err(Error::NFTCellsCountError);
+    }
+
+    Ok(())
 }
 
 pub fn main() -> Result<(), Error> {
@@ -38,7 +53,7 @@ pub fn main() -> Result<(), Error> {
     }
 
     match parse_nft_action(&nft_args)? {
-        Action::Create => Ok(()),
+        Action::Create => handle_creation(&nft_args),
         Action::Update => Ok(()),
         Action::Destroy => Ok(()),
     }
