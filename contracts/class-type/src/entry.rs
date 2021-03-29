@@ -63,7 +63,7 @@ fn handle_creation(class_args: &Bytes) -> Result<(), Error> {
             None => Err(Error::IssuerDataInvalid),
         }?;
 
-    if output_issuer.class_count < input_issuer.class_count {
+    if output_issuer.class_count <= input_issuer.class_count {
         return Err(Error::IssuerClassCountError);
     }
 
