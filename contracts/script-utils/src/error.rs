@@ -21,6 +21,8 @@ pub enum Error {
     ClassImmutableFieldsNotSame,
     ClassCellCannotDestroyed,
     ClassIdIncreaseError,
+    NFTDataInvalid,
+    NFTCellsCountError = 20,
 }
 
 impl From<SysError> for Error {

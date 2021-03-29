@@ -5,3 +5,4 @@ pub mod class;
 pub mod error;
 pub mod helper;
 pub mod issuer;
+pub mod nft;
