@@ -73,3 +73,9 @@ pub fn parse_dyn_vec_len(data: &[u8]) -> usize {
     let size = u16::from_be_bytes(size_buf) as usize;
     size + 2
 }
+
+pub fn u32_from_slice(data: &[u8]) -> u32 {
+    let mut buf = [0u8; 4];
+    buf.copy_from_slice(data);
+    u32::from_be_bytes(buf)
+}

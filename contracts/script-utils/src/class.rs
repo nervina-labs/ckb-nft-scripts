@@ -1,5 +1,5 @@
 use crate::error::Error;
-use crate::helper::parse_dyn_vec_len;
+use crate::helper::{parse_dyn_vec_len, u32_from_slice};
 use alloc::vec::Vec;
 use core::result::Result;
 
@@ -39,12 +39,8 @@ impl Class {
             return Err(Error::VersionInvalid);
         }
 
-        let mut total_buf = [0u8; 4];
-        let mut issued_buf = [0u8; 4];
-        total_buf.copy_from_slice(&data[1..5]);
-        issued_buf.copy_from_slice(&data[5..9]);
-        let total = u32::from_be_bytes(total_buf);
-        let issued = u32::from_be_bytes(issued_buf);
+        let total = u32_from_slice(&data[1..5]);
+        let issued = u32_from_slice(&data[5..9]);
 
         if total > 0 && issued >= total {
             return Err(Error::ClassTotalSmallerThanIssued);
