@@ -23,6 +23,8 @@ pub enum Error {
     ClassIdIncreaseError,
     NFTDataInvalid,
     NFTCellsCountError = 20,
+    TokenIdIncreaseError,
+    NFTAndClassConfigureNotSame,
 }
 
 impl From<SysError> for Error {
