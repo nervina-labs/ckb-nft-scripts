@@ -29,6 +29,10 @@ fn check_nft_args<'a>(nft_args: &'a Bytes) -> impl Fn(&Bytes) -> bool + 'a {
     }
 }
 
+fn load_nft_data(source: Source) -> Result<Vec<u8>, Error> {
+    load_cell_data(0, source).map_err(|_| Error::NFTDataInvalid)
+}
+
 fn parse_nft_action(nft_args: &Bytes) -> Result<Action, Error> {
     let count_cells = |source| count_cells_by_type_args(source, &check_nft_args(nft_args));
     let nft_cells_count = (count_cells(Source::Input), count_cells(Source::Output));
@@ -59,7 +63,7 @@ fn handle_creation(nft_args: &Bytes) -> Result<(), Error> {
         return Err(Error::ClassIssuedInvalid);
     }
 
-    let nft = Nft::from_data(&load_cell_data(0, Source::GroupOutput)?)?;
+    let nft = Nft::from_data(&load_nft_data(Source::GroupOutput)?[..])?;
     if nft.configure != input_class.configure {
         return Err(Error::NFTAndClassConfigureNotSame);
     }
@@ -85,10 +89,9 @@ fn handle_creation(nft_args: &Bytes) -> Result<(), Error> {
 }
 
 fn handle_update() -> Result<(), Error> {
-    let load_data = |source| load_cell_data(0, source).map_err(|_| Error::NFTDataInvalid);
     let nft_data = (
-        load_data(Source::GroupInput)?,
-        load_data(Source::GroupOutput)?,
+        load_nft_data(Source::GroupInput)?,
+        load_nft_data(Source::GroupOutput)?,
     );
     let nfts = (
         Nft::from_data(&nft_data.0[..])?,
@@ -102,6 +105,17 @@ fn handle_update() -> Result<(), Error> {
     Ok(())
 }
 
+fn handle_destroying() -> Result<(), Error> {
+    let input_nft = Nft::from_data(&load_nft_data(Source::GroupInput)?[..])?;
+    if !input_nft.is_claimed() && !input_nft.allow_destroying_before_claim() {
+        return Err(Error::NFTCannotDestroyBeforeClaim);
+    }
+    if input_nft.is_claimed() && !input_nft.allow_destroying_after_claim() {
+        return Err(Error::NFTCannotDestroyAfterClaim);
+    }
+    Ok(())
+}
+
 pub fn main() -> Result<(), Error> {
     let script = load_script()?;
     let nft_args: Bytes = script.args().unpack();
@@ -112,6 +126,6 @@ pub fn main() -> Result<(), Error> {
     match parse_nft_action(&nft_args)? {
         Action::Create => handle_creation(&nft_args),
         Action::Update => handle_update(),
-        Action::Destroy => Ok(()),
+        Action::Destroy => handle_destroying(),
     }
 }

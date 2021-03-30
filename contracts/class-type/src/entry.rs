@@ -25,6 +25,10 @@ fn check_class_args<'a>(class_args: &'a Bytes) -> impl Fn(&Bytes) -> bool + 'a {
     }
 }
 
+fn load_class_data(source: Source) -> Result<Vec<u8>, Error> {
+    load_cell_data(0, source).map_err(|_| Error::ClassDataInvalid)
+}
+
 fn parse_class_action(class_args: &Bytes) -> Result<Action, Error> {
     let count_cells = |source| count_cells_by_type_args(source, &check_class_args(class_args));
     let class_cells_count = (count_cells(Source::Input), count_cells(Source::Output));
@@ -37,7 +41,7 @@ fn parse_class_action(class_args: &Bytes) -> Result<Action, Error> {
 }
 
 fn handle_creation(class_args: &Bytes) -> Result<(), Error> {
-    let class = Class::from_data(&load_cell_data(0, Source::GroupOutput)?)?;
+    let class = Class::from_data(&load_class_data(Source::GroupOutput)?)?;
     if class.issued != 0 {
         return Err(Error::ClassIssuedInvalid);
     }
@@ -81,8 +85,7 @@ fn handle_creation(class_args: &Bytes) -> Result<(), Error> {
 }
 
 fn handle_update() -> Result<(), Error> {
-    let load_class =
-        |source| Class::from_data(&load_cell_data(0, source).map_err(|_| Error::ClassDataInvalid)?);
+    let load_class = |source| Class::from_data(&load_class_data(source)?[..]);
 
     let input_class = load_class(Source::GroupInput)?;
     let output_class = load_class(Source::GroupOutput)?;
@@ -98,7 +101,7 @@ fn handle_update() -> Result<(), Error> {
 }
 
 fn handle_destroying() -> Result<(), Error> {
-    let input_class = Class::from_data(&load_cell_data(0, Source::GroupInput)?)?;
+    let input_class = Class::from_data(&load_class_data(Source::GroupInput)?[..])?;
     if input_class.issued > 0 {
         return Err(Error::ClassCellCannotDestroyed);
     }
