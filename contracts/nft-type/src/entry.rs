@@ -1,3 +1,7 @@
+use crate::validator::{
+    validate_immutable_nft_fields, validate_nft_claim, validate_nft_ext_info, validate_nft_lock,
+    validate_nft_transfer,
+};
 use alloc::vec::Vec;
 use ckb_std::{
     ckb_constants::Source,
@@ -43,11 +47,11 @@ fn handle_creation(nft_args: &Bytes) -> Result<(), Error> {
         return Err(Error::NFTCellsCountError);
     }
 
-    let load_class =
-        |source| match load_cell_data_by_type_args(source, &check_class_args(nft_args)) {
-            Some(data) => Ok(Class::from_data(&data)?),
-            None => Err(Error::ClassDataInvalid),
-        };
+    let load_class = |source| match load_cell_data_by_type_args(source, &check_class_args(nft_args))
+    {
+        Some(data) => Ok(Class::from_data(&data)?),
+        None => Err(Error::ClassDataInvalid),
+    };
     let input_class = load_class(Source::Input)?;
     let output_class = load_class(Source::Output)?;
 
@@ -62,8 +66,7 @@ fn handle_creation(nft_args: &Bytes) -> Result<(), Error> {
 
     let mut outputs_token_ids =
         load_output_type_args_ids(CLASS_TYPE_ARGS_LEN, &check_class_args(nft_args));
-    let nft_outputs_increased_count =
-        (output_class.issued - input_class.issued) as usize;
+    let nft_outputs_increased_count = (output_class.issued - input_class.issued) as usize;
     if nft_outputs_increased_count != outputs_token_ids.len() {
         return Err(Error::NFTCellsCountError);
     }
@@ -82,20 +85,20 @@ fn handle_creation(nft_args: &Bytes) -> Result<(), Error> {
 }
 
 fn handle_update() -> Result<(), Error> {
-    let load_nft = |source| {
-        Nft::from_data(&load_cell_data(0, source).map_err(|_| Error::NFTDataInvalid)?)
-    };
-    let input_nft = load_nft(Source::GroupInput)?;
-    let output_nft = load_nft(Source::GroupOutput)?;
-
-    if input_nft.characteristic != output_nft.characteristic {
-        return Err(Error::NFTCharacteristicNotSame);
-    }
-
-    if input_nft.configure != output_nft.configure {
-        return Err(Error::NFTConfigureNotSame);
-    }
-
+    let load_data = |source| load_cell_data(0, source).map_err(|_| Error::NFTDataInvalid);
+    let nft_data = (
+        load_data(Source::GroupInput)?,
+        load_data(Source::GroupOutput)?,
+    );
+    let nfts = (
+        Nft::from_data(&nft_data.0[..])?,
+        Nft::from_data(&nft_data.1[..])?,
+    );
+    validate_immutable_nft_fields(&nfts)?;
+    validate_nft_claim(&nfts)?;
+    validate_nft_lock(&nfts)?;
+    validate_nft_transfer(&nfts.0)?;
+    validate_nft_ext_info(&nfts.0, &nft_data)?;
     Ok(())
 }
 

@@ -27,6 +27,13 @@ pub enum Error {
     NFTAndClassConfigureNotSame,
     NFTCharacteristicNotSame,
     NFTConfigureNotSame,
+    NFTClaimedToUnclaimedError = 25,
+    NFTLockedToUnlockedError,
+    NFTCannotClaimed,
+    NFTCannotLocked,
+    NFTCannotTransferBeforeClaim,
+    NFTCannotTransferAfterClaim = 30,
+    NFTExtInfoLenError,
 }
 
 impl From<SysError> for Error {

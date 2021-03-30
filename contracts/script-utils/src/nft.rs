@@ -1,7 +1,7 @@
 use crate::error::Error;
 use core::result::Result;
 
-const NFT_DATA_MIN_LEN: usize = 11;
+pub const NFT_DATA_MIN_LEN: usize = 11;
 pub const NFT_TYPE_ARGS_LEN: usize = 28;
 
 /// NFT cell data structure
@@ -53,7 +53,7 @@ impl Nft {
         self.configure & 0b0000_0010 == 0b0000_0000
     }
 
-    pub fn allow_memo(&self) -> bool {
+    pub fn allow_ext_info(&self) -> bool {
         self.configure & 0b0000_0100 == 0b0000_0000
     }
 

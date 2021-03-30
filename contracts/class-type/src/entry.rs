@@ -81,9 +81,8 @@ fn handle_creation(class_args: &Bytes) -> Result<(), Error> {
 }
 
 fn handle_update() -> Result<(), Error> {
-    let load_class = |source| {
-        Class::from_data(&load_cell_data(0, source).map_err(|_| Error::ClassDataInvalid)?)
-    };
+    let load_class =
+        |source| Class::from_data(&load_cell_data(0, source).map_err(|_| Error::ClassDataInvalid)?);
 
     let input_class = load_class(Source::GroupInput)?;
     let output_class = load_class(Source::GroupOutput)?;
