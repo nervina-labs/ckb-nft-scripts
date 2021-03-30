@@ -11,6 +11,7 @@ pub const ISSUER_TYPE_ARGS_LEN: usize = 20;
 /// 2) class_count: u32
 /// 3) set_count: u32
 /// 4) info: <size: u16> + <content>
+#[derive(Debug, Clone)]
 pub struct Issuer {
     pub version:     u8,
     pub class_count: u32,

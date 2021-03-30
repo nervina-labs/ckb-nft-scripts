@@ -46,7 +46,7 @@ fn handle_creation(nft_args: &Bytes) -> Result<(), Error> {
     let load_class =
         |source| match load_cell_data_by_type_args(source, &check_class_args(nft_args)) {
             Some(data) => Ok(Class::from_data(&data)?),
-            None => Err(Error::IssuerDataInvalid),
+            None => Err(Error::ClassDataInvalid),
         };
     let input_class = load_class(Source::Input)?;
     let output_class = load_class(Source::Output)?;
@@ -81,6 +81,24 @@ fn handle_creation(nft_args: &Bytes) -> Result<(), Error> {
     Ok(())
 }
 
+fn handle_update() -> Result<(), Error> {
+    let load_nft = |source| {
+        Nft::from_data(&load_cell_data(0, source).map_err(|_| Error::NFTDataInvalid)?)
+    };
+    let input_nft = load_nft(Source::GroupInput)?;
+    let output_nft = load_nft(Source::GroupOutput)?;
+
+    if input_nft.characteristic != output_nft.characteristic {
+        return Err(Error::NFTCharacteristicNotSame);
+    }
+
+    if input_nft.configure != output_nft.configure {
+        return Err(Error::NFTConfigureNotSame);
+    }
+
+    Ok(())
+}
+
 pub fn main() -> Result<(), Error> {
     let script = load_script()?;
     let nft_args: Bytes = script.args().unpack();
@@ -90,7 +108,7 @@ pub fn main() -> Result<(), Error> {
 
     match parse_nft_action(&nft_args)? {
         Action::Create => handle_creation(&nft_args),
-        Action::Update => Ok(()),
+        Action::Update => handle_update(),
         Action::Destroy => Ok(()),
     }
 }

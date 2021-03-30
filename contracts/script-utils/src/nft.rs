@@ -12,6 +12,7 @@ pub const NFT_TYPE_ARGS_LEN: usize = 28;
 /// 4) state: u8
 /// 5) extinfo_data: <size: u16> + <vartext>
 /// The filed of 5) can be changed and it also can be missing and it will not be validated.
+#[derive(Debug, Clone)]
 pub struct Nft {
     pub version:        u8,
     pub characteristic: [u8; 8],
@@ -42,5 +43,41 @@ impl Nft {
             configure,
             state,
         })
+    }
+
+    pub fn allow_claim(&self) -> bool {
+        self.configure & 0b0000_0001 == 0b0000_0000
+    }
+
+    pub fn allow_lock(&self) -> bool {
+        self.configure & 0b0000_0010 == 0b0000_0000
+    }
+
+    pub fn allow_memo(&self) -> bool {
+        self.configure & 0b0000_0100 == 0b0000_0000
+    }
+
+    pub fn allow_transfer_before_claim(&self) -> bool {
+        self.configure & 0b0001_0000 == 0b0000_0000
+    }
+
+    pub fn allow_transfer_after_claim(&self) -> bool {
+        self.configure & 0b0010_0000 == 0b0000_0000
+    }
+
+    pub fn allow_destroying_before_claim(&self) -> bool {
+        self.configure & 0b0100_0000 == 0b0000_0000
+    }
+
+    pub fn allow_destroying_after_claim(&self) -> bool {
+        self.configure & 0b1000_0000 == 0b0000_0000
+    }
+
+    pub fn is_claimed(&self) -> bool {
+        self.state & 0b0000_0001 == 0b0000_0001
+    }
+
+    pub fn is_locked(&self) -> bool {
+        self.state & 0b0000_0010 == 0b0000_0010
     }
 }

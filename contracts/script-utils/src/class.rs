@@ -22,6 +22,7 @@ pub const CLASS_TYPE_ARGS_LEN: usize = 24;
 /// The fields of 1), 2), 4), 5) and 6) cannot be changed after they are set and they cannot be
 /// missing. The fields of 3) and 7) can be changed and it cannot be missing.
 /// The filed of 8) can be changed and it also can be missing and it will not be validated.
+#[derive(Debug, Clone)]
 pub struct Class {
     pub version:     u8,
     pub total:       u32,

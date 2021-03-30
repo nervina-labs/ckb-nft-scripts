@@ -25,6 +25,8 @@ pub enum Error {
     NFTCellsCountError = 20,
     TokenIdIncreaseError,
     NFTAndClassConfigureNotSame,
+    NFTCharacteristicNotSame,
+    NFTConfigureNotSame,
 }
 
 impl From<SysError> for Error {
