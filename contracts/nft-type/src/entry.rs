@@ -34,7 +34,7 @@ fn parse_nft_action(nft_args: &Bytes) -> Result<Action, Error> {
 }
 
 fn handle_creation(nft_args: &Bytes) -> Result<(), Error> {
-    let _ = Nft::from_data(&load_cell_data(0, Source::GroupOutput)?[..])?;
+    let _ = Nft::from_data(&load_cell_data(0, Source::GroupOutput)?)?;
 
     let count_cells = |source| count_cells_by_type_args(source, &check_class_args(nft_args));
     let class_cells_count = (count_cells(Source::Input), count_cells(Source::Output));

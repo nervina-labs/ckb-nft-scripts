@@ -37,7 +37,7 @@ fn handle_creation(args: &Bytes) -> Result<(), Error> {
     if args[..] != ret[0..ISSUER_TYPE_ARGS_LEN] {
         return Err(Error::TypeArgsInvalid);
     }
-    let issuer = Issuer::from_data(&load_cell_data(0, Source::GroupOutput)?[..])?;
+    let issuer = Issuer::from_data(&load_cell_data(0, Source::GroupOutput)?)?;
     if issuer.class_count != 0 {
         return Err(Error::IssuerClassCountError);
     }
@@ -49,7 +49,7 @@ fn handle_creation(args: &Bytes) -> Result<(), Error> {
 
 fn handle_update() -> Result<(), Error> {
     let load_issuer = |source| {
-        Issuer::from_data(&load_cell_data(0, source).map_err(|_| Error::IssuerDataInvalid)?[..])
+        Issuer::from_data(&load_cell_data(0, source).map_err(|_| Error::IssuerDataInvalid)?)
     };
     let input_issuer = load_issuer(Source::GroupInput)?;
     let output_issuer = load_issuer(Source::GroupOutput)?;
@@ -63,7 +63,7 @@ fn handle_update() -> Result<(), Error> {
 }
 
 fn handle_destroying() -> Result<(), Error> {
-    let input_issuer = Issuer::from_data(&load_cell_data(0, Source::GroupInput)?[..])?;
+    let input_issuer = Issuer::from_data(&load_cell_data(0, Source::GroupInput)?)?;
     if input_issuer.class_count != 0 || input_issuer.set_count != 0 {
         return Err(Error::IssuerCellCannotDestroyed);
     }

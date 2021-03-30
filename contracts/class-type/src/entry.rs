@@ -37,7 +37,7 @@ fn parse_class_action(class_args: &Bytes) -> Result<Action, Error> {
 }
 
 fn handle_creation(class_args: &Bytes) -> Result<(), Error> {
-    let class = Class::from_data(&load_cell_data(0, Source::GroupOutput)?[..])?;
+    let class = Class::from_data(&load_cell_data(0, Source::GroupOutput)?)?;
     if class.issued != 0 {
         return Err(Error::ClassIssuedInvalid);
     }
@@ -50,7 +50,7 @@ fn handle_creation(class_args: &Bytes) -> Result<(), Error> {
 
     let load_issuer =
         |source| match load_cell_data_by_type_args(source, &check_issuer_args(class_args)) {
-            Some(data) => Ok(Issuer::from_data(&data[..])?),
+            Some(data) => Ok(Issuer::from_data(&data)?),
             None => Err(Error::IssuerDataInvalid),
         };
     let input_issuer = load_issuer(Source::Input)?;
@@ -74,7 +74,7 @@ fn handle_creation(class_args: &Bytes) -> Result<(), Error> {
         issuer_cell_class_ids.push(class_id);
     }
 
-    if &outputs_class_ids[..] != &issuer_cell_class_ids[..] {
+    if &outputs_class_ids != &issuer_cell_class_ids {
         return Err(Error::ClassIdIncreaseError);
     }
     Ok(())
@@ -82,7 +82,7 @@ fn handle_creation(class_args: &Bytes) -> Result<(), Error> {
 
 fn handle_update() -> Result<(), Error> {
     let load_class = |source| {
-        Class::from_data(&load_cell_data(0, source).map_err(|_| Error::ClassDataInvalid)?[..])
+        Class::from_data(&load_cell_data(0, source).map_err(|_| Error::ClassDataInvalid)?)
     };
 
     let input_class = load_class(Source::GroupInput)?;
@@ -99,8 +99,7 @@ fn handle_update() -> Result<(), Error> {
 }
 
 fn handle_destroying() -> Result<(), Error> {
-    let input_class = Class::from_data(&load_cell_data(0, Source::GroupInput)?[..])?;
-
+    let input_class = Class::from_data(&load_cell_data(0, Source::GroupInput)?)?;
     if input_class.issued > 0 {
         return Err(Error::ClassCellCannotDestroyed);
     }
