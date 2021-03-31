@@ -74,7 +74,7 @@ fn handle_creation(nft_args: &Bytes) -> Result<(), Error> {
     }
 
     let mut outputs_token_ids =
-        load_output_type_args_ids(CLASS_TYPE_ARGS_LEN, &check_class_args(nft_args));
+        load_output_type_args_ids(CLASS_TYPE_ARGS_LEN, &check_nft_args(nft_args));
     let nft_outputs_increased_count = (output_class.issued - input_class.issued) as usize;
     if nft_outputs_increased_count != outputs_token_ids.len() {
         return Err(Error::NFTCellsCountError);
