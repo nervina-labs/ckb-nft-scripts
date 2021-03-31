@@ -110,7 +110,7 @@ fn handle_update() -> Result<(), Error> {
     Ok(())
 }
 
-fn handle_destroying() -> Result<(), Error> {
+fn handle_destroying(nft_args: &Bytes) -> Result<(), Error> {
     let issuer_inputs_count = count_cells_by_type_args(Source::Input, &check_issuer_args(nft_args));
     let class_inputs_count = count_cells_by_type_args(Source::Input, &check_class_args(nft_args));
     if issuer_inputs_count > 0 || class_inputs_count > 0 {
@@ -136,6 +136,6 @@ pub fn main() -> Result<(), Error> {
     match parse_nft_action(&nft_args)? {
         Action::Create => handle_creation(&nft_args),
         Action::Update => handle_update(),
-        Action::Destroy => handle_destroying(),
+        Action::Destroy => handle_destroying(&nft_args),
     }
 }
