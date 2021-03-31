@@ -15,8 +15,13 @@ use script_utils::{
     helper::{
         count_cells_by_type_args, load_cell_data_by_type_args, load_output_type_args_ids, Action,
     },
+    issuer::ISSUER_TYPE_ARGS_LEN,
     nft::{Nft, NFT_TYPE_ARGS_LEN},
 };
+
+fn check_issuer_args<'a>(nft_args: &'a Bytes) -> impl Fn(&Bytes) -> bool + 'a {
+    move |type_args: &Bytes| type_args[..] == nft_args[0..ISSUER_TYPE_ARGS_LEN]
+}
 
 fn check_class_args<'a>(nft_args: &'a Bytes) -> impl Fn(&Bytes) -> bool + 'a {
     move |type_args: &Bytes| type_args[..] == nft_args[0..CLASS_TYPE_ARGS_LEN]
@@ -106,6 +111,11 @@ fn handle_update() -> Result<(), Error> {
 }
 
 fn handle_destroying() -> Result<(), Error> {
+    let issuer_inputs_count = count_cells_by_type_args(Source::Input, &check_issuer_args(nft_args));
+    let class_inputs_count = count_cells_by_type_args(Source::Input, &check_class_args(nft_args));
+    if issuer_inputs_count > 0 || class_inputs_count > 0 {
+        return Ok(());
+    }
     let input_nft = Nft::from_data(&load_nft_data(Source::GroupInput)?[..])?;
     if !input_nft.is_claimed() && !input_nft.allow_destroying_before_claim() {
         return Err(Error::NFTCannotDestroyBeforeClaim);

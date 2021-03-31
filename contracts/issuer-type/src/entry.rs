@@ -1,10 +1,10 @@
+use alloc::vec::Vec;
 use blake2b_rs::Blake2bBuilder;
 use ckb_std::{
     ckb_constants::Source,
     ckb_types::{bytes::Bytes, prelude::*},
     high_level::{load_cell_data, load_input, load_script},
 };
-use alloc::vec::Vec;
 use core::result::Result;
 use script_utils::{
     error::Error,
