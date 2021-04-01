@@ -6,6 +6,7 @@ use ckb_std::{
 };
 
 const ID_LEN: usize = 4;
+pub const DYN_MIN_LEN: usize = 2; // the length of dynamic data size(u16)
 
 pub enum Action {
     Create,
@@ -71,7 +72,7 @@ pub fn parse_dyn_vec_len(data: &[u8]) -> usize {
     let mut size_buf = [0u8; 2];
     size_buf.copy_from_slice(&data[..]);
     let size = u16::from_be_bytes(size_buf) as usize;
-    size + 2
+    size + DYN_MIN_LEN
 }
 
 pub fn u32_from_slice(data: &[u8]) -> u32 {
