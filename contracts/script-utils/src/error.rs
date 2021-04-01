@@ -14,6 +14,13 @@ pub enum Error {
     IssuerSetCountError,
     IssuerCellCannotDestroyed = 10,
     VersionInvalid,
+    ClassDataInvalid,
+    ClassTotalSmallerThanIssued,
+    ClassCellsCountError,
+    ClassIssuedInvalid = 15,
+    ClassImmutableFieldsNotSame,
+    ClassCellCannotDestroyed,
+    ClassIdIncreaseError,
 }
 
 impl From<SysError> for Error {
