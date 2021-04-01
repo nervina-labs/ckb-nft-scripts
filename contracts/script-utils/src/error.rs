@@ -23,7 +23,7 @@ pub enum Error {
     ClassIdIncreaseError,
     NFTDataInvalid,
     NFTCellsCountError = 20,
-    TokenIdIncreaseError,
+    NFTTokenIdIncreaseError,
     NFTAndClassConfigureNotSame,
     NFTCharacteristicNotSame,
     NFTConfigureNotSame,

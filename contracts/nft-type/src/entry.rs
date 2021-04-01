@@ -53,7 +53,7 @@ fn handle_creation(nft_args: &Bytes) -> Result<(), Error> {
     let count_cells = |source| count_cells_by_type_args(source, &check_class_args(nft_args));
     let class_cells_count = (count_cells(Source::Input), count_cells(Source::Output));
     if class_cells_count != (1, 1) {
-        return Err(Error::NFTCellsCountError);
+        return Err(Error::ClassCellsCountError);
     }
 
     let load_class = |source| match load_cell_data_by_type_args(source, &check_class_args(nft_args))
@@ -87,7 +87,7 @@ fn handle_creation(nft_args: &Bytes) -> Result<(), Error> {
     }
 
     if &outputs_token_ids != &class_cell_token_ids {
-        return Err(Error::TokenIdIncreaseError);
+        return Err(Error::NFTTokenIdIncreaseError);
     }
 
     Ok(())
