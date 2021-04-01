@@ -22,6 +22,9 @@ pub fn validate_immutable_nft_fields((input_nft, output_nft): &Nfts) -> Result<(
 pub fn validate_nft_claim((input_nft, output_nft): &Nfts) -> Result<(), Error> {
     match (input_nft.is_claimed(), output_nft.is_claimed()) {
         (false, true) => {
+            if input_nft.is_locked() {
+                return Err(Error::LockedNFTCannotClaim);
+            }
             if !input_nft.allow_claim() {
                 return Err(Error::NFTCannotClaimed);
             }
@@ -49,6 +52,9 @@ pub fn validate_nft_transfer(input_nft: &Nft) -> Result<(), Error> {
     let input_lock = load_cell_lock(0, Source::GroupInput)?;
     let output_lock = load_cell_lock(0, Source::GroupOutput)?;
     if input_lock.as_slice() != output_lock.as_slice() {
+        if input_nft.is_locked() {
+            return Err(Error::LockedNFTCannotTransfer);
+        }
         if !input_nft.is_claimed() && !input_nft.allow_transfer_before_claim() {
             return Err(Error::NFTCannotTransferBeforeClaim);
         }
@@ -73,7 +79,10 @@ pub fn validate_nft_ext_info(
         if input_nft_data[NFT_DATA_MIN_LEN..input_len]
             != output_nft_data[NFT_DATA_MIN_LEN..input_len]
         {
-            return Err(Error::NFTExtInfoLenError);
+            return Err(Error::NFTExtInfoCannotModify);
+        }
+        if input_nft.is_locked() {
+            return Err(Error::LockedNFTCannotAddExtInfo);
         }
         Ok(())
     } else {

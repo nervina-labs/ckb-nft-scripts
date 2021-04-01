@@ -34,8 +34,13 @@ pub enum Error {
     NFTCannotTransferBeforeClaim,
     NFTCannotTransferAfterClaim = 30,
     NFTExtInfoLenError,
+    NFTExtInfoCannotModify,
     NFTCannotDestroyBeforeClaim,
     NFTCannotDestroyAfterClaim,
+    LockedNFTCannotClaim = 35,
+    LockedNFTCannotTransfer,
+    LockedNFTCannotAddExtInfo,
+    LockedNFTCannotDestroy,
 }
 
 impl From<SysError> for Error {

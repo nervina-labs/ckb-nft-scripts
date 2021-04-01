@@ -12,7 +12,7 @@ use ckb_tool::ckb_types::{
 const MAX_CYCLES: u64 = 10_000_000;
 
 // error numbers
-// const TYPE_ARGS_INVALID: i8 = 7;
+const TYPE_ARGS_INVALID: i8 = 7;
 const NFT_DATA_INVALID: i8 = 19;
 const NFT_CELLS_COUNT_ERROR: i8 = 20;
 const NFT_TOKEN_ID_INCREASE_ERROR: i8 = 21;
@@ -26,8 +26,13 @@ const NFT_CANNOT_LOCKED: i8 = 28;
 const NFT_CANNOT_TRANSFER_BEFORE_CLAIM: i8 = 29;
 const NFT_CANNOT_TRANSFER_AFTER_CLAIM: i8 = 30;
 const NFT_EXT_INFO_LEN_ERROR: i8 = 31;
-// const NFT_CANNOT_DESTROY_BEFORE_CLAIM: i8 = 32;
-// const NFT_CANNOT_DESTROY_AFTER_CLAIM: i8 = 33;
+const NFT_EXT_INFO_CANNOT_MODIFY: i8 = 32;
+const NFT_CANNOT_DESTROY_BEFORE_CLAIM: i8 = 33;
+const NFT_CANNOT_DESTROY_AFTER_CLAIM: i8 = 34;
+const LOCKED_NFT_CANNOT_CLAIM: i8 = 35;
+const LOCKED_NFT_CANNOT_TRANSFER: i8 = 36;
+const LOCKED_NFT_CANNOT_ADD_EXT_INFO: i8 = 37;
+const LOCKED_NFT_CANNOT_DESTROY: i8 = 38;
 
 #[derive(PartialEq, Eq, Clone, Copy)]
 enum DestroyCase {
@@ -51,8 +56,10 @@ enum Action {
     Destroy(DestroyCase),
 }
 
+#[derive(PartialEq, Eq, Clone, Copy)]
 enum NftError {
     NoError,
+    TypeArgsInvalid,
     NFTDataInvalid,
     NFTCellsCountError,
     NFTTokenIdIncreaseError,
@@ -68,6 +75,12 @@ enum NftError {
     NFTAllowAddExtInfoShortError,
     NFTAllowAddExtInfoNotSameError,
     NFTDisallowAddExtInfoLenError,
+    NFTCannotDestroyBeforeClaim,
+    NFTCannotDestroyAfterClaim,
+    LockedNFTCannotClaim,
+    LockedNFTCannotTransfer,
+    LockedNFTCannotAddExtInfo,
+    LockedNFTCannotDestroy,
 }
 
 fn create_test_context(action: Action, nft_error: NftError) -> (Context, TransactionView) {
@@ -200,17 +213,40 @@ fn create_test_context(action: Action, nft_error: NftError) -> (Context, Transac
             NftError::NFTDisallowAddExtInfoLenError => {
                 Bytes::from(hex::decode("0000000000000000000400").unwrap())
             }
+            NftError::LockedNFTCannotClaim => {
+                Bytes::from(hex::decode("0000000000000000000002").unwrap())
+            }
+            NftError::LockedNFTCannotTransfer => {
+                Bytes::from(hex::decode("0000000000000000000002").unwrap())
+            }
+            NftError::LockedNFTCannotAddExtInfo => {
+                Bytes::from(hex::decode("0000000000000000000002").unwrap())
+            }
             _ => Bytes::from(hex::decode("0000000000000000000000").unwrap()),
         },
         Action::Destroy(case) => match case {
-            DestroyCase::Default => Bytes::from(hex::decode("0000000000000000000000").unwrap()),
+            DestroyCase::Default => match nft_error {
+                NftError::NFTCannotDestroyBeforeClaim => {
+                    Bytes::from(hex::decode("0000000000000000004000").unwrap())
+                }
+                NftError::NFTCannotDestroyAfterClaim => {
+                    Bytes::from(hex::decode("0000000000000000008001").unwrap())
+                }
+                NftError::LockedNFTCannotDestroy => {
+                    Bytes::from(hex::decode("0000000000000000000002").unwrap())
+                }
+                _ => Bytes::from(hex::decode("0000000000000000000000").unwrap()),
+            },
             _ => Bytes::from(hex::decode("000000000000000000c000").unwrap()),
         },
         Action::Create => Bytes::new(),
     };
 
     let mut nft_type_args = class_type_args.clone().to_vec();
-    let mut args_token_id = 11u32.to_be_bytes().to_vec();
+    let mut args_token_id = match nft_error {
+        NftError::TypeArgsInvalid => 11u16.to_be_bytes().to_vec(),
+        _ => 11u32.to_be_bytes().to_vec(),
+    };
     nft_type_args.append(&mut args_token_id);
 
     let nft_type_script = context
@@ -316,6 +352,12 @@ fn create_test_context(action: Action, nft_error: NftError) -> (Context, Transac
 
     let outputs_data: Vec<_> = match action {
         Action::Create => match nft_error {
+            NftError::NFTAndClassConfigureNotSame => vec![
+                Bytes::from(hex::decode("000000000f0000000e07000155000266660003898989").unwrap()),
+                Bytes::from(hex::decode("0000000000000000000000").unwrap()),
+                Bytes::from(hex::decode("0000000000000000000000").unwrap()),
+                Bytes::from(hex::decode("0000000000000000000000000155").unwrap()),
+            ],
             _ => vec![
                 Bytes::from(hex::decode("000000000f0000000e00000155000266660003898989").unwrap()),
                 Bytes::from(hex::decode("0000000000000000000000").unwrap()),
@@ -333,41 +375,52 @@ fn create_test_context(action: Action, nft_error: NftError) -> (Context, Transac
             (UpdateCase::AddExtInfo, NftError::NoError) => vec![Bytes::from(
                 hex::decode("0000000000000000000002000155").unwrap(),
             )],
-            (_, NftError::NFTDataInvalid) => {
+            (UpdateCase::Claim, NftError::NFTDataInvalid) => {
                 vec![Bytes::from(hex::decode("000000000000000000").unwrap())]
             }
-            (_, NftError::NFTCharacteristicNotSame) => {
+            (UpdateCase::Claim, NftError::NFTCharacteristicNotSame) => {
                 vec![Bytes::from(hex::decode("0000000000010203040000").unwrap())]
             }
-            (_, NftError::NFTConfigureNotSame) => {
+            (UpdateCase::Claim, NftError::NFTConfigureNotSame) => {
                 vec![Bytes::from(hex::decode("0000000000000000007800").unwrap())]
             }
-            (_, NftError::NFTClaimedToUnclaimedError) => {
+            (UpdateCase::Claim, NftError::NFTClaimedToUnclaimedError) => {
                 vec![Bytes::from(hex::decode("0000000000000000000000").unwrap())]
             }
-            (_, NftError::NFTLockedToUnlockedError) => {
+            (UpdateCase::Lock, NftError::NFTLockedToUnlockedError) => {
                 vec![Bytes::from(hex::decode("0000000000000000000000").unwrap())]
             }
-            (_, NftError::NFTCannotClaimed) => {
+            (UpdateCase::Claim, NftError::NFTCannotClaimed) => {
                 vec![Bytes::from(hex::decode("0000000000000000000101").unwrap())]
             }
-            (_, NftError::NFTCannotLocked) => {
+            (UpdateCase::Lock, NftError::NFTCannotLocked) => {
                 vec![Bytes::from(hex::decode("0000000000000000000202").unwrap())]
             }
-            (_, NftError::NFTCannotTransferBeforeClaim) => {
+            (UpdateCase::Transfer, NftError::NFTCannotTransferBeforeClaim) => {
                 vec![Bytes::from(hex::decode("0000000000000000001000").unwrap())]
             }
-            (_, NftError::NFTCannotTransferAfterClaim) => {
+            (UpdateCase::Transfer, NftError::NFTCannotTransferAfterClaim) => {
                 vec![Bytes::from(hex::decode("0000000000000000002001").unwrap())]
             }
-            (_, NftError::NFTAllowAddExtInfoShortError) => vec![Bytes::from(
+            (UpdateCase::AddExtInfo, NftError::NFTAllowAddExtInfoShortError) => vec![Bytes::from(
                 hex::decode("0000000000000000000000000288").unwrap(),
             )],
-            (_, NftError::NFTAllowAddExtInfoNotSameError) => vec![Bytes::from(
-                hex::decode("000000000000000000000000026677").unwrap(),
-            )],
-            (_, NftError::NFTDisallowAddExtInfoLenError) => vec![Bytes::from(
+            (UpdateCase::AddExtInfo, NftError::NFTAllowAddExtInfoNotSameError) => {
+                vec![Bytes::from(
+                    hex::decode("000000000000000000000000026677").unwrap(),
+                )]
+            }
+            (UpdateCase::AddExtInfo, NftError::NFTDisallowAddExtInfoLenError) => vec![Bytes::from(
                 hex::decode("0000000000000000000400023344").unwrap(),
+            )],
+            (UpdateCase::Claim, NftError::LockedNFTCannotClaim) => {
+                vec![Bytes::from(hex::decode("0000000000000000000003").unwrap())]
+            }
+            (UpdateCase::Transfer, NftError::LockedNFTCannotTransfer) => {
+                vec![Bytes::from(hex::decode("0000000000000000000002").unwrap())]
+            }
+            (UpdateCase::AddExtInfo, NftError::LockedNFTCannotAddExtInfo) => vec![Bytes::from(
+                hex::decode("0000000000000000000002000199").unwrap(),
             )],
             (_, _) => vec![Bytes::from(hex::decode("0000000000000000000000").unwrap())],
         },
@@ -749,7 +802,8 @@ fn test_update_nft_ext_info_not_same_error() {
     let script_cell_index = 0;
     assert_error_eq!(
         err,
-        ScriptError::ValidationFailure(NFT_EXT_INFO_LEN_ERROR).input_type_script(script_cell_index)
+        ScriptError::ValidationFailure(NFT_EXT_INFO_CANNOT_MODIFY)
+            .input_type_script(script_cell_index)
     );
 }
 
@@ -767,5 +821,128 @@ fn test_update_nft_cannot_add_ext_info_error() {
     assert_error_eq!(
         err,
         ScriptError::ValidationFailure(NFT_EXT_INFO_LEN_ERROR).input_type_script(script_cell_index)
+    );
+}
+
+#[test]
+fn test_cannot_destroy_nft_before_claim_error() {
+    let (mut context, tx) = create_test_context(
+        Action::Destroy(DestroyCase::Default),
+        NftError::NFTCannotDestroyBeforeClaim,
+    );
+
+    let tx = context.complete_tx(tx);
+    // run
+    let err = context.verify_tx(&tx, MAX_CYCLES).unwrap_err();
+    let script_cell_index = 0;
+    assert_error_eq!(
+        err,
+        ScriptError::ValidationFailure(NFT_CANNOT_DESTROY_BEFORE_CLAIM)
+            .input_type_script(script_cell_index)
+    );
+}
+
+#[test]
+fn test_cannot_destroy_nft_after_claim_error() {
+    let (mut context, tx) = create_test_context(
+        Action::Destroy(DestroyCase::Default),
+        NftError::NFTCannotDestroyAfterClaim,
+    );
+
+    let tx = context.complete_tx(tx);
+    // run
+    let err = context.verify_tx(&tx, MAX_CYCLES).unwrap_err();
+    let script_cell_index = 0;
+    assert_error_eq!(
+        err,
+        ScriptError::ValidationFailure(NFT_CANNOT_DESTROY_AFTER_CLAIM)
+            .input_type_script(script_cell_index)
+    );
+}
+
+#[test]
+fn test_locked_nft_cannot_claim_error() {
+    let (mut context, tx) = create_test_context(
+        Action::Update(UpdateCase::Claim),
+        NftError::LockedNFTCannotClaim,
+    );
+
+    let tx = context.complete_tx(tx);
+    // run
+    let err = context.verify_tx(&tx, MAX_CYCLES).unwrap_err();
+    let script_cell_index = 0;
+    assert_error_eq!(
+        err,
+        ScriptError::ValidationFailure(LOCKED_NFT_CANNOT_CLAIM)
+            .input_type_script(script_cell_index)
+    );
+}
+
+#[test]
+fn test_locked_nft_cannot_transfer_error() {
+    let (mut context, tx) = create_test_context(
+        Action::Update(UpdateCase::Transfer),
+        NftError::LockedNFTCannotTransfer,
+    );
+
+    let tx = context.complete_tx(tx);
+    // run
+    let err = context.verify_tx(&tx, MAX_CYCLES).unwrap_err();
+    let script_cell_index = 0;
+    assert_error_eq!(
+        err,
+        ScriptError::ValidationFailure(LOCKED_NFT_CANNOT_TRANSFER)
+            .input_type_script(script_cell_index)
+    );
+}
+
+#[test]
+fn test_locked_nft_cannot_add_ext_info_error() {
+    let (mut context, tx) = create_test_context(
+        Action::Update(UpdateCase::AddExtInfo),
+        NftError::LockedNFTCannotAddExtInfo,
+    );
+
+    let tx = context.complete_tx(tx);
+    // run
+    let err = context.verify_tx(&tx, MAX_CYCLES).unwrap_err();
+    let script_cell_index = 0;
+    assert_error_eq!(
+        err,
+        ScriptError::ValidationFailure(LOCKED_NFT_CANNOT_ADD_EXT_INFO)
+            .input_type_script(script_cell_index)
+    );
+}
+
+#[test]
+fn test_locked_nft_cannot_destroy_error() {
+    let (mut context, tx) = create_test_context(
+        Action::Destroy(DestroyCase::Default),
+        NftError::LockedNFTCannotDestroy,
+    );
+
+    let tx = context.complete_tx(tx);
+    // run
+    let err = context.verify_tx(&tx, MAX_CYCLES).unwrap_err();
+    let script_cell_index = 0;
+    assert_error_eq!(
+        err,
+        ScriptError::ValidationFailure(LOCKED_NFT_CANNOT_DESTROY)
+            .input_type_script(script_cell_index)
+    );
+}
+
+#[test]
+fn test_nft_type_args_invalid_error() {
+    let (mut context, tx) =
+        create_test_context(Action::Update(UpdateCase::Claim), NftError::TypeArgsInvalid);
+
+    let tx = context.complete_tx(tx);
+    // run
+    let err = context.verify_tx(&tx, MAX_CYCLES).unwrap_err();
+    let script_cell_index = 0;
+    assert_error_eq!(
+        err,
+        ScriptError::ValidationFailure(TYPE_ARGS_INVALID).input_type_script(script_cell_index)
     );
 }

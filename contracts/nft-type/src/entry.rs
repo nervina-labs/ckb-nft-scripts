@@ -117,6 +117,9 @@ fn handle_destroying(nft_args: &Bytes) -> Result<(), Error> {
         return Ok(());
     }
     let input_nft = Nft::from_data(&load_nft_data(Source::GroupInput)?[..])?;
+    if input_nft.is_locked() {
+        return Err(Error::LockedNFTCannotDestroy);
+    }
     if !input_nft.is_claimed() && !input_nft.allow_destroying_before_claim() {
         return Err(Error::NFTCannotDestroyBeforeClaim);
     }
