@@ -66,6 +66,10 @@ pub fn validate_nft_ext_info(
 ) -> Result<(), Error> {
     if input_nft.allow_ext_info() {
         let input_len = input_nft_data.len();
+        let output_len = output_nft_data.len();
+        if input_len > output_len {
+            return Err(Error::NFTExtInfoLenError);
+        }
         if input_nft_data[NFT_DATA_MIN_LEN..input_len]
             != output_nft_data[NFT_DATA_MIN_LEN..input_len]
         {
