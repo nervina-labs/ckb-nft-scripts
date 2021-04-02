@@ -26,7 +26,7 @@ pub fn validate_nft_claim((input_nft, output_nft): &Nfts) -> Result<(), Error> {
                 return Err(Error::LockedNFTCannotClaim);
             }
             if !input_nft.allow_claim() {
-                return Err(Error::NFTCannotClaimed);
+                return Err(Error::NFTDisallowClaimed);
             }
             Ok(())
         }
@@ -39,7 +39,7 @@ pub fn validate_nft_lock((input_nft, output_nft): &Nfts) -> Result<(), Error> {
     match (input_nft.is_locked(), output_nft.is_locked()) {
         (false, true) => {
             if !input_nft.allow_lock() {
-                return Err(Error::NFTCannotLocked);
+                return Err(Error::NFTDisallowLocked);
             }
             Ok(())
         }

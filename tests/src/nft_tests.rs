@@ -21,8 +21,8 @@ const NFT_CHARACTERISTIC_NOT_SAME: i8 = 23;
 const NFT_CONFIGURE_NOT_SAME: i8 = 24;
 const NFT_CLAIMED_TO_UNCLAIMED_ERROR: i8 = 25;
 const NFT_LOCKED_TO_UNLOCKED_ERROR: i8 = 26;
-const NFT_CANNOT_CLAIMED: i8 = 27;
-const NFT_CANNOT_LOCKED: i8 = 28;
+const NFT_DISALLOW_CLAIMED: i8 = 27;
+const NFT_DISALLOW_LOCKED: i8 = 28;
 const NFT_CANNOT_TRANSFER_BEFORE_CLAIM: i8 = 29;
 const NFT_CANNOT_TRANSFER_AFTER_CLAIM: i8 = 30;
 const NFT_EXT_INFO_LEN_ERROR: i8 = 31;
@@ -68,8 +68,8 @@ enum NftError {
     NFTConfigureNotSame,
     NFTClaimedToUnclaimedError,
     NFTLockedToUnlockedError,
-    NFTCannotClaimed,
-    NFTCannotLocked,
+    NFTDisallowClaimed,
+    NFTDisallowLocked,
     NFTCannotTransferBeforeClaim,
     NFTCannotTransferAfterClaim,
     NFTAllowAddExtInfoShortError,
@@ -192,10 +192,10 @@ fn create_test_context(action: Action, nft_error: NftError) -> (Context, Transac
             NftError::NFTLockedToUnlockedError => {
                 Bytes::from(hex::decode("0000000000000000000002").unwrap())
             }
-            NftError::NFTCannotClaimed => {
+            NftError::NFTDisallowClaimed => {
                 Bytes::from(hex::decode("0000000000000000000100").unwrap())
             }
-            NftError::NFTCannotLocked => {
+            NftError::NFTDisallowLocked => {
                 Bytes::from(hex::decode("0000000000000000000200").unwrap())
             }
             NftError::NFTCannotTransferBeforeClaim => {
@@ -390,10 +390,10 @@ fn create_test_context(action: Action, nft_error: NftError) -> (Context, Transac
             (UpdateCase::Lock, NftError::NFTLockedToUnlockedError) => {
                 vec![Bytes::from(hex::decode("0000000000000000000000").unwrap())]
             }
-            (UpdateCase::Claim, NftError::NFTCannotClaimed) => {
+            (UpdateCase::Claim, NftError::NFTDisallowClaimed) => {
                 vec![Bytes::from(hex::decode("0000000000000000000101").unwrap())]
             }
-            (UpdateCase::Lock, NftError::NFTCannotLocked) => {
+            (UpdateCase::Lock, NftError::NFTDisallowLocked) => {
                 vec![Bytes::from(hex::decode("0000000000000000000202").unwrap())]
             }
             (UpdateCase::Transfer, NftError::NFTCannotTransferBeforeClaim) => {
@@ -705,10 +705,10 @@ fn test_update_nft_locked_to_unlocked_error() {
 }
 
 #[test]
-fn test_update_nft_cannot_claim_error() {
+fn test_update_nft_disallow_to_be_claimed_error() {
     let (mut context, tx) = create_test_context(
         Action::Update(UpdateCase::Claim),
-        NftError::NFTCannotClaimed,
+        NftError::NFTDisallowClaimed,
     );
 
     let tx = context.complete_tx(tx);
@@ -717,14 +717,16 @@ fn test_update_nft_cannot_claim_error() {
     let script_cell_index = 0;
     assert_error_eq!(
         err,
-        ScriptError::ValidationFailure(NFT_CANNOT_CLAIMED).input_type_script(script_cell_index)
+        ScriptError::ValidationFailure(NFT_DISALLOW_CLAIMED).input_type_script(script_cell_index)
     );
 }
 
 #[test]
-fn test_update_nft_cannot_lock_error() {
-    let (mut context, tx) =
-        create_test_context(Action::Update(UpdateCase::Lock), NftError::NFTCannotLocked);
+fn test_update_nft_disallow_to_be_locked_error() {
+    let (mut context, tx) = create_test_context(
+        Action::Update(UpdateCase::Lock),
+        NftError::NFTDisallowLocked,
+    );
 
     let tx = context.complete_tx(tx);
     // run
@@ -732,7 +734,7 @@ fn test_update_nft_cannot_lock_error() {
     let script_cell_index = 0;
     assert_error_eq!(
         err,
-        ScriptError::ValidationFailure(NFT_CANNOT_LOCKED).input_type_script(script_cell_index)
+        ScriptError::ValidationFailure(NFT_DISALLOW_LOCKED).input_type_script(script_cell_index)
     );
 }
 

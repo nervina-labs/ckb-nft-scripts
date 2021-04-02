@@ -34,7 +34,10 @@ enum ClassError {
     TotalSmallerThanIssued,
     ClassCellsCountError,
     ClassIssuedInvalid,
-    ClassImmutableFieldsNotSame,
+    ClassTotalNotSame,
+    ClassConfigureNotSame,
+    ClassNameNotSame,
+    ClassDescriptionNotSame,
     ClassCellCannotDestroyed,
     ClassIdIncreaseError,
     ClassTypeArgsInvalid,
@@ -223,8 +226,17 @@ fn create_test_context(action: Action, class_error: ClassError) -> (Context, Tra
             ClassError::ClassIssuedInvalid => vec![Bytes::from(
                 hex::decode("000000000f000000030000015500026666000489898949").unwrap(),
             )],
-            ClassError::ClassImmutableFieldsNotSame => vec![Bytes::from(
-                hex::decode("000000000f0000000700000199000266660003898989").unwrap(),
+            ClassError::ClassTotalNotSame => vec![Bytes::from(
+                hex::decode("000000002f0000000500000155000266660003898989").unwrap(),
+            )],
+            ClassError::ClassConfigureNotSame => vec![Bytes::from(
+                hex::decode("000000000f0000000507000155000266660003898989").unwrap(),
+            )],
+            ClassError::ClassNameNotSame => vec![Bytes::from(
+                hex::decode("000000000f00000005000001aa000266660003898989").unwrap(),
+            )],
+            ClassError::ClassDescriptionNotSame => vec![Bytes::from(
+                hex::decode("000000000f0000000500000155000299990003898989").unwrap(),
             )],
             _ => vec![Bytes::from(
                 hex::decode("000000000f000000050000015500026666000489898949").unwrap(),
@@ -379,9 +391,54 @@ fn test_update_class_issued_invalid_error() {
 }
 
 #[test]
-fn test_update_class_immutable_fields_not_same_error() {
+fn test_update_class_immutable_total_not_same_error() {
+    let (mut context, tx) = create_test_context(Action::Update, ClassError::ClassTotalNotSame);
+
+    let tx = context.complete_tx(tx);
+    // run
+    let err = context.verify_tx(&tx, MAX_CYCLES).unwrap_err();
+    let script_cell_index = 0;
+    assert_error_eq!(
+        err,
+        ScriptError::ValidationFailure(CLASS_IMMUTABLE_FIELDS_NOT_SAME)
+            .input_type_script(script_cell_index)
+    );
+}
+
+#[test]
+fn test_update_class_immutable_configure_not_same_error() {
+    let (mut context, tx) = create_test_context(Action::Update, ClassError::ClassConfigureNotSame);
+
+    let tx = context.complete_tx(tx);
+    // run
+    let err = context.verify_tx(&tx, MAX_CYCLES).unwrap_err();
+    let script_cell_index = 0;
+    assert_error_eq!(
+        err,
+        ScriptError::ValidationFailure(CLASS_IMMUTABLE_FIELDS_NOT_SAME)
+            .input_type_script(script_cell_index)
+    );
+}
+
+#[test]
+fn test_update_class_immutable_name_not_same_error() {
+    let (mut context, tx) = create_test_context(Action::Update, ClassError::ClassNameNotSame);
+
+    let tx = context.complete_tx(tx);
+    // run
+    let err = context.verify_tx(&tx, MAX_CYCLES).unwrap_err();
+    let script_cell_index = 0;
+    assert_error_eq!(
+        err,
+        ScriptError::ValidationFailure(CLASS_IMMUTABLE_FIELDS_NOT_SAME)
+            .input_type_script(script_cell_index)
+    );
+}
+
+#[test]
+fn test_update_class_immutable_description_not_same_error() {
     let (mut context, tx) =
-        create_test_context(Action::Update, ClassError::ClassImmutableFieldsNotSame);
+        create_test_context(Action::Update, ClassError::ClassDescriptionNotSame);
 
     let tx = context.complete_tx(tx);
     // run
