@@ -31,6 +31,7 @@ enum Action {
 enum IssuerError {
     NoError,
     DataLenInvalid,
+    DataInfoLenInvalid,
     ClassCountInvalid,
     SetCountInvalid,
     VersionInvalid,
@@ -158,6 +159,7 @@ fn create_test_context(action: Action, issuer_error: IssuerError) -> (Context, T
         .iter()
         .map(|_output| match issuer_error {
             IssuerError::DataLenInvalid => Bytes::from(hex::decode("00000000000000").unwrap()),
+            IssuerError::DataInfoLenInvalid => Bytes::from(hex::decode("00000000000000000000207b226e616d65223a22616c696365227d").unwrap()),
             IssuerError::ClassCountInvalid => {
                 Bytes::from(hex::decode("0000000006000000000000").unwrap())
             }
@@ -225,8 +227,22 @@ fn test_destroy_issuer_success() {
 }
 
 #[test]
-fn test_create_issuer_data_error() {
+fn test_create_issuer_data_len_error() {
     let (mut context, tx) = create_test_context(Action::Create, IssuerError::DataLenInvalid);
+
+    let tx = context.complete_tx(tx);
+    // run
+    let err = context.verify_tx(&tx, MAX_CYCLES).unwrap_err();
+    let script_cell_index = 0;
+    assert_error_eq!(
+        err,
+        ScriptError::ValidationFailure(ISSUER_DATA_INVALID).output_type_script(script_cell_index)
+    );
+}
+
+#[test]
+fn test_create_issuer_data_info_len_error() {
+    let (mut context, tx) = create_test_context(Action::Create, IssuerError::DataInfoLenInvalid);
 
     let tx = context.complete_tx(tx);
     // run
