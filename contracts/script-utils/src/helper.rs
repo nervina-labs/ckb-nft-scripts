@@ -2,7 +2,7 @@ use alloc::vec::Vec;
 use ckb_std::{
     ckb_constants::Source,
     ckb_types::{bytes::Bytes, packed::*, prelude::*},
-    high_level::{load_cell_data, load_cell_type, QueryIter},
+    high_level::{load_cell_data, load_cell_type, load_cell_type_hash, QueryIter},
 };
 
 const ID_LEN: usize = 4;
@@ -42,6 +42,12 @@ pub fn count_cells_by_type_args(source: Source, predicate: &dyn Fn(&Bytes) -> bo
         .count()
 }
 
+pub fn count_cells_by_type_hash(source: Source, predicate: &dyn Fn(&[u8]) -> bool) -> usize {
+    QueryIter::new(load_cell_type_hash, source)
+        .filter(|type_hash_opt| type_hash_opt.map_or(false, |type_hash| predicate(&type_hash)))
+        .count()
+}
+
 pub fn load_output_index_by_type_args(args: &Bytes) -> Option<usize> {
     QueryIter::new(load_cell_type, Source::Output)
         .position(|type_opt| type_opt.map_or(false, |type_| load_type_args(&type_)[..] == args[..]))
@@ -53,6 +59,15 @@ pub fn load_cell_data_by_type_args(
 ) -> Option<Vec<u8>> {
     QueryIter::new(load_cell_type, source)
         .position(|type_opt| type_opt.map_or(false, |type_| predicate(&load_type_args(&type_))))
+        .map(|index| load_cell_data(index, source).map_or_else(|_| Vec::new(), |data| data))
+}
+
+pub fn load_cell_data_by_type_hash(
+    source: Source,
+    predicate: &dyn Fn(&[u8]) -> bool,
+) -> Option<Vec<u8>> {
+    QueryIter::new(load_cell_type_hash, source)
+        .position(|type_hash_opt| type_hash_opt.map_or(false, |type_hash| predicate(&type_hash)))
         .map(|index| load_cell_data(index, source).map_or_else(|_| Vec::new(), |data| data))
 }
 

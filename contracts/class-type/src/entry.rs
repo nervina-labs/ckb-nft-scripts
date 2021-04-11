@@ -9,13 +9,16 @@ use script_utils::{
     class::{Class, CLASS_TYPE_ARGS_LEN},
     error::Error,
     helper::{
-        count_cells_by_type_args, load_cell_data_by_type_args, load_output_type_args_ids, Action,
+        count_cells_by_type_args, count_cells_by_type_hash, load_cell_data_by_type_hash,
+        load_output_type_args_ids, Action,
     },
     issuer::{Issuer, ISSUER_TYPE_ARGS_LEN},
 };
 
-fn check_issuer_args<'a>(class_args: &'a Bytes) -> impl Fn(&Bytes) -> bool + 'a {
-    move |type_args: &Bytes| type_args[..] == class_args[0..ISSUER_TYPE_ARGS_LEN]
+fn check_issuer_id<'a>(class_args: &'a Bytes) -> impl Fn(&[u8]) -> bool + 'a {
+    move |type_hash: &[u8]| {
+        type_hash[0..ISSUER_TYPE_ARGS_LEN] == class_args[0..ISSUER_TYPE_ARGS_LEN]
+    }
 }
 
 fn check_class_args<'a>(class_args: &'a Bytes) -> impl Fn(&Bytes) -> bool + 'a {
@@ -46,14 +49,14 @@ fn handle_creation(class_args: &Bytes) -> Result<(), Error> {
         return Err(Error::ClassIssuedInvalid);
     }
 
-    let count_cells = |source| count_cells_by_type_args(source, &check_issuer_args(class_args));
+    let count_cells = |source| count_cells_by_type_hash(source, &check_issuer_id(class_args));
     let issuer_cells_count = (count_cells(Source::Input), count_cells(Source::Output));
     if issuer_cells_count != (1, 1) {
         return Err(Error::IssuerCellsCountError);
     }
 
     let load_issuer =
-        |source| match load_cell_data_by_type_args(source, &check_issuer_args(class_args)) {
+        |source| match load_cell_data_by_type_hash(source, &check_issuer_id(class_args)) {
             Some(data) => Ok(Issuer::from_data(&data)?),
             None => Err(Error::IssuerDataInvalid),
         };

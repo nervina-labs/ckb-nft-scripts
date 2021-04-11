@@ -13,14 +13,15 @@ use script_utils::{
     class::{Class, CLASS_TYPE_ARGS_LEN},
     error::Error,
     helper::{
-        count_cells_by_type_args, load_cell_data_by_type_args, load_output_type_args_ids, Action,
+        count_cells_by_type_args, count_cells_by_type_hash, load_cell_data_by_type_args,
+        load_output_type_args_ids, Action,
     },
     issuer::ISSUER_TYPE_ARGS_LEN,
     nft::{Nft, NFT_TYPE_ARGS_LEN},
 };
 
-fn check_issuer_args<'a>(nft_args: &'a Bytes) -> impl Fn(&Bytes) -> bool + 'a {
-    move |type_args: &Bytes| type_args[..] == nft_args[0..ISSUER_TYPE_ARGS_LEN]
+fn check_issuer_id<'a>(nft_args: &'a Bytes) -> impl Fn(&[u8]) -> bool + 'a {
+    move |type_hash: &[u8]| type_hash[0..ISSUER_TYPE_ARGS_LEN] == nft_args[0..ISSUER_TYPE_ARGS_LEN]
 }
 
 fn check_class_args<'a>(nft_args: &'a Bytes) -> impl Fn(&Bytes) -> bool + 'a {
@@ -111,7 +112,7 @@ fn handle_update() -> Result<(), Error> {
 }
 
 fn handle_destroying(nft_args: &Bytes) -> Result<(), Error> {
-    let issuer_inputs_count = count_cells_by_type_args(Source::Input, &check_issuer_args(nft_args));
+    let issuer_inputs_count = count_cells_by_type_hash(Source::Input, &check_issuer_id(nft_args));
     let class_inputs_count = count_cells_by_type_args(Source::Input, &check_class_args(nft_args));
     if issuer_inputs_count > 0 || class_inputs_count > 0 {
         return Ok(());

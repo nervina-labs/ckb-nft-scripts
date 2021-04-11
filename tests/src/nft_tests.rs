@@ -160,7 +160,8 @@ fn create_test_context(action: Action, nft_error: NftError) -> (Context, Transac
         Action::Update(_) => Bytes::new(),
     };
 
-    let mut class_type_args = issuer_type_args.clone().to_vec();
+    let issuer_type_hash: [u8; 32] = issuer_type_script.clone().calc_script_hash().unpack();
+    let mut class_type_args = issuer_type_hash[0..20].to_vec();
     let mut args_class_id = 8u32.to_be_bytes().to_vec();
     class_type_args.append(&mut args_class_id);
 

@@ -108,7 +108,8 @@ fn create_test_context(action: Action, class_error: ClassError) -> (Context, Tra
         Action::Create => Bytes::new(),
     };
 
-    let mut class_type_args = issuer_type_args.clone().to_vec();
+    let issuer_type_hash: [u8; 32] = issuer_type_script.clone().calc_script_hash().unpack();
+    let mut class_type_args = issuer_type_hash[0..20].to_vec();
     let mut args_class_id = match class_error {
         ClassError::ClassTypeArgsInvalid => 8u16.to_be_bytes().to_vec(),
         _ => 8u32.to_be_bytes().to_vec(),
@@ -139,7 +140,7 @@ fn create_test_context(action: Action, class_error: ClassError) -> (Context, Tra
         _ => vec![class_input],
     };
 
-    let mut class_type_args = issuer_type_args.clone().to_vec();
+    let mut class_type_args = issuer_type_hash[0..20].to_vec();
     let mut args_class_id = match class_error {
         ClassError::TypeArgsClassIdNotSame => 6u32.to_be_bytes().to_vec(),
         ClassError::ClassTypeArgsInvalid => 8u16.to_be_bytes().to_vec(),
@@ -178,7 +179,7 @@ fn create_test_context(action: Action, class_error: ClassError) -> (Context, Tra
                 _ => [10u32, 8u32, 9u32],
             };
             for class_id in class_ids.iter() {
-                let mut class_type_args = issuer_type_args.clone().to_vec();
+                let mut class_type_args = issuer_type_hash[0..20].to_vec();
                 let mut args_class_id = class_id.to_be_bytes().to_vec();
                 class_type_args.append(&mut args_class_id);
 
