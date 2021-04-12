@@ -10,6 +10,9 @@ mod issuer_tests;
 #[cfg(test)]
 mod class_tests;
 
+#[cfg(test)]
+mod nft_tests;
+
 const TEST_ENV_VAR: &str = "CAPSULE_TEST_ENV";
 
 pub enum TestEnv {

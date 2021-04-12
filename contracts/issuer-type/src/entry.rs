@@ -1,3 +1,4 @@
+use alloc::vec::Vec;
 use blake2b_rs::Blake2bBuilder;
 use ckb_std::{
     ckb_constants::Source,
@@ -11,12 +12,15 @@ use script_utils::{
     issuer::{Issuer, ISSUER_TYPE_ARGS_LEN},
 };
 
-fn parse_issuer_action(args: &Bytes) -> Result<Action, Error> {
-    let check_args_equal = |type_args: &Bytes| type_args[..] == args[..];
-    let inputs_count = count_cells_by_type_args(Source::Input, &check_args_equal);
-    let outputs_count = count_cells_by_type_args(Source::Output, &check_args_equal);
+fn load_issuer_data(source: Source) -> Result<Vec<u8>, Error> {
+    load_cell_data(0, source).map_err(|_| Error::IssuerDataInvalid)
+}
 
-    match (inputs_count, outputs_count) {
+fn parse_issuer_action(args: &Bytes) -> Result<Action, Error> {
+    let count_cells =
+        |source| count_cells_by_type_args(source, &|type_args: &Bytes| type_args[..] == args[..]);
+    let issuer_cells_count = (count_cells(Source::Input), count_cells(Source::Output));
+    match issuer_cells_count {
         (0, 1) => Ok(Action::Create),
         (1, 1) => Ok(Action::Update),
         (1, 0) => Ok(Action::Destroy),
@@ -38,8 +42,7 @@ fn handle_creation(args: &Bytes) -> Result<(), Error> {
     if args[..] != ret[0..ISSUER_TYPE_ARGS_LEN] {
         return Err(Error::TypeArgsInvalid);
     }
-    let issuer_cell_data = load_cell_data(0, Source::GroupOutput)?;
-    let issuer = Issuer::from_data(&issuer_cell_data[..])?;
+    let issuer = Issuer::from_data(&load_issuer_data(Source::GroupOutput)?[..])?;
     if issuer.class_count != 0 {
         return Err(Error::IssuerClassCountError);
     }
@@ -50,12 +53,9 @@ fn handle_creation(args: &Bytes) -> Result<(), Error> {
 }
 
 fn handle_update() -> Result<(), Error> {
-    let issuer_input_data =
-        load_cell_data(0, Source::GroupInput).map_err(|_| Error::IssuerDataInvalid)?;
-    let issuer_output_data =
-        load_cell_data(0, Source::GroupOutput).map_err(|_| Error::IssuerDataInvalid)?;
-    let input_issuer = Issuer::from_data(&issuer_input_data[..])?;
-    let output_issuer = Issuer::from_data(&issuer_output_data[..])?;
+    let load_issuer = |source| Issuer::from_data(&load_issuer_data(source)?[..]);
+    let input_issuer = load_issuer(Source::GroupInput)?;
+    let output_issuer = load_issuer(Source::GroupOutput)?;
     if output_issuer.set_count < input_issuer.set_count {
         return Err(Error::IssuerSetCountError);
     }
@@ -66,8 +66,7 @@ fn handle_update() -> Result<(), Error> {
 }
 
 fn handle_destroying() -> Result<(), Error> {
-    let issuer_input_data = load_cell_data(0, Source::GroupInput)?;
-    let input_issuer = Issuer::from_data(&issuer_input_data[..])?;
+    let input_issuer = Issuer::from_data(&load_issuer_data(Source::GroupInput)?[..])?;
     if input_issuer.class_count != 0 || input_issuer.set_count != 0 {
         return Err(Error::IssuerCellCannotDestroyed);
     }
