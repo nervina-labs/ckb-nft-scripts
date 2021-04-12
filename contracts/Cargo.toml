@@ -1,0 +1,9 @@
+[workspace]
+members = ["issuer-type", "class-type", "nft-type", "script-utils"]
+
+[profile.release]
+overflow-checks = true
+opt-level = 's'
+lto = true
+codegen-units = 1
+panic = 'abort'
