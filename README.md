@@ -29,6 +29,8 @@ capsule test
 
 ## Deployment
 
+> For the deployment information of the ckb-nft-scripts on [Aggron Testnet](https://explorer.nervos.org/aggron/), please refer to the [wiki](https://github.com/nervina-labs/ckb-nft-scripts/wiki/Aggron-Testnet-deployment)
+
 ### 1. Update the deployment configurations
 
 Update the `deployment.toml` referring to the [Capsule Docs](https://docs.nervos.org/docs/labs/sudtbycapsule#deploy)
