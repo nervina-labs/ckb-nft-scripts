@@ -1,0 +1,18 @@
+[package]
+name = "natives-script-utils"
+version = "0.1.0"
+authors = ["Dylan <duanyytop@gmail.com>"]
+edition = "2018"
+
+[dependencies]
+ckb-tool = "0.2.1"
+ckb-std = { git = "https://github.com/nervosnetwork/ckb-std", rev = "29455b8", features = ["ckb-types", "simulator"] }
+
+[features]
+default = ["simulator"]
+simulator = []
+
+[[bin]]
+name = "ckb-script-utils-sim"
+path = "src/script_utils.rs"
+required-features = ["simulator"]
