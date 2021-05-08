@@ -1,2 +1,9 @@
 [workspace]
-members = ["tests"]
+
+members = [
+  "tests", 
+  "natives/issuer-type",
+  "natives/class-type",
+  "natives/nft-type",
+  "natives/script-utils"
+]

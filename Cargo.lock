@@ -153,6 +153,12 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "476e9cd489f9e121e02ffa6014a8ef220ecb15c05ed23fc34cca13925dc283fb"
 
 [[package]]
+name = "buddy-alloc"
+version = "0.4.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "8ff9f338986406db85e2b5deb40a9255b796ca03a194c7457403d215173f3fd5"
+
+[[package]]
 name = "bumpalo"
 version = "3.6.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -614,6 +620,27 @@ dependencies = [
  "serde_json",
  "serde_plain",
  "wasm-bindgen",
+]
+
+[[package]]
+name = "ckb-standalone-types"
+version = "0.0.1-pre.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "af2cdbdf65ee5b1da71504f5a03d6984bce77d0b4b46daff63f4ba4a3b0eef08"
+dependencies = [
+ "cfg-if 0.1.10",
+ "molecule",
+]
+
+[[package]]
+name = "ckb-std"
+version = "0.7.2"
+source = "git+https://github.com/nervosnetwork/ckb-std?rev=29455b8#29455b87416b7e324d667e31b95fac36ee96021f"
+dependencies = [
+ "buddy-alloc",
+ "cc",
+ "ckb-standalone-types",
+ "ckb-x64-simulator",
 ]
 
 [[package]]
@@ -1882,6 +1909,38 @@ dependencies = [
  "security-framework",
  "security-framework-sys",
  "tempfile",
+]
+
+[[package]]
+name = "natives-class-type"
+version = "0.1.0"
+dependencies = [
+ "ckb-std",
+ "ckb-tool",
+]
+
+[[package]]
+name = "natives-issuer-type"
+version = "0.1.0"
+dependencies = [
+ "ckb-std",
+ "ckb-tool",
+]
+
+[[package]]
+name = "natives-nft-type"
+version = "0.1.0"
+dependencies = [
+ "ckb-std",
+ "ckb-tool",
+]
+
+[[package]]
+name = "natives-script-utils"
+version = "0.1.0"
+dependencies = [
+ "ckb-std",
+ "ckb-tool",
 ]
 
 [[package]]

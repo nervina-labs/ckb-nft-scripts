@@ -1,6 +1,6 @@
 extern crate alloc;
 
-#[path = "../../contracts/class-type/src/entry.rs"]
+#[path = "../../../contracts/class-type/src/entry.rs"]
 mod entry;
 
 fn main() {

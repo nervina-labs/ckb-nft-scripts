@@ -8,6 +8,8 @@ use ckb_tool::ckb_types::{
     packed::*,
     prelude::*,
 };
+use ckb_x64_simulator::RunningSetup;
+use std::collections::HashMap;
 
 const MAX_CYCLES: u64 = 10_000_000;
 
@@ -467,6 +469,21 @@ fn test_create_nft_cells_success() {
         .verify_tx(&tx, MAX_CYCLES)
         .expect("pass verification");
     println!("consume cycles: {}", cycles);
+
+    // dump raw test tx files
+    let setup = RunningSetup {
+        is_lock_script: false,
+        is_output: true,
+        script_index: 0,
+        native_binaries: HashMap::default(),
+    };
+    write_native_setup(
+        "test_create_nft_cells_success",
+        "ckb-nft-type-sim",
+        &tx,
+        &context,
+        &setup,
+    );
 }
 
 #[test]
