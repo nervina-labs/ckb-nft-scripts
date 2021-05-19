@@ -81,7 +81,7 @@ fn handle_creation(class_args: &Bytes) -> Result<(), Error> {
         issuer_cell_class_ids.push(class_id);
     }
 
-    if &outputs_class_ids != &issuer_cell_class_ids {
+    if outputs_class_ids != issuer_cell_class_ids {
         return Err(Error::ClassIdIncreaseError);
     }
     Ok(())

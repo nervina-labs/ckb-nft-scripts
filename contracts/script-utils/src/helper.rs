@@ -78,7 +78,7 @@ pub fn load_output_type_args_ids(
     QueryIter::new(load_cell_type, Source::Output)
         .filter(|type_opt| parse_type_opt(type_opt, predicate))
         .filter_map(|type_opt| {
-            type_opt.map_or(None, |type_| parse_type_args_id(type_, slice_start))
+            type_opt.and_then(|type_| parse_type_args_id(type_, slice_start))
         })
         .collect()
 }
