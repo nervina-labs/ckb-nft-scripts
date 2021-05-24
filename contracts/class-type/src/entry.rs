@@ -33,14 +33,18 @@ fn load_class_data(source: Source) -> Result<Vec<u8>, Error> {
 }
 
 fn parse_class_action(class_args: &Bytes) -> Result<Action, Error> {
-    let count_cells = |source| count_cells_by_type_args(source, &check_class_args(class_args));
-    let class_cells_count = (count_cells(Source::Input), count_cells(Source::Output));
-    match class_cells_count {
-        (0, _) => Ok(Action::Create),
-        (1, 1) => Ok(Action::Update),
-        (1, 0) => Ok(Action::Destroy),
-        _ => Err(Error::ClassCellsCountError),
+    let class_inputs_count = count_cells_by_type_args(Source::Input, &check_class_args(class_args));
+    if class_inputs_count == 0 {
+        return Ok(Action::Create);
     }
+    let class_outputs_count = count_cells_by_type_args(Source::Output, &check_class_args(class_args));
+    if class_outputs_count == 0 {
+        return Ok(Action::Destroy);
+    }
+    if class_inputs_count == 1 && class_outputs_count == 1 {
+        return Ok(Action::Update);
+    }
+    Err(Error::ClassCellsCountError)
 }
 
 fn handle_creation(class_args: &Bytes) -> Result<(), Error> {
@@ -49,9 +53,8 @@ fn handle_creation(class_args: &Bytes) -> Result<(), Error> {
         return Err(Error::ClassIssuedInvalid);
     }
 
-    let count_cells = |source| count_cells_by_type_hash(source, &check_issuer_id(class_args));
-    let issuer_cells_count = (count_cells(Source::Input), count_cells(Source::Output));
-    if issuer_cells_count != (1, 1) {
+    let issuer_inputs_count = count_cells_by_type_hash(Source::Input, &check_issuer_id(class_args));
+    if issuer_inputs_count != 1 {
         return Err(Error::IssuerCellsCountError);
     }
 
@@ -81,7 +84,7 @@ fn handle_creation(class_args: &Bytes) -> Result<(), Error> {
         issuer_cell_class_ids.push(class_id);
     }
 
-    if &outputs_class_ids != &issuer_cell_class_ids {
+    if outputs_class_ids != issuer_cell_class_ids {
         return Err(Error::ClassIdIncreaseError);
     }
     Ok(())
