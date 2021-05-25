@@ -21,7 +21,7 @@ use script_utils::{
 };
 
 fn check_issuer_id<'a>(nft_args: &'a Bytes) -> impl Fn(&[u8]) -> bool + 'a {
-    move |type_hash: &[u8]| type_hash[0..ISSUER_TYPE_ARGS_LEN] == nft_args[0..ISSUER_TYPE_ARGS_LEN]
+    move |type_hash: &[u8]| type_hash[..] == nft_args[0..ISSUER_TYPE_ARGS_LEN]
 }
 
 fn check_class_args<'a>(nft_args: &'a Bytes) -> impl Fn(&Bytes) -> bool + 'a {
@@ -43,7 +43,7 @@ fn parse_nft_action(nft_args: &Bytes) -> Result<Action, Error> {
     let nft_inputs_count = count_cells_by_type_args(Source::Input, &check_nft_args(nft_args));
     if nft_inputs_count == 0 {
         return Ok(Action::Create);
-    } 
+    }
 
     let nft_outputs_count = count_cells_by_type_args(Source::Output, &check_nft_args(nft_args));
     if nft_outputs_count == 0 {
