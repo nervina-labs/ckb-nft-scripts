@@ -165,6 +165,10 @@ fn create_test_context(action: Action, nft_error: NftError) -> (Context, Transac
     let mut args_class_id = 8u32.to_be_bytes().to_vec();
     class_type_args.append(&mut args_class_id);
 
+    let mut another_class_type_args = issuer_type_hash[0..20].to_vec();
+    let mut another_args_class_id = 9u32.to_be_bytes().to_vec();
+    another_class_type_args.append(&mut another_args_class_id);
+
     let class_type_script = context
         .build_script(
             &class_out_point,
@@ -250,8 +254,16 @@ fn create_test_context(action: Action, nft_error: NftError) -> (Context, Transac
     };
     nft_type_args.append(&mut args_token_id);
 
+    let mut another_nft_type_args = another_class_type_args.clone().to_vec();
+    let mut another_args_token_id = 12u32.to_be_bytes().to_vec();
+    another_nft_type_args.append(&mut another_args_token_id);
+
     let nft_type_script = context
         .build_script(&nft_out_point, Bytes::copy_from_slice(&nft_type_args[..]))
+        .expect("script");
+
+    let another_nft_type_script = context
+        .build_script(&nft_out_point, Bytes::copy_from_slice(&another_nft_type_args[..]))
         .expect("script");
 
     let nft_input_out_point = context.create_cell(
@@ -260,15 +272,33 @@ fn create_test_context(action: Action, nft_error: NftError) -> (Context, Transac
             .lock(lock_script.clone())
             .type_(Some(nft_type_script.clone()).pack())
             .build(),
-        nft_input_data,
+        nft_input_data.clone(),
     );
     let nft_input = CellInput::new_builder()
         .previous_output(nft_input_out_point.clone())
         .build();
 
+    let another_nft_input_out_point = context.create_cell(
+        CellOutput::new_builder()
+            .capacity(500u64.pack())
+            .lock(lock_script.clone())
+            .type_(Some(another_nft_type_script.clone()).pack())
+            .build(),
+        nft_input_data,
+    );
+    let another_nft_input = CellInput::new_builder()
+        .previous_output(another_nft_input_out_point.clone())
+        .build();
+
     let inputs = match action {
         Action::Create => vec![class_input],
-        Action::Update(_) => vec![nft_input],
+        Action::Update(case) => match case {
+            UpdateCase::Claim => match nft_error {
+                NftError::NoError => vec![nft_input, another_nft_input],
+                _ => vec![nft_input]
+            },
+            _ => vec![nft_input]
+        },
         Action::Destroy(case) => match case {
             DestroyCase::Default => vec![nft_input],
             DestroyCase::ClassInput => vec![nft_input, class_input],
@@ -347,6 +377,19 @@ fn create_test_context(action: Action, nft_error: NftError) -> (Context, Transac
                         .build(),
                 );
             }
+        },
+        Action::Update(case) => match case {
+            UpdateCase::Claim => {
+                if nft_error == NftError::NoError {
+                    outputs.push(
+                        CellOutput::new_builder()
+                        .capacity(500u64.pack())
+                        .lock(lock_script.clone())
+                        .type_(Some(another_nft_type_script.clone()).pack())
+                        .build())
+                }
+            },
+            _ => ()
         }
         _ => (),
     }
@@ -392,7 +435,8 @@ fn create_test_context(action: Action, nft_error: NftError) -> (Context, Transac
         },
         Action::Update(case) => match (case, nft_error) {
             (UpdateCase::Claim, NftError::NoError) => {
-                vec![Bytes::from(hex::decode("0000000000000000000001").unwrap())]
+                vec![Bytes::from(hex::decode("0000000000000000000001").unwrap()), 
+                Bytes::from(hex::decode("0000000000000000000001").unwrap())]
             }
             (UpdateCase::Lock, NftError::NoError) => {
                 vec![Bytes::from(hex::decode("0000000000000000000002").unwrap())]

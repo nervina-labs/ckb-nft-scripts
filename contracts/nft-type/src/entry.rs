@@ -46,11 +46,11 @@ fn parse_nft_action(nft_args: &Bytes) -> Result<Action, Error> {
     } 
 
     let nft_outputs_count = count_cells_by_type_args(Source::Output, &check_nft_args(nft_args));
-    if nft_outputs_count == 0 {
+    if nft_inputs_count == 1 && nft_outputs_count == 0 {
         return Ok(Action::Destroy);
     }
 
-    if nft_inputs_count == 1 && nft_outputs_count == 1 {
+    if nft_inputs_count == nft_outputs_count {
         return Ok(Action::Update);
     }
     Err(Error::NFTCellsCountError)
