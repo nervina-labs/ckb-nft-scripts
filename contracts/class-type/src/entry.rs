@@ -38,7 +38,7 @@ fn parse_class_action(class_args: &Bytes) -> Result<Action, Error> {
         return Ok(Action::Create);
     }
     let class_outputs_count = count_cells_by_type_args(Source::Output, &check_class_args(class_args));
-    if class_outputs_count == 0 {
+    if class_inputs_count == 1 && class_outputs_count == 0 {
         return Ok(Action::Destroy);
     }
     if class_inputs_count == 1 && class_outputs_count == 1 {
