@@ -293,7 +293,10 @@ fn create_test_context(action: Action, nft_error: NftError) -> (Context, Transac
     let inputs = match action {
         Action::Create => vec![class_input],
         Action::Update(case) => match case {
-            UpdateCase::Claim => vec![nft_input, another_nft_input],
+            UpdateCase::Claim => match nft_error {
+                NftError::NoError => vec![nft_input, another_nft_input],
+                _ => vec![nft_input]
+            },
             _ => vec![nft_input]
         },
         Action::Destroy(case) => match case {
