@@ -9,7 +9,7 @@ use ckb_tool::ckb_types::{
     prelude::*,
 };
 
-const MAX_CYCLES: u64 = 10_000_000;
+const MAX_CYCLES: u64 = 70_000_000;
 
 // error numbers
 const TYPE_ARGS_INVALID: i8 = 7;
@@ -144,12 +144,12 @@ fn create_test_context(action: Action, nft_error: NftError) -> (Context, Transac
     let class_input_data = match action {
         Action::Create => match nft_error {
             NftError::NFTCellsCountError => {
-                Bytes::from(hex::decode("000000000f0000000900000155000266660003898989").unwrap())
+                Bytes::from(hex::decode("00000000640000000b00000155000266660003898989").unwrap())
             }
             NftError::NFTAndClassConfigureNotSame => {
-                Bytes::from(hex::decode("000000000f0000000907000155000266660003898989").unwrap())
+                Bytes::from(hex::decode("00000000640000000907000155000266660003898989").unwrap())
             }
-            _ => Bytes::from(hex::decode("000000000f0000000b00000155000266660003898989").unwrap()),
+            _ => Bytes::from(hex::decode("00000000640000000100000155000266660003898989").unwrap()),
         },
         Action::Destroy(case) => match case {
             DestroyCase::ClassInput => {
@@ -165,6 +165,10 @@ fn create_test_context(action: Action, nft_error: NftError) -> (Context, Transac
     let mut args_class_id = 8u32.to_be_bytes().to_vec();
     class_type_args.append(&mut args_class_id);
 
+    let mut another_class_type_args = issuer_type_hash[0..20].to_vec();
+    let mut another_args_class_id = 9u32.to_be_bytes().to_vec();
+    another_class_type_args.append(&mut another_args_class_id);
+
     let class_type_script = context
         .build_script(
             &class_out_point,
@@ -174,7 +178,7 @@ fn create_test_context(action: Action, nft_error: NftError) -> (Context, Transac
 
     let class_input_out_point = context.create_cell(
         CellOutput::new_builder()
-            .capacity(2000u64.pack())
+            .capacity(100000u64.pack())
             .lock(lock_script.clone())
             .type_(Some(class_type_script.clone()).pack())
             .build(),
@@ -250,8 +254,16 @@ fn create_test_context(action: Action, nft_error: NftError) -> (Context, Transac
     };
     nft_type_args.append(&mut args_token_id);
 
+    let mut another_nft_type_args = another_class_type_args.clone().to_vec();
+    let mut another_args_token_id = 12u32.to_be_bytes().to_vec();
+    another_nft_type_args.append(&mut another_args_token_id);
+
     let nft_type_script = context
         .build_script(&nft_out_point, Bytes::copy_from_slice(&nft_type_args[..]))
+        .expect("script");
+
+    let another_nft_type_script = context
+        .build_script(&nft_out_point, Bytes::copy_from_slice(&another_nft_type_args[..]))
         .expect("script");
 
     let nft_input_out_point = context.create_cell(
@@ -260,15 +272,33 @@ fn create_test_context(action: Action, nft_error: NftError) -> (Context, Transac
             .lock(lock_script.clone())
             .type_(Some(nft_type_script.clone()).pack())
             .build(),
-        nft_input_data,
+        nft_input_data.clone(),
     );
     let nft_input = CellInput::new_builder()
         .previous_output(nft_input_out_point.clone())
         .build();
 
+    let another_nft_input_out_point = context.create_cell(
+        CellOutput::new_builder()
+            .capacity(500u64.pack())
+            .lock(lock_script.clone())
+            .type_(Some(another_nft_type_script.clone()).pack())
+            .build(),
+        nft_input_data,
+    );
+    let another_nft_input = CellInput::new_builder()
+        .previous_output(another_nft_input_out_point.clone())
+        .build();
+
     let inputs = match action {
         Action::Create => vec![class_input],
-        Action::Update(_) => vec![nft_input],
+        Action::Update(case) => match case {
+            UpdateCase::Claim => match nft_error {
+                NftError::NoError => vec![nft_input, another_nft_input],
+                _ => vec![nft_input]
+            },
+            _ => vec![nft_input]
+        },
         Action::Destroy(case) => match case {
             DestroyCase::Default => vec![nft_input],
             DestroyCase::ClassInput => vec![nft_input, class_input],
@@ -327,8 +357,8 @@ fn create_test_context(action: Action, nft_error: NftError) -> (Context, Transac
     match action {
         Action::Create => {
             let token_ids = match nft_error {
-                NftError::NFTTokenIdIncreaseError => [13u32, 11u32, 11u32],
-                _ => [13u32, 11u32, 12u32],
+                NftError::NFTTokenIdIncreaseError => [4u32, 4u32, 4u32, 4u32, 1u32, 6u32, 7u32, 10u32, 8u32, 9u32, 13u32, 11u32, 12u32, 14u32, 15u32],
+                _ => [5u32, 4u32, 3u32, 2u32, 1u32, 6u32, 7u32, 10u32, 8u32, 9u32, 13u32, 11u32, 12u32, 14u32, 15u32],
             };
             for token_id in token_ids.iter() {
                 let mut nft_type_args = class_type_args.clone().to_vec();
@@ -347,6 +377,19 @@ fn create_test_context(action: Action, nft_error: NftError) -> (Context, Transac
                         .build(),
                 );
             }
+        },
+        Action::Update(case) => match case {
+            UpdateCase::Claim => {
+                if nft_error == NftError::NoError {
+                    outputs.push(
+                        CellOutput::new_builder()
+                        .capacity(500u64.pack())
+                        .lock(lock_script.clone())
+                        .type_(Some(another_nft_type_script.clone()).pack())
+                        .build())
+                }
+            },
+            _ => ()
         }
         _ => (),
     }
@@ -354,13 +397,37 @@ fn create_test_context(action: Action, nft_error: NftError) -> (Context, Transac
     let outputs_data: Vec<_> = match action {
         Action::Create => match nft_error {
             NftError::NFTAndClassConfigureNotSame => vec![
-                Bytes::from(hex::decode("000000000f0000000e07000155000266660003898989").unwrap()),
+                Bytes::from(hex::decode("00000000640000001007000155000266660003898989").unwrap()),
+                Bytes::from(hex::decode("0000000000000000000000").unwrap()),
+                Bytes::from(hex::decode("0000000000000000000000").unwrap()),
+                Bytes::from(hex::decode("0000000000000000000000000155").unwrap()),
+                Bytes::from(hex::decode("0000000000000000000000").unwrap()),
+                Bytes::from(hex::decode("0000000000000000000000").unwrap()),
+                Bytes::from(hex::decode("0000000000000000000000000155").unwrap()),
+                Bytes::from(hex::decode("0000000000000000000000").unwrap()),
+                Bytes::from(hex::decode("0000000000000000000000").unwrap()),
+                Bytes::from(hex::decode("0000000000000000000000000155").unwrap()),
+                Bytes::from(hex::decode("0000000000000000000000").unwrap()),
+                Bytes::from(hex::decode("0000000000000000000000").unwrap()),
+                Bytes::from(hex::decode("0000000000000000000000000155").unwrap()),
                 Bytes::from(hex::decode("0000000000000000000000").unwrap()),
                 Bytes::from(hex::decode("0000000000000000000000").unwrap()),
                 Bytes::from(hex::decode("0000000000000000000000000155").unwrap()),
             ],
             _ => vec![
-                Bytes::from(hex::decode("000000000f0000000e00000155000266660003898989").unwrap()),
+                Bytes::from(hex::decode("00000000640000001000000155000266660003898989").unwrap()),
+                Bytes::from(hex::decode("0000000000000000000000").unwrap()),
+                Bytes::from(hex::decode("0000000000000000000000").unwrap()),
+                Bytes::from(hex::decode("0000000000000000000000000155").unwrap()),
+                Bytes::from(hex::decode("0000000000000000000000").unwrap()),
+                Bytes::from(hex::decode("0000000000000000000000").unwrap()),
+                Bytes::from(hex::decode("0000000000000000000000000155").unwrap()),
+                Bytes::from(hex::decode("0000000000000000000000").unwrap()),
+                Bytes::from(hex::decode("0000000000000000000000").unwrap()),
+                Bytes::from(hex::decode("0000000000000000000000000155").unwrap()),
+                Bytes::from(hex::decode("0000000000000000000000").unwrap()),
+                Bytes::from(hex::decode("0000000000000000000000").unwrap()),
+                Bytes::from(hex::decode("0000000000000000000000000155").unwrap()),
                 Bytes::from(hex::decode("0000000000000000000000").unwrap()),
                 Bytes::from(hex::decode("0000000000000000000000").unwrap()),
                 Bytes::from(hex::decode("0000000000000000000000000155").unwrap()),
@@ -368,7 +435,8 @@ fn create_test_context(action: Action, nft_error: NftError) -> (Context, Transac
         },
         Action::Update(case) => match (case, nft_error) {
             (UpdateCase::Claim, NftError::NoError) => {
-                vec![Bytes::from(hex::decode("0000000000000000000001").unwrap())]
+                vec![Bytes::from(hex::decode("0000000000000000000001").unwrap()), 
+                Bytes::from(hex::decode("0000000000000000000001").unwrap())]
             }
             (UpdateCase::Lock, NftError::NoError) => {
                 vec![Bytes::from(hex::decode("0000000000000000000002").unwrap())]
@@ -582,7 +650,7 @@ fn test_create_nft_cells_count_error() {
     let tx = context.complete_tx(tx);
     // run
     let err = context.verify_tx(&tx, MAX_CYCLES).unwrap_err();
-    let script_cell_indexes = [1, 2, 3];
+    let script_cell_indexes = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15];
 
     let errors = script_cell_indexes
         .iter()
@@ -601,7 +669,7 @@ fn test_create_nft_cells_token_id_increase_error() {
     let tx = context.complete_tx(tx);
     // run
     let err = context.verify_tx(&tx, MAX_CYCLES).unwrap_err();
-    let script_cell_indexes = [1, 2, 3];
+    let script_cell_indexes = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15];
 
     let errors = script_cell_indexes
         .iter()
@@ -621,7 +689,7 @@ fn test_create_nft_and_class_configure_not_same_error() {
     let tx = context.complete_tx(tx);
     // run
     let err = context.verify_tx(&tx, MAX_CYCLES).unwrap_err();
-    let script_cell_indexes = [1, 2, 3];
+    let script_cell_indexes = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15];
 
     let errors = script_cell_indexes
         .iter()

@@ -30,12 +30,12 @@ fn parse_issuer_action(args: &Bytes) -> Result<Action, Error> {
 
 fn handle_creation(args: &Bytes) -> Result<(), Error> {
     let first_input = load_input(0, Source::Input)?;
-    let fist_output_index = load_output_index_by_type_args(args).ok_or(Error::Encoding)?;
+    let first_output_index = load_output_index_by_type_args(args).ok_or(Error::Encoding)?;
     let mut blake2b = Blake2bBuilder::new(32)
         .personal(b"ckb-default-hash")
         .build();
     blake2b.update(first_input.as_slice());
-    blake2b.update(&(fist_output_index as u64).to_le_bytes());
+    blake2b.update(&(first_output_index as u64).to_le_bytes());
     let mut ret = [0; 32];
     blake2b.finalize(&mut ret);
 

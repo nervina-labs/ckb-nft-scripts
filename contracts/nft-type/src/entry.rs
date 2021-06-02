@@ -40,20 +40,25 @@ fn load_nft_data(source: Source) -> Result<Vec<u8>, Error> {
 }
 
 fn parse_nft_action(nft_args: &Bytes) -> Result<Action, Error> {
-    let count_cells = |source| count_cells_by_type_args(source, &check_nft_args(nft_args));
-    let nft_cells_count = (count_cells(Source::Input), count_cells(Source::Output));
-    match nft_cells_count {
-        (0, _) => Ok(Action::Create),
-        (1, 1) => Ok(Action::Update),
-        (1, 0) => Ok(Action::Destroy),
-        _ => Err(Error::NFTCellsCountError),
+    let nft_inputs_count = count_cells_by_type_args(Source::Input, &check_nft_args(nft_args));
+    if nft_inputs_count == 0 {
+        return Ok(Action::Create);
+    } 
+
+    let nft_outputs_count = count_cells_by_type_args(Source::Output, &check_nft_args(nft_args));
+    if nft_inputs_count == 1 && nft_outputs_count == 0 {
+        return Ok(Action::Destroy);
     }
+
+    if nft_inputs_count == nft_outputs_count {
+        return Ok(Action::Update);
+    }
+    Err(Error::NFTCellsCountError)
 }
 
 fn handle_creation(nft_args: &Bytes) -> Result<(), Error> {
-    let count_cells = |source| count_cells_by_type_args(source, &check_class_args(nft_args));
-    let class_cells_count = (count_cells(Source::Input), count_cells(Source::Output));
-    if class_cells_count != (1, 1) {
+    let class_inputs_count = count_cells_by_type_args(Source::Input, &check_class_args(nft_args));
+    if class_inputs_count != 1 {
         return Err(Error::ClassCellsCountError);
     }
 
@@ -87,7 +92,7 @@ fn handle_creation(nft_args: &Bytes) -> Result<(), Error> {
         class_cell_token_ids.push(token_id);
     }
 
-    if &outputs_token_ids != &class_cell_token_ids {
+    if outputs_token_ids != class_cell_token_ids {
         return Err(Error::NFTTokenIdIncreaseError);
     }
 

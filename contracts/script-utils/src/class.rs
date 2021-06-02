@@ -46,7 +46,7 @@ impl Class {
         let total = u32_from_slice(&data[1..5]);
         let issued = u32_from_slice(&data[5..9]);
 
-        if total > 0 && issued >= total {
+        if total > 0 && issued > total {
             return Err(Error::ClassTotalSmallerThanIssued);
         }
 
