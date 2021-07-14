@@ -10,7 +10,7 @@ type Nfts = (Nft, Nft);
 type NftDataTuple = (Vec<u8>, Vec<u8>);
 
 pub fn validate_immutable_nft_fields((input_nft, output_nft): &Nfts) -> Result<(), Error> {
-    if input_nft.characteristic != output_nft.characteristic {
+    if !input_nft.allow_update_characteristic() && input_nft.characteristic != output_nft.characteristic {
         return Err(Error::NFTCharacteristicNotSame);
     }
     if input_nft.configure != output_nft.configure {
