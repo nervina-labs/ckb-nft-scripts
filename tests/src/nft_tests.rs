@@ -102,12 +102,6 @@ fn create_test_context(action: Action, nft_error: NftError) -> (Context, Transac
         .out_point(class_out_point.clone())
         .build();
 
-    let issuer_bin: Bytes = Loader::default().load_binary("issuer-type");
-    let issuer_out_point = context.deploy_cell(issuer_bin);
-    let issuer_type_script_dep = CellDep::new_builder()
-        .out_point(issuer_out_point.clone())
-        .build();
-
     // deploy always_success script
     let always_success_out_point = context.deploy_cell(ALWAYS_SUCCESS.clone());
 
@@ -125,6 +119,9 @@ fn create_test_context(action: Action, nft_error: NftError) -> (Context, Transac
         .out_point(always_success_out_point)
         .build();
 
+    let issuer_bin: Bytes = Loader::default().load_binary("issuer-type");
+    let issuer_out_point = context.deploy_cell(issuer_bin);
+
     let issuer_type_args = hex::decode("157a3633c3477d84b604a25e5fca5ca681762c10").unwrap();
     let issuer_type_script = context
         .build_script(&issuer_out_point, Bytes::from(issuer_type_args.clone()))
@@ -135,12 +132,23 @@ fn create_test_context(action: Action, nft_error: NftError) -> (Context, Transac
         CellOutput::new_builder()
             .capacity(2000u64.pack())
             .lock(lock_script.clone())
-            .type_(Some(issuer_type_script.clone()).pack())
             .build(),
         Bytes::from(hex::decode("0000000000000000000000").unwrap()),
     );
     let issuer_input = CellInput::new_builder()
         .previous_output(issuer_input_out_point.clone())
+        .build();
+
+    let issuer_cell_dep_out_point = context.create_cell(
+        CellOutput::new_builder()
+            .capacity(2000u64.pack())
+            .lock(lock_script.clone())
+            .type_(Some(issuer_type_script.clone()).pack())
+            .build(),
+        Bytes::from(hex::decode("0000000000000000000000").unwrap()),
+    );
+    let issuer_cell_dep = CellDep::new_builder()
+        .out_point(issuer_cell_dep_out_point.clone())
         .build();
 
     // class type script and inputs
@@ -189,6 +197,10 @@ fn create_test_context(action: Action, nft_error: NftError) -> (Context, Transac
     );
     let class_input = CellInput::new_builder()
         .previous_output(class_input_out_point.clone())
+        .build();
+
+    let class_cell_dep = CellDep::new_builder()
+        .out_point(class_input_out_point.clone())
         .build();
 
     // nft type script and inputs
@@ -357,7 +369,6 @@ fn create_test_context(action: Action, nft_error: NftError) -> (Context, Transac
                 CellOutput::new_builder()
                     .capacity(500u64.pack())
                     .lock(lock_script.clone())
-                    .type_(Some(issuer_type_script.clone()).pack())
                     .build(),
             ],
         },
@@ -526,15 +537,21 @@ fn create_test_context(action: Action, nft_error: NftError) -> (Context, Transac
         .map(|_input| Bytes::from("0x"))
         .collect::<Vec<Bytes>>();
 
+    let cell_deps = match action {
+        Action::Destroy(case) => match case {
+            DestroyCase::ClassInput => vec![class_cell_dep, nft_type_script_dep],
+            DestroyCase::IssuerInput => vec![issuer_cell_dep, nft_type_script_dep],
+            _ => vec![lock_script_dep, class_type_script_dep, nft_type_script_dep],
+        }
+        _ => vec![lock_script_dep, class_type_script_dep, nft_type_script_dep],
+    };
+
     // build transaction
     let tx = TransactionBuilder::default()
         .inputs(inputs)
         .outputs(outputs)
         .outputs_data(outputs_data.pack())
-        .cell_dep(lock_script_dep)
-        .cell_dep(issuer_type_script_dep)
-        .cell_dep(class_type_script_dep)
-        .cell_dep(nft_type_script_dep)
+        .cell_deps(cell_deps)
         .witnesses(witnesses.pack())
         .build();
     (context, tx)

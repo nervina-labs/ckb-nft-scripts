@@ -1,11 +1,12 @@
 use alloc::vec::Vec;
+use core::result::Result;
 use ckb_std::{
     ckb_constants::Source,
     ckb_types::{bytes::Bytes, packed::*, prelude::*},
     high_level::{load_cell_data, load_cell_type, load_cell_type_hash, load_cell_lock, QueryIter},
 };
 use crate::error::Error;
-use core::result::Result;
+use crate::issuer::ISSUER_TYPE_ARGS_LEN;
 
 const ID_LEN: usize = 4;
 pub const DYN_MIN_LEN: usize = 2; // the length of dynamic data size(u16)
@@ -87,12 +88,12 @@ pub fn inputs_and_cell_deps_have_same_lock() -> Result<bool, Error> {
     Ok(cell_dep_lock.as_slice() == input_lock.as_slice())
 }
 
-pub fn cell_deps_have_same_type_hash(type_hash: &[u8]) -> Result<bool, Error> {
+pub fn cell_deps_have_same_issuer_id(issuer_id: &[u8]) -> Result<bool, Error> {
     let type_hash_opt = load_cell_type_hash(0, Source::CellDep)?;
-    type_hash_opt.map_or(Ok(false), |_type_hash| Ok(_type_hash == type_hash))
+    type_hash_opt.map_or(Ok(false), |_type_hash| Ok(&_type_hash[0..ISSUER_TYPE_ARGS_LEN] == issuer_id))
 }
 
-pub fn cell_deps_have_same_type_args(type_args: &[u8]) -> Result<bool, Error> {
+pub fn cell_deps_have_same_class_type_args(type_args: &[u8]) -> Result<bool, Error> {
     let type_opt = load_cell_type(0, Source::CellDep)?;
     type_opt.map_or(Ok(false), |_type| Ok(&load_type_args(&_type)[..] == type_args))
 }
