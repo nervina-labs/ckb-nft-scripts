@@ -93,13 +93,17 @@ fn handle_creation(nft_type: &Script) -> Result<(), Error> {
         return Err(Error::NFTAndClassConfigureNotSame);
     }
 
+<<<<<<< HEAD
     let mut outputs_token_ids =
         load_output_type_args_ids(CLASS_TYPE_ARGS_LEN, &check_nft_type(nft_type));
+=======
+    let outputs_token_ids =
+        load_output_type_args_ids(CLASS_TYPE_ARGS_LEN, &check_nft_args(nft_args));
+>>>>>>> refactor: Ensure class_ids and token_ids increase monotonically
     let nft_outputs_increased_count = (output_class.issued - input_class.issued) as usize;
     if nft_outputs_increased_count != outputs_token_ids.len() {
         return Err(Error::NFTCellsCountError);
     }
-    outputs_token_ids.sort();
 
     let mut class_cell_token_ids = Vec::new();
     for token_id in input_class.issued..output_class.issued {

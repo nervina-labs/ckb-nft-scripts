@@ -82,7 +82,6 @@ fn handle_creation(class_type: &Script) -> Result<(), Error> {
     if class_outputs_increased_count != outputs_class_ids.len() {
         return Err(Error::ClassCellsCountError);
     }
-    outputs_class_ids.sort();
 
     let mut issuer_cell_class_ids = Vec::new();
     for class_id in input_issuer.class_count..output_issuer.class_count {
