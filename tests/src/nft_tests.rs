@@ -366,8 +366,8 @@ fn create_test_context(action: Action, nft_error: NftError) -> (Context, Transac
     match action {
         // Action::Create => {
         //     let token_ids = match nft_error {
-        //         NftError::NFTTokenIdIncreaseError => [4u32, 4u32, 4u32, 4u32, 1u32, 6u32, 7u32, 10u32, 8u32, 9u32, 13u32, 11u32, 12u32, 14u32, 15u32],
-        //         _ => [5u32, 4u32, 3u32, 2u32, 1u32, 6u32, 7u32, 10u32, 8u32, 9u32, 13u32, 11u32, 12u32, 14u32, 15u32],
+        //         NftError::NFTTokenIdIncreaseError => [4u32, 3u32, 2u32, 5u32, 1u32, 6u32, 7u32, 10u32, 8u32, 9u32, 13u32, 11u32, 12u32, 14u32, 15u32],
+                // _ => [1u32, 2u32, 3u32, 4u32, 5u32, 6u32, 7u32, 8u32, 9u32, 10u32, 11u32, 12u32, 13u32, 14u32, 15u32],
         //     };
         //     for token_id in token_ids.iter() {
         //         let mut nft_type_args = class_type_args.clone().to_vec();
