@@ -13,8 +13,8 @@ use script_utils::{
     class::{Class, CLASS_TYPE_ARGS_LEN},
     error::Error,
     helper::{
-        count_cells_by_type, count_cells_by_type_hash, load_cell_data_by_type,
-        load_output_type_args_ids, Action,
+        count_cells_by_type, load_cell_data_by_type, load_output_type_args_ids, 
+        inputs_and_cell_deps_have_same_lock, cell_deps_have_same_type_hash, cell_deps_have_same_type_args, Action
     },
     issuer::ISSUER_TYPE_ARGS_LEN,
     nft::{Nft, NFT_TYPE_ARGS_LEN},
@@ -130,12 +130,23 @@ fn handle_update() -> Result<(), Error> {
     Ok(())
 }
 
+<<<<<<< HEAD
 fn handle_destroying(nft_type: &Script) -> Result<(), Error> {
     let nft_args: Bytes = nft_type.args().unpack();
     let issuer_inputs_count = count_cells_by_type_hash(Source::Input, &check_issuer_id(&nft_args));
     let class_inputs_count = count_cells_by_type(Source::Input, &check_class_type(&nft_args));
     if issuer_inputs_count > 0 || class_inputs_count > 0 {
         return Ok(());
+=======
+fn handle_destroying(nft_args: &Bytes) -> Result<(), Error> {
+    if inputs_and_cell_deps_have_same_lock()? {
+        if cell_deps_have_same_type_hash(&nft_args[0..ISSUER_TYPE_ARGS_LEN])? {
+            return Ok(());
+        }
+        if cell_deps_have_same_type_args(&nft_args[0..CLASS_TYPE_ARGS_LEN])? {
+            return Ok(());
+        }
+>>>>>>> feat: Destroy nft cell when inputs and cell_deps have issuer or class lock
     }
     let input_nft = Nft::from_data(&load_nft_data(Source::GroupInput)?[..])?;
     if input_nft.is_locked() {

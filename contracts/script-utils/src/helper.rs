@@ -2,8 +2,10 @@ use alloc::vec::Vec;
 use ckb_std::{
     ckb_constants::Source,
     ckb_types::{bytes::Bytes, packed::*, prelude::*},
-    high_level::{load_cell_data, load_cell_type, load_cell_type_hash, QueryIter},
+    high_level::{load_cell_data, load_cell_type, load_cell_type_hash, load_cell_lock, QueryIter},
 };
+use crate::error::Error;
+use core::result::Result;
 
 const ID_LEN: usize = 4;
 pub const DYN_MIN_LEN: usize = 2; // the length of dynamic data size(u16)
@@ -77,6 +79,22 @@ pub fn load_output_type_args_ids(
             type_opt.and_then(|type_| parse_type_args_id(type_, slice_start))
         })
         .collect()
+}
+
+pub fn inputs_and_cell_deps_have_same_lock() -> Result<bool, Error> {
+    let cell_dep_lock = load_cell_lock(0, Source::CellDep)?;
+    let input_lock = load_cell_lock(0, Source::Input)?;
+    Ok(cell_dep_lock.as_slice() == input_lock.as_slice())
+}
+
+pub fn cell_deps_have_same_type_hash(type_hash: &[u8]) -> Result<bool, Error> {
+    let type_hash_opt = load_cell_type_hash(0, Source::CellDep)?;
+    type_hash_opt.map_or(Ok(false), |_type_hash| Ok(_type_hash == type_hash))
+}
+
+pub fn cell_deps_have_same_type_args(type_args: &[u8]) -> Result<bool, Error> {
+    let type_opt = load_cell_type(0, Source::CellDep)?;
+    type_opt.map_or(Ok(false), |_type| Ok(&load_type_args(&_type)[..] == type_args))
 }
 
 pub fn parse_dyn_vec_len(data: &[u8]) -> usize {
