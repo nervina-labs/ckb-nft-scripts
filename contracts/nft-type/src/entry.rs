@@ -1,6 +1,6 @@
 use crate::validator::{
     validate_immutable_nft_fields, validate_nft_claim, validate_nft_ext_info, validate_nft_lock,
-    validate_nft_transfer,
+    validate_nft_transfer
 };
 use alloc::vec::Vec;
 use ckb_std::{
@@ -112,7 +112,19 @@ fn handle_creation(nft_type: &Script) -> Result<(), Error> {
     Ok(())
 }
 
-fn handle_update() -> Result<(), Error> {
+fn cell_deps_and_inputs_have_issuer_or_class_lock(nft_args: &Bytes) -> Result<bool, Error> {
+    if inputs_and_cell_deps_have_same_lock()? {
+        if cell_deps_have_same_issuer_id(&nft_args[0..ISSUER_TYPE_ARGS_LEN])? {
+            return Ok(true);
+        }
+        if cell_deps_have_same_class_type_args(&nft_args[0..CLASS_TYPE_ARGS_LEN])? {
+            return Ok(true);
+        }
+    }
+    Ok(false)
+}
+
+fn handle_update(nft_args: &Bytes) -> Result<(), Error> {
     let nft_data = (
         load_nft_data(Source::GroupInput)?,
         load_nft_data(Source::GroupOutput)?,
@@ -122,22 +134,19 @@ fn handle_update() -> Result<(), Error> {
         Nft::from_data(&nft_data.1[..])?,
     );
     validate_immutable_nft_fields(&nfts)?;
-    validate_nft_claim(&nfts)?;
-    validate_nft_lock(&nfts)?;
+    if !cell_deps_and_inputs_have_issuer_or_class_lock(&nft_args)? {
+        validate_nft_claim(&nfts)?;
+        validate_nft_lock(&nfts)?;
+    }
     validate_nft_transfer(&nfts.0)?;
     validate_nft_ext_info(&nfts.0, &nft_data)?;
     Ok(())
 }
 
-fn handle_destroying(nft_type: &Script) -> Result<(), Error> {
+fn handle_destroying(nft_args: &Bytes) -> Result<(), Error> {
     let nft_args: Bytes = nft_type.args().unpack();
-    if inputs_and_cell_deps_have_same_lock()? {
-        if cell_deps_have_same_issuer_id(&nft_args[0..ISSUER_TYPE_ARGS_LEN])? {
-            return Ok(());
-        }
-        if cell_deps_have_same_class_type_args(&nft_args[0..CLASS_TYPE_ARGS_LEN])? {
-            return Ok(());
-        }
+    if cell_deps_and_inputs_have_issuer_or_class_lock(&nft_args)? {
+        return Ok(());
     }
     let input_nft = Nft::from_data(&load_nft_data(Source::GroupInput)?[..])?;
     if input_nft.is_locked() {
