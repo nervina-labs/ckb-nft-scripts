@@ -14,9 +14,8 @@ use script_utils::{
     error::Error,
     helper::{
         count_cells_by_type, load_cell_data_by_type, load_output_type_args_ids, 
-        inputs_and_cell_deps_have_same_lock, cell_deps_have_same_issuer_id, cell_deps_have_same_class_type_args, Action
+        cell_deps_and_inputs_have_issuer_or_class_lock, Action
     },
-    issuer::ISSUER_TYPE_ARGS_LEN,
     nft::{Nft, NFT_TYPE_ARGS_LEN},
 };
 
@@ -110,18 +109,6 @@ fn handle_creation(nft_type: &Script) -> Result<(), Error> {
     }
 
     Ok(())
-}
-
-fn cell_deps_and_inputs_have_issuer_or_class_lock(nft_args: &Bytes) -> Result<bool, Error> {
-    if inputs_and_cell_deps_have_same_lock()? {
-        if cell_deps_have_same_issuer_id(&nft_args[0..ISSUER_TYPE_ARGS_LEN])? {
-            return Ok(true);
-        }
-        if cell_deps_have_same_class_type_args(&nft_args[0..CLASS_TYPE_ARGS_LEN])? {
-            return Ok(true);
-        }
-    }
-    Ok(false)
 }
 
 fn handle_update(nft_args: &Bytes) -> Result<(), Error> {

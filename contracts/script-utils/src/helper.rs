@@ -7,6 +7,7 @@ use ckb_std::{
 };
 use crate::error::Error;
 use crate::issuer::ISSUER_TYPE_ARGS_LEN;
+use crate::class::CLASS_TYPE_ARGS_LEN;
 
 const ID_LEN: usize = 4;
 pub const DYN_MIN_LEN: usize = 2; // the length of dynamic data size(u16)
@@ -82,20 +83,28 @@ pub fn load_output_type_args_ids(
         .collect()
 }
 
-pub fn inputs_and_cell_deps_have_same_lock() -> Result<bool, Error> {
-    let cell_dep_lock = load_cell_lock(0, Source::CellDep)?;
-    let input_lock = load_cell_lock(0, Source::Input)?;
-    Ok(cell_dep_lock.as_slice() == input_lock.as_slice())
-}
-
-pub fn cell_deps_have_same_issuer_id(issuer_id: &[u8]) -> Result<bool, Error> {
+fn cell_deps_have_same_issuer_id(issuer_id: &[u8]) -> Result<bool, Error> {
     let type_hash_opt = load_cell_type_hash(0, Source::CellDep)?;
     type_hash_opt.map_or(Ok(false), |_type_hash| Ok(&_type_hash[0..ISSUER_TYPE_ARGS_LEN] == issuer_id))
 }
 
-pub fn cell_deps_have_same_class_type_args(type_args: &[u8]) -> Result<bool, Error> {
+fn cell_deps_have_same_class_type_args(type_args: &[u8]) -> Result<bool, Error> {
     let type_opt = load_cell_type(0, Source::CellDep)?;
     type_opt.map_or(Ok(false), |_type| Ok(&load_type_args(&_type)[..] == type_args))
+}
+
+pub fn cell_deps_and_inputs_have_issuer_or_class_lock(nft_args: &Bytes) -> Result<bool, Error> {
+    let cell_dep_lock = load_cell_lock(0, Source::CellDep)?;
+    let input_lock = load_cell_lock(0, Source::Input)?;
+    if cell_dep_lock.as_slice() == input_lock.as_slice() {
+        if cell_deps_have_same_issuer_id(&nft_args[0..ISSUER_TYPE_ARGS_LEN])? {
+            return Ok(true);
+        }
+        if cell_deps_have_same_class_type_args(&nft_args[0..CLASS_TYPE_ARGS_LEN])? {
+            return Ok(true);
+        }
+    }
+    Ok(false)
 }
 
 pub fn parse_dyn_vec_len(data: &[u8]) -> usize {
