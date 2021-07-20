@@ -247,7 +247,7 @@ fn create_test_context(action: Action, nft_error: NftError) -> (Context, Transac
         Action::Update(case) => {
             match case {
                 UpdateCase::UpdateStateWithIssuer | UpdateCase::UpdateStateWithClass => {
-                    Bytes::from(hex::decode("0000000000000000000f03").unwrap())
+                    Bytes::from(hex::decode("0000000000000000000303").unwrap())
                 },
                 _ => {
                     match nft_error {
@@ -535,10 +535,10 @@ fn create_test_context(action: Action, nft_error: NftError) -> (Context, Transac
                 hex::decode("0022334455667788990000").unwrap(),
             )],
             (UpdateCase::UpdateStateWithIssuer, _) => {
-                vec![Bytes::new(), Bytes::from(hex::decode("0000000000000000000f00").unwrap())]
+                vec![Bytes::new(), Bytes::from(hex::decode("0000000000000000000300").unwrap())]
             }
             (UpdateCase::UpdateStateWithClass, _) => {
-                vec![Bytes::new(), Bytes::from(hex::decode("0000000000000000000f00").unwrap())]
+                vec![Bytes::new(), Bytes::from(hex::decode("0000000000000000000300").unwrap())]
             }
             (UpdateCase::UpdateCharacteristic, NftError::NFTCharacteristicNotSame) => {
                 vec![Bytes::from(hex::decode("0022334455667788990800").unwrap())]
