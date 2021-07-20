@@ -78,6 +78,7 @@ enum NftError {
     NFTCannotTransferAfterClaim,
     NFTAllowAddExtInfoShortError,
     NFTAllowAddExtInfoNotSameError,
+    NFTAllowAddMoreExtInfoNotSameError,
     NFTDisallowAddExtInfoLenError,
     NFTCannotDestroyBeforeClaim,
     NFTCannotDestroyAfterClaim,
@@ -277,6 +278,9 @@ fn create_test_context(action: Action, nft_error: NftError) -> (Context, Transac
                         }
                         NftError::NFTAllowAddExtInfoNotSameError => {
                             Bytes::from(hex::decode("000000000000000000000000028899").unwrap())
+                        }
+                        NftError::NFTAllowAddMoreExtInfoNotSameError => {
+                            Bytes::from(hex::decode("00000000000000000000000002889900021234").unwrap())
                         }
                         NftError::NFTDisallowAddExtInfoLenError => {
                             Bytes::from(hex::decode("0000000000000000000400").unwrap())
@@ -573,6 +577,11 @@ fn create_test_context(action: Action, nft_error: NftError) -> (Context, Transac
             (UpdateCase::AddExtInfo, NftError::NFTAllowAddExtInfoNotSameError) => {
                 vec![Bytes::from(
                     hex::decode("000000000000000000000000026677").unwrap(),
+                )]
+            }
+            (UpdateCase::AddExtInfo, NftError::NFTAllowAddMoreExtInfoNotSameError) => {
+                vec![Bytes::from(
+                    hex::decode("00000000000000000000000002889900025566").unwrap(),
                 )]
             }
             (UpdateCase::AddExtInfo, NftError::NFTDisallowAddExtInfoLenError) => vec![Bytes::from(
@@ -1094,6 +1103,24 @@ fn test_update_nft_ext_info_not_same_error() {
     let (mut context, tx) = create_test_context(
         Action::Update(UpdateCase::AddExtInfo),
         NftError::NFTAllowAddExtInfoNotSameError,
+    );
+
+    let tx = context.complete_tx(tx);
+    // run
+    let err = context.verify_tx(&tx, MAX_CYCLES).unwrap_err();
+    let script_cell_index = 0;
+    assert_error_eq!(
+        err,
+        ScriptError::ValidationFailure(NFT_EXT_INFO_CANNOT_MODIFY)
+            .input_type_script(script_cell_index)
+    );
+}
+
+#[test]
+fn test_update_nft_more_ext_info_not_same_error() {
+    let (mut context, tx) = create_test_context(
+        Action::Update(UpdateCase::AddExtInfo),
+        NftError::NFTAllowAddMoreExtInfoNotSameError,
     );
 
     let tx = context.complete_tx(tx);
