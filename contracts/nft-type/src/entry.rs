@@ -26,8 +26,7 @@ fn check_issuer_id<'a>(nft_args: &'a Bytes) -> impl Fn(&[u8]) -> bool + 'a {
 
 const TYPE: u8 = 1;
 const CLASS_TYPE_CODE_HASH: [u8; 32] = [
-    250, 238, 204,  18, 226, 244,  24, 63, 233, 254,  18, 209, 216, 142, 117, 184, 209,  42,  44, 164, 177,
-    23, 164, 144, 119, 141, 163, 204, 232, 222, 226, 135
+    9, 91, 140, 11, 78, 81, 164, 95, 149, 58, 205, 31, 205, 30, 57, 72, 159, 38, 117, 180, 188, 148, 231, 175, 39, 187,  56, 149, 135, 144, 227, 252
 ];
 fn check_class_type<'a>(nft_args: &'a Bytes) -> impl Fn(&Script) -> bool + 'a {
     let class_type = Script::new_builder()
