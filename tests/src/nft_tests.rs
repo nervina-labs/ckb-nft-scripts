@@ -14,9 +14,9 @@ const MAX_CYCLES: u64 = 70_000_000;
 // error numbers
 const TYPE_ARGS_INVALID: i8 = 7;
 const NFT_DATA_INVALID: i8 = 19;
-const NFT_CELLS_COUNT_ERROR: i8 = 20;
-const NFT_TOKEN_ID_INCREASE_ERROR: i8 = 21;
-const NFT_AND_CLASS_CONFIGURE_NOT_SAME: i8 = 22;
+// const NFT_CELLS_COUNT_ERROR: i8 = 20;
+// const NFT_TOKEN_ID_INCREASE_ERROR: i8 = 21;
+// const NFT_AND_CLASS_CONFIGURE_NOT_SAME: i8 = 22;
 const NFT_CHARACTERISTIC_NOT_SAME: i8 = 23;
 const NFT_CONFIGURE_NOT_SAME: i8 = 24;
 const NFT_CLAIMED_TO_UNCLAIMED_ERROR: i8 = 25;
@@ -38,7 +38,7 @@ const LOCKED_NFT_CANNOT_DESTROY: i8 = 38;
 enum DestroyCase {
     Default,
     IssuerInput,
-    ClassInput,
+    // ClassInput,
 }
 
 #[derive(PartialEq, Eq, Clone, Copy)]
@@ -51,7 +51,7 @@ enum UpdateCase {
 
 #[derive(PartialEq, Eq)]
 enum Action {
-    Create,
+    // Create,
     Update(UpdateCase),
     Destroy(DestroyCase),
 }
@@ -61,9 +61,9 @@ enum NftError {
     NoError,
     TypeArgsInvalid,
     NFTDataInvalid,
-    NFTCellsCountError,
-    NFTTokenIdIncreaseError,
-    NFTAndClassConfigureNotSame,
+    // NFTCellsCountError,
+    // NFTTokenIdIncreaseError,
+    // NFTAndClassConfigureNotSame,
     NFTCharacteristicNotSame,
     NFTConfigureNotSame,
     NFTClaimedToUnclaimedError,
@@ -142,19 +142,19 @@ fn create_test_context(action: Action, nft_error: NftError) -> (Context, Transac
 
     // class type script and inputs
     let class_input_data = match action {
-        Action::Create => match nft_error {
-            NftError::NFTCellsCountError => {
-                Bytes::from(hex::decode("00000000640000000b00000155000266660003898989").unwrap())
-            }
-            NftError::NFTAndClassConfigureNotSame => {
-                Bytes::from(hex::decode("00000000640000000907000155000266660003898989").unwrap())
-            }
-            _ => Bytes::from(hex::decode("00000000640000000100000155000266660003898989").unwrap()),
-        },
+        // Action::Create => match nft_error {
+        //     NftError::NFTCellsCountError => {
+        //         Bytes::from(hex::decode("00000000640000000b00000155000266660003898989").unwrap())
+        //     }
+        //     NftError::NFTAndClassConfigureNotSame => {
+        //         Bytes::from(hex::decode("00000000640000000907000155000266660003898989").unwrap())
+        //     }
+        //     _ => Bytes::from(hex::decode("00000000640000000100000155000266660003898989").unwrap()),
+        // },
         Action::Destroy(case) => match case {
-            DestroyCase::ClassInput => {
-                Bytes::from(hex::decode("000000000f0000000500000155000266660003898989").unwrap())
-            }
+            // DestroyCase::ClassInput => {
+            //     Bytes::from(hex::decode("000000000f0000000500000155000266660003898989").unwrap())
+            // }
             _ => Bytes::new(),
         },
         Action::Update(_) => Bytes::new(),
@@ -244,7 +244,7 @@ fn create_test_context(action: Action, nft_error: NftError) -> (Context, Transac
             },
             _ => Bytes::from(hex::decode("000000000000000000c000").unwrap()),
         },
-        Action::Create => Bytes::new(),
+        // Action::Create => Bytes::new(),
     };
 
     let mut nft_type_args = class_type_args.clone().to_vec();
@@ -291,7 +291,7 @@ fn create_test_context(action: Action, nft_error: NftError) -> (Context, Transac
         .build();
 
     let inputs = match action {
-        Action::Create => vec![class_input],
+        // Action::Create => vec![class_input],
         Action::Update(case) => match case {
             UpdateCase::Claim => match nft_error {
                 NftError::NoError => vec![nft_input, another_nft_input],
@@ -301,17 +301,17 @@ fn create_test_context(action: Action, nft_error: NftError) -> (Context, Transac
         },
         Action::Destroy(case) => match case {
             DestroyCase::Default => vec![nft_input],
-            DestroyCase::ClassInput => vec![nft_input, class_input],
+            // DestroyCase::ClassInput => vec![nft_input, class_input],
             DestroyCase::IssuerInput => vec![nft_input, issuer_input],
         },
     };
 
     let mut outputs = match action {
-        Action::Create => vec![CellOutput::new_builder()
-            .capacity(500u64.pack())
-            .lock(lock_script.clone())
-            .type_(Some(class_type_script.clone()).pack())
-            .build()],
+        // Action::Create => vec![CellOutput::new_builder()
+        //     .capacity(500u64.pack())
+        //     .lock(lock_script.clone())
+        //     .type_(Some(class_type_script.clone()).pack())
+        //     .build()],
         Action::Update(case) => match case {
             UpdateCase::Transfer => vec![CellOutput::new_builder()
                 .capacity(500u64.pack())
@@ -329,17 +329,17 @@ fn create_test_context(action: Action, nft_error: NftError) -> (Context, Transac
                 .capacity(500u64.pack())
                 .lock(lock_script.clone())
                 .build()],
-            DestroyCase::ClassInput => vec![
-                CellOutput::new_builder()
-                    .capacity(500u64.pack())
-                    .lock(lock_script.clone())
-                    .build(),
-                CellOutput::new_builder()
-                    .capacity(500u64.pack())
-                    .lock(lock_script.clone())
-                    .type_(Some(class_type_script.clone()).pack())
-                    .build(),
-            ],
+            // DestroyCase::ClassInput => vec![
+            //     CellOutput::new_builder()
+            //         .capacity(500u64.pack())
+            //         .lock(lock_script.clone())
+            //         .build(),
+            //     CellOutput::new_builder()
+            //         .capacity(500u64.pack())
+            //         .lock(lock_script.clone())
+            //         .type_(Some(class_type_script.clone()).pack())
+            //         .build(),
+            // ],
             DestroyCase::IssuerInput => vec![
                 CellOutput::new_builder()
                     .capacity(500u64.pack())
@@ -355,29 +355,29 @@ fn create_test_context(action: Action, nft_error: NftError) -> (Context, Transac
     };
 
     match action {
-        Action::Create => {
-            let token_ids = match nft_error {
-                NftError::NFTTokenIdIncreaseError => [4u32, 4u32, 4u32, 4u32, 1u32, 6u32, 7u32, 10u32, 8u32, 9u32, 13u32, 11u32, 12u32, 14u32, 15u32],
-                _ => [5u32, 4u32, 3u32, 2u32, 1u32, 6u32, 7u32, 10u32, 8u32, 9u32, 13u32, 11u32, 12u32, 14u32, 15u32],
-            };
-            for token_id in token_ids.iter() {
-                let mut nft_type_args = class_type_args.clone().to_vec();
-                let mut args_token_id = token_id.to_be_bytes().to_vec();
-                nft_type_args.append(&mut args_token_id);
+        // Action::Create => {
+        //     let token_ids = match nft_error {
+        //         NftError::NFTTokenIdIncreaseError => [4u32, 4u32, 4u32, 4u32, 1u32, 6u32, 7u32, 10u32, 8u32, 9u32, 13u32, 11u32, 12u32, 14u32, 15u32],
+        //         _ => [5u32, 4u32, 3u32, 2u32, 1u32, 6u32, 7u32, 10u32, 8u32, 9u32, 13u32, 11u32, 12u32, 14u32, 15u32],
+        //     };
+        //     for token_id in token_ids.iter() {
+        //         let mut nft_type_args = class_type_args.clone().to_vec();
+        //         let mut args_token_id = token_id.to_be_bytes().to_vec();
+        //         nft_type_args.append(&mut args_token_id);
 
-                let nft_type_script = context
-                    .build_script(&nft_out_point, Bytes::copy_from_slice(&nft_type_args[..]))
-                    .expect("script");
+        //         let nft_type_script = context
+        //             .build_script(&nft_out_point, Bytes::copy_from_slice(&nft_type_args[..]))
+        //             .expect("script");
 
-                outputs.push(
-                    CellOutput::new_builder()
-                        .capacity(500u64.pack())
-                        .lock(lock_script.clone())
-                        .type_(Some(nft_type_script.clone()).pack())
-                        .build(),
-                );
-            }
-        },
+        //         outputs.push(
+        //             CellOutput::new_builder()
+        //                 .capacity(500u64.pack())
+        //                 .lock(lock_script.clone())
+        //                 .type_(Some(nft_type_script.clone()).pack())
+        //                 .build(),
+        //         );
+        //     }
+        // },
         Action::Update(case) => match case {
             UpdateCase::Claim => {
                 if nft_error == NftError::NoError {
@@ -395,44 +395,44 @@ fn create_test_context(action: Action, nft_error: NftError) -> (Context, Transac
     }
 
     let outputs_data: Vec<_> = match action {
-        Action::Create => match nft_error {
-            NftError::NFTAndClassConfigureNotSame => vec![
-                Bytes::from(hex::decode("00000000640000001007000155000266660003898989").unwrap()),
-                Bytes::from(hex::decode("0000000000000000000000").unwrap()),
-                Bytes::from(hex::decode("0000000000000000000000").unwrap()),
-                Bytes::from(hex::decode("0000000000000000000000000155").unwrap()),
-                Bytes::from(hex::decode("0000000000000000000000").unwrap()),
-                Bytes::from(hex::decode("0000000000000000000000").unwrap()),
-                Bytes::from(hex::decode("0000000000000000000000000155").unwrap()),
-                Bytes::from(hex::decode("0000000000000000000000").unwrap()),
-                Bytes::from(hex::decode("0000000000000000000000").unwrap()),
-                Bytes::from(hex::decode("0000000000000000000000000155").unwrap()),
-                Bytes::from(hex::decode("0000000000000000000000").unwrap()),
-                Bytes::from(hex::decode("0000000000000000000000").unwrap()),
-                Bytes::from(hex::decode("0000000000000000000000000155").unwrap()),
-                Bytes::from(hex::decode("0000000000000000000000").unwrap()),
-                Bytes::from(hex::decode("0000000000000000000000").unwrap()),
-                Bytes::from(hex::decode("0000000000000000000000000155").unwrap()),
-            ],
-            _ => vec![
-                Bytes::from(hex::decode("00000000640000001000000155000266660003898989").unwrap()),
-                Bytes::from(hex::decode("0000000000000000000000").unwrap()),
-                Bytes::from(hex::decode("0000000000000000000000").unwrap()),
-                Bytes::from(hex::decode("0000000000000000000000000155").unwrap()),
-                Bytes::from(hex::decode("0000000000000000000000").unwrap()),
-                Bytes::from(hex::decode("0000000000000000000000").unwrap()),
-                Bytes::from(hex::decode("0000000000000000000000000155").unwrap()),
-                Bytes::from(hex::decode("0000000000000000000000").unwrap()),
-                Bytes::from(hex::decode("0000000000000000000000").unwrap()),
-                Bytes::from(hex::decode("0000000000000000000000000155").unwrap()),
-                Bytes::from(hex::decode("0000000000000000000000").unwrap()),
-                Bytes::from(hex::decode("0000000000000000000000").unwrap()),
-                Bytes::from(hex::decode("0000000000000000000000000155").unwrap()),
-                Bytes::from(hex::decode("0000000000000000000000").unwrap()),
-                Bytes::from(hex::decode("0000000000000000000000").unwrap()),
-                Bytes::from(hex::decode("0000000000000000000000000155").unwrap()),
-            ],
-        },
+        // Action::Create => match nft_error {
+        //     NftError::NFTAndClassConfigureNotSame => vec![
+        //         Bytes::from(hex::decode("00000000640000001007000155000266660003898989").unwrap()),
+        //         Bytes::from(hex::decode("0000000000000000000000").unwrap()),
+        //         Bytes::from(hex::decode("0000000000000000000000").unwrap()),
+        //         Bytes::from(hex::decode("0000000000000000000000000155").unwrap()),
+        //         Bytes::from(hex::decode("0000000000000000000000").unwrap()),
+        //         Bytes::from(hex::decode("0000000000000000000000").unwrap()),
+        //         Bytes::from(hex::decode("0000000000000000000000000155").unwrap()),
+        //         Bytes::from(hex::decode("0000000000000000000000").unwrap()),
+        //         Bytes::from(hex::decode("0000000000000000000000").unwrap()),
+        //         Bytes::from(hex::decode("0000000000000000000000000155").unwrap()),
+        //         Bytes::from(hex::decode("0000000000000000000000").unwrap()),
+        //         Bytes::from(hex::decode("0000000000000000000000").unwrap()),
+        //         Bytes::from(hex::decode("0000000000000000000000000155").unwrap()),
+        //         Bytes::from(hex::decode("0000000000000000000000").unwrap()),
+        //         Bytes::from(hex::decode("0000000000000000000000").unwrap()),
+        //         Bytes::from(hex::decode("0000000000000000000000000155").unwrap()),
+        //     ],
+        //     _ => vec![
+        //         Bytes::from(hex::decode("00000000640000001000000155000266660003898989").unwrap()),
+        //         Bytes::from(hex::decode("0000000000000000000000").unwrap()),
+        //         Bytes::from(hex::decode("0000000000000000000000").unwrap()),
+        //         Bytes::from(hex::decode("0000000000000000000000000155").unwrap()),
+        //         Bytes::from(hex::decode("0000000000000000000000").unwrap()),
+        //         Bytes::from(hex::decode("0000000000000000000000").unwrap()),
+        //         Bytes::from(hex::decode("0000000000000000000000000155").unwrap()),
+        //         Bytes::from(hex::decode("0000000000000000000000").unwrap()),
+        //         Bytes::from(hex::decode("0000000000000000000000").unwrap()),
+        //         Bytes::from(hex::decode("0000000000000000000000000155").unwrap()),
+        //         Bytes::from(hex::decode("0000000000000000000000").unwrap()),
+        //         Bytes::from(hex::decode("0000000000000000000000").unwrap()),
+        //         Bytes::from(hex::decode("0000000000000000000000000155").unwrap()),
+        //         Bytes::from(hex::decode("0000000000000000000000").unwrap()),
+        //         Bytes::from(hex::decode("0000000000000000000000").unwrap()),
+        //         Bytes::from(hex::decode("0000000000000000000000000155").unwrap()),
+        //     ],
+        // },
         Action::Update(case) => match (case, nft_error) {
             (UpdateCase::Claim, NftError::NoError) => {
                 vec![Bytes::from(hex::decode("0000000000000000000001").unwrap()), 
@@ -495,10 +495,10 @@ fn create_test_context(action: Action, nft_error: NftError) -> (Context, Transac
         },
         Action::Destroy(case) => match case {
             DestroyCase::Default => vec![Bytes::new()],
-            DestroyCase::ClassInput => vec![
-                Bytes::new(),
-                Bytes::from(hex::decode("000000000f0000000500000155000266660003898989").unwrap()),
-            ],
+            // DestroyCase::ClassInput => vec![
+            //     Bytes::new(),
+            //     Bytes::from(hex::decode("000000000f0000000500000155000266660003898989").unwrap()),
+            // ],
             DestroyCase::IssuerInput => vec![
                 Bytes::new(),
                 Bytes::from(hex::decode("0000000000000000000000").unwrap()),
@@ -525,17 +525,17 @@ fn create_test_context(action: Action, nft_error: NftError) -> (Context, Transac
     (context, tx)
 }
 
-#[test]
-fn test_create_nft_cells_success() {
-    let (mut context, tx) = create_test_context(Action::Create, NftError::NoError);
+// #[test]
+// fn test_create_nft_cells_success() {
+//     let (mut context, tx) = create_test_context(Action::Create, NftError::NoError);
 
-    let tx = context.complete_tx(tx);
-    // run
-    let cycles = context
-        .verify_tx(&tx, MAX_CYCLES)
-        .expect("pass verification");
-    println!("consume cycles: {}", cycles);
-}
+//     let tx = context.complete_tx(tx);
+//     // run
+//     let cycles = context
+//         .verify_tx(&tx, MAX_CYCLES)
+//         .expect("pass verification");
+//     println!("consume cycles: {}", cycles);
+// }
 
 #[test]
 fn test_claim_nft_cell_success() {
@@ -615,18 +615,18 @@ fn test_destroy_nft_cell_with_issuer_input_success() {
     println!("consume cycles: {}", cycles);
 }
 
-#[test]
-fn test_destroy_nft_cell_with_class_input_success() {
-    let (mut context, tx) =
-        create_test_context(Action::Destroy(DestroyCase::ClassInput), NftError::NoError);
+// #[test]
+// fn test_destroy_nft_cell_with_class_input_success() {
+//     let (mut context, tx) =
+//         create_test_context(Action::Destroy(DestroyCase::ClassInput), NftError::NoError);
 
-    let tx = context.complete_tx(tx);
-    // run
-    let cycles = context
-        .verify_tx(&tx, MAX_CYCLES)
-        .expect("pass verification");
-    println!("consume cycles: {}", cycles);
-}
+//     let tx = context.complete_tx(tx);
+//     // run
+//     let cycles = context
+//         .verify_tx(&tx, MAX_CYCLES)
+//         .expect("pass verification");
+//     println!("consume cycles: {}", cycles);
+// }
 
 #[test]
 fn test_update_nft_cell_data_len_error() {
@@ -643,64 +643,64 @@ fn test_update_nft_cell_data_len_error() {
     );
 }
 
-#[test]
-fn test_create_nft_cells_count_error() {
-    let (mut context, tx) = create_test_context(Action::Create, NftError::NFTCellsCountError);
+// #[test]
+// fn test_create_nft_cells_count_error() {
+//     let (mut context, tx) = create_test_context(Action::Create, NftError::NFTCellsCountError);
 
-    let tx = context.complete_tx(tx);
-    // run
-    let err = context.verify_tx(&tx, MAX_CYCLES).unwrap_err();
-    let script_cell_indexes = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15];
+//     let tx = context.complete_tx(tx);
+//     // run
+//     let err = context.verify_tx(&tx, MAX_CYCLES).unwrap_err();
+//     let script_cell_indexes = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15];
 
-    let errors = script_cell_indexes
-        .iter()
-        .map(|index| {
-            ScriptError::ValidationFailure(NFT_CELLS_COUNT_ERROR).output_type_script(*index)
-        })
-        .collect::<Vec<_>>();
+//     let errors = script_cell_indexes
+//         .iter()
+//         .map(|index| {
+//             ScriptError::ValidationFailure(NFT_CELLS_COUNT_ERROR).output_type_script(*index)
+//         })
+//         .collect::<Vec<_>>();
 
-    assert_errors_contain!(err, errors);
-}
+//     assert_errors_contain!(err, errors);
+// }
 
-#[test]
-fn test_create_nft_cells_token_id_increase_error() {
-    let (mut context, tx) = create_test_context(Action::Create, NftError::NFTTokenIdIncreaseError);
+// #[test]
+// fn test_create_nft_cells_token_id_increase_error() {
+//     let (mut context, tx) = create_test_context(Action::Create, NftError::NFTTokenIdIncreaseError);
 
-    let tx = context.complete_tx(tx);
-    // run
-    let err = context.verify_tx(&tx, MAX_CYCLES).unwrap_err();
-    let script_cell_indexes = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15];
+//     let tx = context.complete_tx(tx);
+//     // run
+//     let err = context.verify_tx(&tx, MAX_CYCLES).unwrap_err();
+//     let script_cell_indexes = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15];
 
-    let errors = script_cell_indexes
-        .iter()
-        .map(|index| {
-            ScriptError::ValidationFailure(NFT_TOKEN_ID_INCREASE_ERROR).output_type_script(*index)
-        })
-        .collect::<Vec<_>>();
+//     let errors = script_cell_indexes
+//         .iter()
+//         .map(|index| {
+//             ScriptError::ValidationFailure(NFT_TOKEN_ID_INCREASE_ERROR).output_type_script(*index)
+//         })
+//         .collect::<Vec<_>>();
 
-    assert_errors_contain!(err, errors);
-}
+//     assert_errors_contain!(err, errors);
+// }
 
-#[test]
-fn test_create_nft_and_class_configure_not_same_error() {
-    let (mut context, tx) =
-        create_test_context(Action::Create, NftError::NFTAndClassConfigureNotSame);
+// #[test]
+// fn test_create_nft_and_class_configure_not_same_error() {
+//     let (mut context, tx) =
+//         create_test_context(Action::Create, NftError::NFTAndClassConfigureNotSame);
 
-    let tx = context.complete_tx(tx);
-    // run
-    let err = context.verify_tx(&tx, MAX_CYCLES).unwrap_err();
-    let script_cell_indexes = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15];
+//     let tx = context.complete_tx(tx);
+//     // run
+//     let err = context.verify_tx(&tx, MAX_CYCLES).unwrap_err();
+//     let script_cell_indexes = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15];
 
-    let errors = script_cell_indexes
-        .iter()
-        .map(|index| {
-            ScriptError::ValidationFailure(NFT_AND_CLASS_CONFIGURE_NOT_SAME)
-                .output_type_script(*index)
-        })
-        .collect::<Vec<_>>();
+//     let errors = script_cell_indexes
+//         .iter()
+//         .map(|index| {
+//             ScriptError::ValidationFailure(NFT_AND_CLASS_CONFIGURE_NOT_SAME)
+//                 .output_type_script(*index)
+//         })
+//         .collect::<Vec<_>>();
 
-    assert_errors_contain!(err, errors);
-}
+//     assert_errors_contain!(err, errors);
+// }
 
 #[test]
 fn test_update_nft_characteristic_not_same_error() {
