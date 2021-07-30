@@ -251,21 +251,21 @@ fn create_test_context(action: Action, nft_error: NftError) -> (Context, Transac
         .previous_output(another_class_input_out_point.clone())
         .build();
 
-    let class_aggron_type_script = Script::new_builder()
+    let class_lina_type_script = Script::new_builder()
         .code_hash(CLASS_TYPE_CODE_HASH.pack())
         .args(Bytes::copy_from_slice(&class_type_args[..]).pack())
         .hash_type(Byte::new(TYPE))
         .build();
-    let class_cell_dep_aggron_out_point = context.create_cell(
+    let class_cell_dep_lina_out_point = context.create_cell(
         CellOutput::new_builder()
             .capacity(2000u64.pack())
             .lock(lock_script.clone())
-            .type_(Some(class_aggron_type_script.clone()).pack())
+            .type_(Some(class_lina_type_script.clone()).pack())
             .build(),
         Bytes::from("0x"),
     );
-    let class_cell_aggron_dep = CellDep::new_builder()
-        .out_point(class_cell_dep_aggron_out_point.clone())
+    let class_cell_lina_dep = CellDep::new_builder()
+        .out_point(class_cell_dep_lina_out_point.clone())
         .build();
 
     // nft type script and inputs
@@ -645,7 +645,7 @@ fn create_test_context(action: Action, nft_error: NftError) -> (Context, Transac
     let cell_deps = match action {
         Action::Destroy(case) => match case {
             DestroyCase::IssuerInput => vec![issuer_cell_dep, lock_script_dep, nft_type_script_dep],
-            DestroyCase::ClassInput => vec![class_cell_aggron_dep, lock_script_dep, nft_type_script_dep],
+            DestroyCase::ClassInput => vec![class_cell_lina_dep, lock_script_dep, nft_type_script_dep],
             _ => vec![lock_script_dep, class_type_script_dep, nft_type_script_dep],
         }
         Action::Update(case) => {
@@ -656,7 +656,7 @@ fn create_test_context(action: Action, nft_error: NftError) -> (Context, Transac
                 },
                 UpdateCase::UpdateStateWithClass => match nft_error {
                     NftError::UpdateStateWithoutClass => vec![lock_script_dep, nft_type_script_dep],
-                    _ => vec![class_cell_aggron_dep, lock_script_dep, nft_type_script_dep],
+                    _ => vec![class_cell_lina_dep, lock_script_dep, nft_type_script_dep],
                 },
                 _ => vec![lock_script_dep, nft_type_script_dep]
             }
