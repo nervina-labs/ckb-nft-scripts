@@ -91,6 +91,7 @@ enum NftError {
     UpdateStateWithOtherIssuer,
     UpdateStateWithoutClass,
     UpdateStateWithOtherClass,
+    IssuerLockWitnessNoneError,
 }
 
 fn create_test_context(action: Action, nft_error: NftError) -> (Context, TransactionView) {
@@ -614,10 +615,16 @@ fn create_test_context(action: Action, nft_error: NftError) -> (Context, Transac
         },
     };
 
-    let witnesses = inputs
-        .iter()
-        .map(|_input| Bytes::from("0x"))
-        .collect::<Vec<Bytes>>();
+
+    let mut witnesses = vec![];
+    if nft_error == NftError::IssuerLockWitnessNoneError {
+        witnesses.push(Bytes::from("0x"))
+    } else {
+        witnesses.push(Bytes::from(hex::decode("5500000010000000550000005500000041000000b69c542c0ee6c4b6d8350514d876ea7d8ef563e406253e959289457204447d2c4eb4e4a993073f5e76d244d2f93f7c108652e3295a9c8d72c12477e095026b9500").unwrap()))
+    }
+    for _ in 1..inputs.len() {
+        witnesses.push(Bytes::from("0x"))
+    }
 
     let cell_deps = match action {
         Action::Destroy(case) => match case {

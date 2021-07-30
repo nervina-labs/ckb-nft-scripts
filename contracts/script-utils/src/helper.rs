@@ -3,7 +3,7 @@ use core::result::Result;
 use ckb_std::{
     ckb_constants::Source,
     ckb_types::{bytes::Bytes, packed::*, prelude::*},
-    high_level::{load_cell_data, load_cell_type, load_cell_type_hash, load_cell_lock, QueryIter},
+    high_level::{load_cell_data, load_cell_type, load_cell_type_hash, load_cell_lock, load_witness_args, QueryIter},
 };
 use crate::error::Error;
 use crate::issuer::ISSUER_TYPE_ARGS_LEN;
@@ -119,6 +119,13 @@ pub fn cell_deps_and_inputs_have_issuer_or_class_lock(nft_args: &Bytes) -> Resul
         }
     }
     Ok(false)
+}
+
+pub fn check_first_input_witness_is_none() -> Result<bool, Error> {
+    match load_witness_args(0, Source::Input) {
+        Ok(witness_args) => Ok(witness_args.lock().to_opt().is_none()),
+        Err(_) => Ok(true),
+    }
 }
 
 pub fn parse_dyn_vec_len(data: &[u8]) -> usize {

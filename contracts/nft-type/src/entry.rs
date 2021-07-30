@@ -14,7 +14,7 @@ use script_utils::{
     error::Error,
     helper::{
         count_cells_by_type, load_cell_data_by_type, load_output_type_args_ids, 
-        cell_deps_and_inputs_have_issuer_or_class_lock, load_class_type, Action
+        cell_deps_and_inputs_have_issuer_or_class_lock, load_class_type, check_first_input_witness_is_none, Action
     },
     nft::{Nft, NFT_TYPE_ARGS_LEN},
 };
@@ -37,6 +37,16 @@ fn check_nft_type<'a>(nft_type: &'a Script) -> impl Fn(&Script) -> bool + 'a {
 
 fn load_nft_data(source: Source) -> Result<Vec<u8>, Error> {
     load_cell_data(0, source).map_err(|_| Error::NFTDataInvalid)
+}
+
+fn issuer_or_class_lock_has_approved(nft_args: &Bytes) -> Result<bool, Error> {
+    if !cell_deps_and_inputs_have_issuer_or_class_lock(&nft_args)? {
+        return Ok(false);
+    }
+    if check_first_input_witness_is_none()? {
+        return Ok(false);
+    }
+    Ok(true)
 }
 
 fn parse_nft_action(nft_type: &Script) -> Result<Action, Error> {
@@ -110,7 +120,7 @@ fn handle_update(nft_args: &Bytes) -> Result<(), Error> {
     );
     validate_immutable_nft_fields(&nfts)?;
 
-    if !cell_deps_and_inputs_have_issuer_or_class_lock(&nft_args)? {
+    if !issuer_or_class_lock_has_approved(&nft_args)? {
         validate_nft_claim(&nfts)?;
         validate_nft_lock(&nfts)?;
     }
@@ -120,7 +130,7 @@ fn handle_update(nft_args: &Bytes) -> Result<(), Error> {
 }
 
 fn handle_destroying(nft_args: &Bytes) -> Result<(), Error> {
-    if cell_deps_and_inputs_have_issuer_or_class_lock(&nft_args)? {
+    if issuer_or_class_lock_has_approved(&nft_args)? {
         return Ok(());
     }
     let input_nft = Nft::from_data(&load_nft_data(Source::GroupInput)?[..])?;
