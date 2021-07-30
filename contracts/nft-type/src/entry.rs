@@ -14,25 +14,13 @@ use script_utils::{
     error::Error,
     helper::{
         count_cells_by_type, load_cell_data_by_type, load_output_type_args_ids, 
-        cell_deps_and_inputs_have_issuer_or_class_lock, Action
+        cell_deps_and_inputs_have_issuer_or_class_lock, load_class_type, Action
     },
     nft::{Nft, NFT_TYPE_ARGS_LEN},
 };
 
-fn check_issuer_id<'a>(nft_args: &'a Bytes) -> impl Fn(&[u8]) -> bool + 'a {
-    move |type_hash: &[u8]| type_hash[0..ISSUER_TYPE_ARGS_LEN] == nft_args[0..ISSUER_TYPE_ARGS_LEN]
-}
-
-const TYPE: u8 = 1;
-const CLASS_TYPE_CODE_HASH: [u8; 32] = [
-    9, 91, 140, 11, 78, 81, 164, 95, 149, 58, 205, 31, 205, 30, 57, 72, 159, 38, 117, 180, 188, 148, 231, 175, 39, 187,  56, 149, 135, 144, 227, 252
-];
 fn check_class_type<'a>(nft_args: &'a Bytes) -> impl Fn(&Script) -> bool + 'a {
-    let class_type = Script::new_builder()
-        .code_hash(CLASS_TYPE_CODE_HASH.pack())
-        .args(nft_args[0..CLASS_TYPE_ARGS_LEN].pack())
-        .hash_type(Byte::new(TYPE))
-        .build();
+    let class_type = load_class_type(nft_args);
     move |type_: &Script| type_.as_slice() == class_type.as_slice()
 }
 
@@ -93,7 +81,7 @@ fn handle_creation(nft_type: &Script) -> Result<(), Error> {
     }
 
     let outputs_token_ids =
-        load_output_type_args_ids(CLASS_TYPE_ARGS_LEN, &check_nft_args(nft_args));
+        load_output_type_args_ids(CLASS_TYPE_ARGS_LEN, &check_nft_type(nft_type));
     let nft_outputs_increased_count = (output_class.issued - input_class.issued) as usize;
     if nft_outputs_increased_count != outputs_token_ids.len() {
         return Err(Error::NFTCellsCountError);
@@ -121,6 +109,7 @@ fn handle_update(nft_args: &Bytes) -> Result<(), Error> {
         Nft::from_data(&nft_data.1[..])?,
     );
     validate_immutable_nft_fields(&nfts)?;
+
     if !cell_deps_and_inputs_have_issuer_or_class_lock(&nft_args)? {
         validate_nft_claim(&nfts)?;
         validate_nft_lock(&nfts)?;
@@ -131,7 +120,6 @@ fn handle_update(nft_args: &Bytes) -> Result<(), Error> {
 }
 
 fn handle_destroying(nft_args: &Bytes) -> Result<(), Error> {
-    let nft_args: Bytes = nft_type.args().unpack();
     if cell_deps_and_inputs_have_issuer_or_class_lock(&nft_args)? {
         return Ok(());
     }
@@ -157,7 +145,7 @@ pub fn main() -> Result<(), Error> {
 
     match parse_nft_action(&nft_type)? {
         Action::Create => handle_creation(&nft_type),
-        Action::Update => handle_update(),
-        Action::Destroy => handle_destroying(&nft_type),
+        Action::Update => handle_update(&nft_args),
+        Action::Destroy => handle_destroying(&nft_args),
     }
 }

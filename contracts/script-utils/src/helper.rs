@@ -12,6 +12,11 @@ use crate::class::CLASS_TYPE_ARGS_LEN;
 const ID_LEN: usize = 4;
 pub const DYN_MIN_LEN: usize = 2; // the length of dynamic data size(u16)
 
+const TYPE: u8 = 1;
+const CLASS_TYPE_CODE_HASH: [u8; 32] = [
+    9, 91, 140, 11, 78, 81, 164, 95, 149, 58, 205, 31, 205, 30, 57, 72, 159, 38, 117, 180, 188, 148, 231, 175, 39, 187,  56, 149, 135, 144, 227, 252
+];
+
 pub enum Action {
     Create,
     Update,
@@ -34,6 +39,14 @@ fn parse_type_opt(type_opt: &Option<Script>, predicate: &dyn Fn(&Script) -> bool
         Some(type_) => predicate(type_),
         None => false,
     }
+}
+
+pub fn load_class_type(nft_args: &Bytes) -> Script {
+    Script::new_builder()
+        .code_hash(CLASS_TYPE_CODE_HASH.pack())
+        .args(nft_args[0..CLASS_TYPE_ARGS_LEN].pack())
+        .hash_type(Byte::new(TYPE))
+        .build()
 }
 
 pub fn count_cells_by_type(source: Source, predicate: &dyn Fn(&Script) -> bool) -> usize {
@@ -88,9 +101,9 @@ fn cell_deps_have_same_issuer_id(issuer_id: &[u8]) -> Result<bool, Error> {
     type_hash_opt.map_or(Ok(false), |_type_hash| Ok(&_type_hash[0..ISSUER_TYPE_ARGS_LEN] == issuer_id))
 }
 
-fn cell_deps_have_same_class_type_args(type_args: &[u8]) -> Result<bool, Error> {
+fn cell_deps_have_same_class_type(class_type: &Script) -> Result<bool, Error> {
     let type_opt = load_cell_type(0, Source::CellDep)?;
-    type_opt.map_or(Ok(false), |_type| Ok(&load_type_args(&_type)[..] == type_args))
+    type_opt.map_or(Ok(false), |_type| Ok(_type.as_slice() == class_type.as_slice()))
 }
 
 pub fn cell_deps_and_inputs_have_issuer_or_class_lock(nft_args: &Bytes) -> Result<bool, Error> {
@@ -100,7 +113,8 @@ pub fn cell_deps_and_inputs_have_issuer_or_class_lock(nft_args: &Bytes) -> Resul
         if cell_deps_have_same_issuer_id(&nft_args[0..ISSUER_TYPE_ARGS_LEN])? {
             return Ok(true);
         }
-        if cell_deps_have_same_class_type_args(&nft_args[0..CLASS_TYPE_ARGS_LEN])? {
+        let class_type = load_class_type(nft_args);
+        if cell_deps_have_same_class_type(&class_type)? {
             return Ok(true);
         }
     }

@@ -75,7 +75,7 @@ fn handle_creation(class_type: &Script) -> Result<(), Error> {
         return Err(Error::IssuerClassCountError);
     }
 
-    let mut outputs_class_ids =
+    let outputs_class_ids =
         load_output_type_args_ids(ISSUER_TYPE_ARGS_LEN, &check_class_type(&class_type));
     let class_outputs_increased_count =
         (output_issuer.class_count - input_issuer.class_count) as usize;

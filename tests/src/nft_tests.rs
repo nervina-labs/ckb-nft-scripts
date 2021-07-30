@@ -213,9 +213,9 @@ fn create_test_context(action: Action, nft_error: NftError) -> (Context, Transac
             .build(),
         class_input_data.clone(),
     );
-    let class_input = CellInput::new_builder()
-        .previous_output(class_input_out_point.clone())
-        .build();
+    // let class_input = CellInput::new_builder()
+    //     .previous_output(class_input_out_point.clone())
+    //     .build();
 
     let class_cell_dep = CellDep::new_builder()
         .out_point(class_input_out_point.clone())
@@ -638,7 +638,7 @@ fn create_test_context(action: Action, nft_error: NftError) -> (Context, Transac
                 _ => vec![lock_script_dep, nft_type_script_dep]
             }
         }
-        _ => vec![lock_script_dep, class_type_script_dep, nft_type_script_dep],
+        // _ => vec![lock_script_dep, class_type_script_dep, nft_type_script_dep],
     };
 
     // build transaction
@@ -742,18 +742,18 @@ fn test_update_nft_state_with_issuer_success() {
     println!("consume cycles: {}", cycles);
 }
 
-#[test]
-fn test_update_nft_state_with_class_success() {
-    let (mut context, tx) =
-        create_test_context(Action::Update(UpdateCase::UpdateStateWithClass), NftError::NoError);
+// #[test]
+// fn test_update_nft_state_with_class_success() {
+//     let (mut context, tx) =
+//         create_test_context(Action::Update(UpdateCase::UpdateStateWithClass), NftError::NoError);
 
-    let tx = context.complete_tx(tx);
-    // run
-    let cycles = context
-        .verify_tx(&tx, MAX_CYCLES)
-        .expect("pass verification");
-    println!("consume cycles: {}", cycles);
-}
+//     let tx = context.complete_tx(tx);
+//     // run
+//     let cycles = context
+//         .verify_tx(&tx, MAX_CYCLES)
+//         .expect("pass verification");
+//     println!("consume cycles: {}", cycles);
+// }
 
 #[test]
 fn test_destroy_nft_cell_with_default_success() {
