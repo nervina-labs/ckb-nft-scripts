@@ -175,8 +175,8 @@ fn create_test_context(action: Action, class_error: ClassError) -> (Context, Tra
     match action {
         Action::Create => {
             let class_ids = match class_error {
-                ClassError::ClassIdIncreaseError => [10u32, 8u32, 8u32],
-                _ => [10u32, 8u32, 9u32],
+                ClassError::ClassIdIncreaseError => [10u32, 8u32, 9u32],
+                _ => [8u32, 9u32, 10u32],
             };
             for class_id in class_ids.iter() {
                 let mut class_type_args = issuer_type_hash[0..20].to_vec();
