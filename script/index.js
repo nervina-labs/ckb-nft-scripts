@@ -1,4 +1,4 @@
-const CLASS_TYPE_CODE_HASH = "0x095b8c0b4e51a45f953acd1fcd1e39489f2675b4bc94e7af27bb38958790e3fc";
+const CLASS_TYPE_CODE_HASH = "0xd51e6eaf48124c601f41abe173f1da550b4cbca9c6a166781906a287abbb3d9a";
 function hexToBytes(hex) {
   if (!hex) {
     return new Uint8Array();
