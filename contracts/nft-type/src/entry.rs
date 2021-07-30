@@ -44,7 +44,7 @@ fn issuer_or_class_lock_has_approved(nft_args: &Bytes) -> Result<bool, Error> {
         return Ok(false);
     }
     if check_first_input_witness_is_none()? {
-        return Ok(false);
+        return Err(Error::FirstInputWitnessNoneError);
     }
     Ok(true)
 }

@@ -11,6 +11,11 @@ use ckb_tool::ckb_types::{
 
 const MAX_CYCLES: u64 = 70_000_000;
 
+const TYPE: u8 = 1;
+const CLASS_TYPE_CODE_HASH: [u8; 32] = [
+    9, 91, 140, 11, 78, 81, 164, 95, 149, 58, 205, 31, 205, 30, 57, 72, 159, 38, 117, 180, 188, 148, 231, 175, 39, 187,  56, 149, 135, 144, 227, 252
+];
+
 // error numbers
 const TYPE_ARGS_INVALID: i8 = 7;
 const NFT_DATA_INVALID: i8 = 19;
@@ -34,12 +39,13 @@ const LOCKED_NFT_CANNOT_TRANSFER: i8 = 36;
 const LOCKED_NFT_CANNOT_ADD_EXT_INFO: i8 = 37;
 const LOCKED_NFT_CANNOT_DESTROY: i8 = 38;
 const LOCKED_NFT_CANNOT_UPDATE_CHARACTERISTIC: i8 = 39;
+const FIRST_INPUT_WITNESS_NONE_ERROR: i8 = 40;
 
 #[derive(PartialEq, Eq, Clone, Copy)]
 enum DestroyCase {
     Default,
     IssuerInput,
-    // ClassInput,
+    ClassInput,
 }
 
 #[derive(PartialEq, Eq, Clone, Copy)]
@@ -92,6 +98,7 @@ enum NftError {
     UpdateStateWithoutClass,
     UpdateStateWithOtherClass,
     IssuerLockWitnessNoneError,
+    ClassLockWitnessNoneError,
 }
 
 fn create_test_context(action: Action, nft_error: NftError) -> (Context, TransactionView) {
@@ -182,9 +189,9 @@ fn create_test_context(action: Action, nft_error: NftError) -> (Context, Transac
         //     _ => Bytes::from(hex::decode("00000000640000000100000155000266660003898989").unwrap()),
         // },
         Action::Destroy(case) => match case {
-            // DestroyCase::ClassInput => {
-            //     Bytes::from(hex::decode("000000000f0000000500000155000266660003898989").unwrap())
-            // }
+            DestroyCase::ClassInput => {
+                Bytes::from(hex::decode("0000000000000000000000").unwrap())
+            }
             _ => Bytes::new(),
         },
         Action::Update(_) => Bytes::new(),
@@ -199,28 +206,28 @@ fn create_test_context(action: Action, nft_error: NftError) -> (Context, Transac
     let mut another_args_class_id = 9u32.to_be_bytes().to_vec();
     another_class_type_args.append(&mut another_args_class_id);
 
-    let class_type_script = context
-        .build_script(
-            &class_out_point,
-            Bytes::copy_from_slice(&class_type_args[..]),
-        )
-        .expect("script");
+    // let class_type_script = context
+    //     .build_script(
+    //         &class_out_point,
+    //         Bytes::copy_from_slice(&class_type_args[..]),
+    //     )
+    //     .expect("script");
 
-    let class_input_out_point = context.create_cell(
-        CellOutput::new_builder()
-            .capacity(100000u64.pack())
-            .lock(lock_script.clone())
-            .type_(Some(class_type_script.clone()).pack())
-            .build(),
-        class_input_data.clone(),
-    );
+    // let class_input_out_point = context.create_cell(
+    //     CellOutput::new_builder()
+    //         .capacity(100000u64.pack())
+    //         .lock(lock_script.clone())
+    //         .type_(Some(class_type_script.clone()).pack())
+    //         .build(),
+    //     class_input_data.clone(),
+    // );
     // let class_input = CellInput::new_builder()
     //     .previous_output(class_input_out_point.clone())
     //     .build();
 
-    let class_cell_dep = CellDep::new_builder()
-        .out_point(class_input_out_point.clone())
-        .build();
+    // let class_cell_dep = CellDep::new_builder()
+    //     .out_point(class_input_out_point.clone())
+    //     .build();
 
     let class_input_out_point_without_type = context.create_cell(
         CellOutput::new_builder()
@@ -242,6 +249,23 @@ fn create_test_context(action: Action, nft_error: NftError) -> (Context, Transac
     );
     let another_class_input = CellInput::new_builder()
         .previous_output(another_class_input_out_point.clone())
+        .build();
+
+    let class_aggron_type_script = Script::new_builder()
+        .code_hash(CLASS_TYPE_CODE_HASH.pack())
+        .args(Bytes::copy_from_slice(&class_type_args[..]).pack())
+        .hash_type(Byte::new(TYPE))
+        .build();
+    let class_cell_dep_aggron_out_point = context.create_cell(
+        CellOutput::new_builder()
+            .capacity(2000u64.pack())
+            .lock(lock_script.clone())
+            .type_(Some(class_aggron_type_script.clone()).pack())
+            .build(),
+        Bytes::from("0x"),
+    );
+    let class_cell_aggron_dep = CellDep::new_builder()
+        .out_point(class_cell_dep_aggron_out_point.clone())
         .build();
 
     // nft type script and inputs
@@ -383,8 +407,8 @@ fn create_test_context(action: Action, nft_error: NftError) -> (Context, Transac
         },
         Action::Destroy(case) => match case {
             DestroyCase::Default => vec![nft_input],
-            // DestroyCase::ClassInput => vec![nft_input, class_input],
-            DestroyCase::IssuerInput => vec![nft_input, issuer_input],
+            DestroyCase::ClassInput => vec![class_input_without_type, nft_input],
+            DestroyCase::IssuerInput => vec![issuer_input, nft_input],
         },
     };
 
@@ -422,18 +446,7 @@ fn create_test_context(action: Action, nft_error: NftError) -> (Context, Transac
                 .capacity(500u64.pack())
                 .lock(lock_script.clone())
                 .build()],
-            // DestroyCase::ClassInput => vec![
-            //     CellOutput::new_builder()
-            //         .capacity(500u64.pack())
-            //         .lock(lock_script.clone())
-            //         .build(),
-            //     CellOutput::new_builder()
-            //         .capacity(500u64.pack())
-            //         .lock(lock_script.clone())
-            //         .type_(Some(class_type_script.clone()).pack())
-            //         .build(),
-            // ],
-            DestroyCase::IssuerInput => vec![
+            DestroyCase::IssuerInput | DestroyCase::ClassInput => vec![
                 CellOutput::new_builder()
                     .capacity(500u64.pack())
                     .lock(lock_script.clone())
@@ -604,10 +617,10 @@ fn create_test_context(action: Action, nft_error: NftError) -> (Context, Transac
         },
         Action::Destroy(case) => match case {
             DestroyCase::Default => vec![Bytes::new()],
-            // DestroyCase::ClassInput => vec![
-            //     Bytes::new(),
-            //     Bytes::from(hex::decode("0000000000000000000000").unwrap()),
-            // ],
+            DestroyCase::ClassInput => vec![
+                Bytes::new(),
+                Bytes::from(hex::decode("0000000000000000000000").unwrap()),
+            ],
             DestroyCase::IssuerInput => vec![
                 Bytes::new(),
                 Bytes::from(hex::decode("0000000000000000000000").unwrap()),
@@ -617,10 +630,13 @@ fn create_test_context(action: Action, nft_error: NftError) -> (Context, Transac
 
 
     let mut witnesses = vec![];
-    if nft_error == NftError::IssuerLockWitnessNoneError {
-        witnesses.push(Bytes::from("0x"))
-    } else {
-        witnesses.push(Bytes::from(hex::decode("5500000010000000550000005500000041000000b69c542c0ee6c4b6d8350514d876ea7d8ef563e406253e959289457204447d2c4eb4e4a993073f5e76d244d2f93f7c108652e3295a9c8d72c12477e095026b9500").unwrap()))
+    match nft_error {
+        NftError::IssuerLockWitnessNoneError | NftError::ClassLockWitnessNoneError => {
+            witnesses.push(Bytes::from("12345678"))
+        }
+        _ => {
+            witnesses.push(Bytes::from(hex::decode("5500000010000000550000005500000041000000b69c542c0ee6c4b6d8350514d876ea7d8ef563e406253e959289457204447d2c4eb4e4a993073f5e76d244d2f93f7c108652e3295a9c8d72c12477e095026b9500").unwrap()))
+        }
     }
     for _ in 1..inputs.len() {
         witnesses.push(Bytes::from("0x"))
@@ -629,7 +645,7 @@ fn create_test_context(action: Action, nft_error: NftError) -> (Context, Transac
     let cell_deps = match action {
         Action::Destroy(case) => match case {
             DestroyCase::IssuerInput => vec![issuer_cell_dep, lock_script_dep, nft_type_script_dep],
-            // DestroyCase::ClassInput => vec![class_cell_dep, lock_script_dep, nft_type_script_dep],
+            DestroyCase::ClassInput => vec![class_cell_aggron_dep, lock_script_dep, nft_type_script_dep],
             _ => vec![lock_script_dep, class_type_script_dep, nft_type_script_dep],
         }
         Action::Update(case) => {
@@ -640,7 +656,7 @@ fn create_test_context(action: Action, nft_error: NftError) -> (Context, Transac
                 },
                 UpdateCase::UpdateStateWithClass => match nft_error {
                     NftError::UpdateStateWithoutClass => vec![lock_script_dep, nft_type_script_dep],
-                    _ => vec![class_cell_dep, lock_script_dep, nft_type_script_dep],
+                    _ => vec![class_cell_aggron_dep, lock_script_dep, nft_type_script_dep],
                 },
                 _ => vec![lock_script_dep, nft_type_script_dep]
             }
@@ -749,18 +765,18 @@ fn test_update_nft_state_with_issuer_success() {
     println!("consume cycles: {}", cycles);
 }
 
-// #[test]
-// fn test_update_nft_state_with_class_success() {
-//     let (mut context, tx) =
-//         create_test_context(Action::Update(UpdateCase::UpdateStateWithClass), NftError::NoError);
+#[test]
+fn test_update_nft_state_with_class_success() {
+    let (mut context, tx) =
+        create_test_context(Action::Update(UpdateCase::UpdateStateWithClass), NftError::NoError);
 
-//     let tx = context.complete_tx(tx);
-//     // run
-//     let cycles = context
-//         .verify_tx(&tx, MAX_CYCLES)
-//         .expect("pass verification");
-//     println!("consume cycles: {}", cycles);
-// }
+    let tx = context.complete_tx(tx);
+    // run
+    let cycles = context
+        .verify_tx(&tx, MAX_CYCLES)
+        .expect("pass verification");
+    println!("consume cycles: {}", cycles);
+}
 
 #[test]
 fn test_destroy_nft_cell_with_default_success() {
@@ -788,18 +804,18 @@ fn test_destroy_nft_cell_with_issuer_input_success() {
     println!("consume cycles: {}", cycles);
 }
 
-// #[test]
-// fn test_destroy_nft_cell_with_class_input_success() {
-//     let (mut context, tx) =
-//         create_test_context(Action::Destroy(DestroyCase::ClassInput), NftError::NoError);
+#[test]
+fn test_destroy_nft_cell_with_class_input_success() {
+    let (mut context, tx) =
+        create_test_context(Action::Destroy(DestroyCase::ClassInput), NftError::NoError);
 
-//     let tx = context.complete_tx(tx);
-//     // run
-//     let cycles = context
-//         .verify_tx(&tx, MAX_CYCLES)
-//         .expect("pass verification");
-//     println!("consume cycles: {}", cycles);
-// }
+    let tx = context.complete_tx(tx);
+    // run
+    let cycles = context
+        .verify_tx(&tx, MAX_CYCLES)
+        .expect("pass verification");
+    println!("consume cycles: {}", cycles);
+}
 
 #[test]
 fn test_update_nft_cell_data_len_error() {
@@ -874,6 +890,42 @@ fn test_update_nft_cell_data_len_error() {
 
 //     assert_errors_contain!(err, errors);
 // }
+
+#[test]
+fn test_update_nft_with_issuer_witness_error() {
+    let (mut context, tx) = create_test_context(
+        Action::Update(UpdateCase::UpdateStateWithIssuer),
+        NftError::IssuerLockWitnessNoneError,
+    );
+
+    let tx = context.complete_tx(tx);
+    // run
+    let err = context.verify_tx(&tx, MAX_CYCLES).unwrap_err();
+    let script_cell_index = 1;
+    assert_error_eq!(
+        err,
+        ScriptError::ValidationFailure(FIRST_INPUT_WITNESS_NONE_ERROR)
+            .input_type_script(script_cell_index)
+    );
+}
+
+#[test]
+fn test_update_nft_with_class_witness_error() {
+    let (mut context, tx) = create_test_context(
+        Action::Update(UpdateCase::UpdateStateWithClass),
+        NftError::ClassLockWitnessNoneError,
+    );
+
+    let tx = context.complete_tx(tx);
+    // run
+    let err = context.verify_tx(&tx, MAX_CYCLES).unwrap_err();
+    let script_cell_index = 1;
+    assert_error_eq!(
+        err,
+        ScriptError::ValidationFailure(FIRST_INPUT_WITNESS_NONE_ERROR)
+            .input_type_script(script_cell_index)
+    );
+}
 
 #[test]
 fn test_update_nft_characteristic_not_same_error() {
@@ -1280,6 +1332,42 @@ fn test_locked_nft_cannot_destroy_error() {
     assert_error_eq!(
         err,
         ScriptError::ValidationFailure(LOCKED_NFT_CANNOT_DESTROY)
+            .input_type_script(script_cell_index)
+    );
+}
+
+#[test]
+fn test_destroy_nft_with_issuer_witness_none_error() {
+    let (mut context, tx) = create_test_context(
+        Action::Destroy(DestroyCase::IssuerInput),
+        NftError::IssuerLockWitnessNoneError,
+    );
+
+    let tx = context.complete_tx(tx);
+    // run
+    let err = context.verify_tx(&tx, MAX_CYCLES).unwrap_err();
+    let script_cell_index = 1;
+    assert_error_eq!(
+        err,
+        ScriptError::ValidationFailure(FIRST_INPUT_WITNESS_NONE_ERROR)
+            .input_type_script(script_cell_index)
+    );
+}
+
+#[test]
+fn test_destroy_nft_with_class_witness_none_error() {
+    let (mut context, tx) = create_test_context(
+        Action::Destroy(DestroyCase::ClassInput),
+        NftError::ClassLockWitnessNoneError,
+    );
+
+    let tx = context.complete_tx(tx);
+    // run
+    let err = context.verify_tx(&tx, MAX_CYCLES).unwrap_err();
+    let script_cell_index = 1;
+    assert_error_eq!(
+        err,
+        ScriptError::ValidationFailure(FIRST_INPUT_WITNESS_NONE_ERROR)
             .input_type_script(script_cell_index)
     );
 }
