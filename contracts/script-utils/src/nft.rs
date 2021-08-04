@@ -57,6 +57,10 @@ impl Nft {
         self.configure & 0b0000_0100 == 0b0000_0000
     }
 
+    pub fn allow_update_characteristic(&self) -> bool {
+        self.configure & 0b0000_1000 == 0b0000_0000
+    }
+
     pub fn allow_transfer_before_claim(&self) -> bool {
         self.configure & 0b0001_0000 == 0b0000_0000
     }

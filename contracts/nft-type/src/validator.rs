@@ -11,7 +11,12 @@ type NftDataTuple = (Vec<u8>, Vec<u8>);
 
 pub fn validate_immutable_nft_fields((input_nft, output_nft): &Nfts) -> Result<(), Error> {
     if input_nft.characteristic != output_nft.characteristic {
-        return Err(Error::NFTCharacteristicNotSame);
+        if !input_nft.allow_update_characteristic() {
+            return Err(Error::NFTCharacteristicNotSame);
+        }
+        if input_nft.is_locked() {
+            return Err(Error::LockedNFTCannotUpdateCharacteristic);
+        }
     }
     if input_nft.configure != output_nft.configure {
         return Err(Error::NFTConfigureNotSame);
@@ -61,7 +66,6 @@ pub fn validate_nft_transfer(input_nft: &Nft) -> Result<(), Error> {
         if input_nft.is_claimed() && !input_nft.allow_transfer_after_claim() {
             return Err(Error::NFTCannotTransferAfterClaim);
         }
-        return Ok(());
     }
     Ok(())
 }
@@ -70,9 +74,13 @@ pub fn validate_nft_ext_info(
     input_nft: &Nft,
     (input_nft_data, output_nft_data): &NftDataTuple,
 ) -> Result<(), Error> {
+    let input_len = input_nft_data.len();
+    let output_len = output_nft_data.len();
+    if input_len == output_len && input_nft_data[NFT_DATA_MIN_LEN..input_len]
+            == output_nft_data[NFT_DATA_MIN_LEN..input_len]{
+        return Ok(());
+    }
     if input_nft.allow_ext_info() {
-        let input_len = input_nft_data.len();
-        let output_len = output_nft_data.len();
         if input_len > output_len {
             return Err(Error::NFTExtInfoLenError);
         }
@@ -84,11 +92,10 @@ pub fn validate_nft_ext_info(
         if input_nft.is_locked() {
             return Err(Error::LockedNFTCannotAddExtInfo);
         }
-        Ok(())
     } else {
-        if input_nft_data.len() != output_nft_data.len() {
+        if input_len != output_len {
             return Err(Error::NFTExtInfoLenError);
         }
-        Ok(())
     }
+    Ok(())
 }

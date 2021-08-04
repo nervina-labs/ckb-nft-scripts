@@ -11,3 +11,5 @@ contracts/c/build/*
 build/*
 !.gitkeep
 .tmp/
+
+migrations
