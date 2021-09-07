@@ -20,6 +20,7 @@ const CLASS_ISSUED_INVALID: i8 = 15;
 const CLASS_IMMUTABLE_FIELDS_NOT_SAME: i8 = 16;
 const CLASS_CELL_CANNOT_DESTROYED: i8 = 17;
 const CLASS_ID_INCREASE_ERROR: i8 = 18;
+const GROUP_INPUT_WITNESS_NONE_ERROR : i8 = 40;
 
 #[derive(PartialEq)]
 enum Action {
@@ -42,6 +43,7 @@ enum ClassError {
     ClassIdIncreaseError,
     ClassTypeArgsInvalid,
     TypeArgsClassIdNotSame,
+    GroupInputWitnessNoneError,
 }
 
 fn create_test_context(action: Action, class_error: ClassError) -> (Context, TransactionView) {
@@ -246,10 +248,18 @@ fn create_test_context(action: Action, class_error: ClassError) -> (Context, Tra
         Action::Destroy => vec![Bytes::new()],
     };
 
-    let witnesses = inputs
-        .iter()
-        .map(|_input| Bytes::from("0x"))
-        .collect::<Vec<Bytes>>();
+    let mut witnesses = vec![];
+    match class_error {
+        ClassError::GroupInputWitnessNoneError => {
+            witnesses.push(Bytes::from("0x"))
+        }
+        _ => {
+            witnesses.push(Bytes::from(hex::decode("5500000010000000550000005500000041000000b69c542c0ee6c4b6d8350514d876ea7d8ef563e406253e959289457204447d2c4eb4e4a993073f5e76d244d2f93f7c108652e3295a9c8d72c12477e095026b9500").unwrap()))
+        }
+    }
+    for _ in 1..inputs.len() {
+        witnesses.push(Bytes::from("0x"))
+    }
 
     // build transaction
     let tx = TransactionBuilder::default()
@@ -325,6 +335,21 @@ fn test_update_class_data_error() {
     let errors = vec![
         ScriptError::ValidationFailure(CLASS_DATA_INVALID).input_type_script(script_cell_index),
         ScriptError::ValidationFailure(CLASS_DATA_INVALID).output_type_script(script_cell_index),
+    ];
+    assert_errors_contain!(err, errors);
+}
+
+#[test]
+fn test_update_class_with_witness_none_error() {
+    let (mut context, tx) = create_test_context(Action::Update, ClassError::GroupInputWitnessNoneError);
+
+    let tx = context.complete_tx(tx);
+    // run
+    let err = context.verify_tx(&tx, MAX_CYCLES).unwrap_err();
+    let script_cell_index = 0;
+    let errors = vec![
+        ScriptError::ValidationFailure(GROUP_INPUT_WITNESS_NONE_ERROR).input_type_script(script_cell_index),
+        ScriptError::ValidationFailure(GROUP_INPUT_WITNESS_NONE_ERROR).output_type_script(script_cell_index),
     ];
     assert_errors_contain!(err, errors);
 }
@@ -498,5 +523,19 @@ fn test_update_class_type_args_invalid_error() {
     assert_error_eq!(
         err,
         ScriptError::ValidationFailure(TYPE_ARGS_INVALID).input_type_script(script_cell_index)
+    );
+}
+
+#[test]
+fn test_destroy_class_with_witness_none_error() {
+    let (mut context, tx) = create_test_context(Action::Destroy, ClassError::GroupInputWitnessNoneError);
+
+    let tx = context.complete_tx(tx);
+    // run
+    let err = context.verify_tx(&tx, MAX_CYCLES).unwrap_err();
+    let script_cell_index = 0;
+    assert_error_eq!(
+        err,
+        ScriptError::ValidationFailure(GROUP_INPUT_WITNESS_NONE_ERROR).input_type_script(script_cell_index)
     );
 }
