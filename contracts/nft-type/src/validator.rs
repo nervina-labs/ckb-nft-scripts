@@ -92,10 +92,9 @@ pub fn validate_nft_ext_info(
         if input_nft.is_locked() {
             return Err(Error::LockedNFTCannotAddExtInfo);
         }
-    } else {
-        if input_len != output_len {
-            return Err(Error::NFTExtInfoLenError);
-        }
+    } else if input_len != output_len {
+        return Err(Error::NFTExtInfoLenError);
     }
+
     Ok(())
 }
