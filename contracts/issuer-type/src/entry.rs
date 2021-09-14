@@ -8,7 +8,7 @@ use ckb_std::{
 use core::result::Result;
 use script_utils::{
     error::Error,
-    helper::{count_cells_by_type, load_output_index_by_type, Action},
+    helper::{count_cells_by_type, load_output_index_by_type, check_group_input_witness_is_none_with_type, Action},
     issuer::{Issuer, ISSUER_TYPE_ARGS_LEN},
 };
 
@@ -53,7 +53,11 @@ fn handle_creation(issuer_type: &Script) -> Result<(), Error> {
     Ok(())
 }
 
-fn handle_update() -> Result<(), Error> {
+fn handle_update(issuer_type: &Script) -> Result<(), Error> {
+    // Disable anyone-can-pay lock
+    if check_group_input_witness_is_none_with_type(issuer_type)? {
+        return Err(Error::GroupInputWitnessNoneError);
+    }
     let load_issuer = |source| Issuer::from_data(&load_issuer_data(source)?[..]);
     let input_issuer = load_issuer(Source::GroupInput)?;
     let output_issuer = load_issuer(Source::GroupOutput)?;
@@ -66,7 +70,11 @@ fn handle_update() -> Result<(), Error> {
     Ok(())
 }
 
-fn handle_destroying() -> Result<(), Error> {
+fn handle_destroying(issuer_type: &Script) -> Result<(), Error> {
+    // Disable anyone-can-pay lock
+    if check_group_input_witness_is_none_with_type(issuer_type)? {
+        return Err(Error::GroupInputWitnessNoneError);
+    }
     let input_issuer = Issuer::from_data(&load_issuer_data(Source::GroupInput)?[..])?;
     if input_issuer.class_count != 0 || input_issuer.set_count != 0 {
         return Err(Error::IssuerCellCannotDestroyed);
@@ -83,7 +91,7 @@ pub fn main() -> Result<(), Error> {
 
     match parse_issuer_action(&issuer_type)? {
         Action::Create => handle_creation(&issuer_type),
-        Action::Update => handle_update(),
-        Action::Destroy => handle_destroying(),
+        Action::Update => handle_update(&issuer_type),
+        Action::Destroy => handle_destroying(&issuer_type),
     }
 }
