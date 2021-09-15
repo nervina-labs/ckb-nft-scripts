@@ -42,7 +42,7 @@ pub enum Error {
     LockedNFTCannotAddExtInfo,
     LockedNFTCannotDestroy,
     LockedNFTCannotUpdateCharacteristic,
-    FirstInputWitnessNoneError,
+    GroupInputWitnessNoneError = 40,
 }
 
 impl From<SysError> for Error {

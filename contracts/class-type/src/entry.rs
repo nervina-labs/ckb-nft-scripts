@@ -10,7 +10,7 @@ use script_utils::{
     error::Error,
     helper::{
         count_cells_by_type, count_cells_by_type_hash, load_cell_data_by_type_hash,
-        load_output_type_args_ids, Action,
+        load_output_type_args_ids, check_group_input_witness_is_none_with_type, Action,
     },
     issuer::{Issuer, ISSUER_TYPE_ARGS_LEN},
 };
@@ -94,7 +94,11 @@ fn handle_creation(class_type: &Script) -> Result<(), Error> {
     Ok(())
 }
 
-fn handle_update() -> Result<(), Error> {
+fn handle_update(class_type: &Script) -> Result<(), Error> {
+    // Disable anyone-can-pay lock
+    if check_group_input_witness_is_none_with_type(class_type)? {
+        return Err(Error::GroupInputWitnessNoneError);
+    }
     let load_class = |source| Class::from_data(&load_class_data(source)?[..]);
 
     let input_class = load_class(Source::GroupInput)?;
@@ -110,7 +114,11 @@ fn handle_update() -> Result<(), Error> {
     Ok(())
 }
 
-fn handle_destroying() -> Result<(), Error> {
+fn handle_destroying(class_type: &Script) -> Result<(), Error> {
+    // Disable anyone-can-pay lock
+    if check_group_input_witness_is_none_with_type(class_type)? {
+        return Err(Error::GroupInputWitnessNoneError);
+    }
     let input_class = Class::from_data(&load_class_data(Source::GroupInput)?[..])?;
     if input_class.issued > 0 {
         return Err(Error::ClassCellCannotDestroyed);
@@ -127,7 +135,7 @@ pub fn main() -> Result<(), Error> {
 
     match parse_class_action(&class_type)? {
         Action::Create => handle_creation(&class_type),
-        Action::Update => handle_update(),
-        Action::Destroy => handle_destroying(),
+        Action::Update => handle_update(&class_type),
+        Action::Destroy => handle_destroying(&class_type),
     }
 }

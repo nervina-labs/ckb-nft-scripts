@@ -20,6 +20,7 @@ const ISSUER_CLASS_COUNT_ERROR: i8 = 8;
 const ISSUER_SET_COUNT_ERROR: i8 = 9;
 const ISSUER_CELL_CANNOT_DESTROYED: i8 = 10;
 const VERSION_INVALID: i8 = 11;
+const GROUP_INPUT_WITNESS_NONE_ERROR : i8 = 40;
 
 #[derive(PartialEq)]
 enum Action {
@@ -37,6 +38,7 @@ enum IssuerError {
     VersionInvalid,
     TypeArgsInvalid,
     IssuerCellCannotDestroyed,
+    GroupInputWitnessNoneError,
 }
 
 fn create_test_context(action: Action, issuer_error: IssuerError) -> (Context, TransactionView) {
@@ -173,10 +175,18 @@ fn create_test_context(action: Action, issuer_error: IssuerError) -> (Context, T
         })
         .collect();
 
-    let witnesses = inputs
-        .iter()
-        .map(|_input| Bytes::from("0x"))
-        .collect::<Vec<Bytes>>();
+    let mut witnesses = vec![];
+    match issuer_error {
+        IssuerError::GroupInputWitnessNoneError => {
+            witnesses.push(Bytes::from("0x"))
+        }
+        _ => {
+            witnesses.push(Bytes::from(hex::decode("5500000010000000550000005500000041000000b69c542c0ee6c4b6d8350514d876ea7d8ef563e406253e959289457204447d2c4eb4e4a993073f5e76d244d2f93f7c108652e3295a9c8d72c12477e095026b9500").unwrap()))
+        }
+    }
+    for _ in 1..inputs.len() {
+        witnesses.push(Bytes::from("0x"))
+    }
 
     // build transaction
     let tx = TransactionBuilder::default()
@@ -251,6 +261,21 @@ fn test_create_issuer_data_info_len_error() {
     assert_error_eq!(
         err,
         ScriptError::ValidationFailure(ISSUER_DATA_INVALID).output_type_script(script_cell_index)
+    );
+}
+
+#[test]
+fn test_update_issuer_cell_witness_none_error() {
+    let (mut context, tx) = create_test_context(Action::Update(1), IssuerError::GroupInputWitnessNoneError);
+
+    let tx = context.complete_tx(tx);
+    // run
+    let err = context.verify_tx(&tx, MAX_CYCLES).unwrap_err();
+    let script_cell_index = 1;
+    assert_error_eq!(
+        err,
+        ScriptError::ValidationFailure(GROUP_INPUT_WITNESS_NONE_ERROR)
+            .input_type_script(script_cell_index)
     );
 }
 
@@ -339,6 +364,22 @@ fn test_destroy_issuer_error() {
     assert_error_eq!(
         err,
         ScriptError::ValidationFailure(ISSUER_CELL_CANNOT_DESTROYED)
+            .input_type_script(script_cell_index)
+    );
+}
+
+#[test]
+fn test_destroy_issuer_with_witness_none_error() {
+    let (mut context, tx) =
+        create_test_context(Action::Destroy, IssuerError::GroupInputWitnessNoneError);
+
+    let tx = context.complete_tx(tx);
+    // run
+    let err = context.verify_tx(&tx, MAX_CYCLES).unwrap_err();
+    let script_cell_index = 1;
+    assert_error_eq!(
+        err,
+        ScriptError::ValidationFailure(GROUP_INPUT_WITNESS_NONE_ERROR)
             .input_type_script(script_cell_index)
     );
 }

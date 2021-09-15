@@ -14,7 +14,8 @@ use script_utils::{
     error::Error,
     helper::{
         count_cells_by_type, load_cell_data_by_type, load_output_type_args_ids, 
-        cell_deps_and_inputs_have_issuer_or_class_lock, load_class_type, check_first_input_witness_is_none, Action
+        cell_deps_and_inputs_have_issuer_or_class_lock, load_class_type,
+        check_group_input_witness_is_none_with_type, Action
     },
     nft::{Nft, NFT_TYPE_ARGS_LEN},
 };
@@ -42,9 +43,6 @@ fn load_nft_data(source: Source) -> Result<Vec<u8>, Error> {
 fn issuer_or_class_lock_has_approved(nft_args: &Bytes) -> Result<bool, Error> {
     if !cell_deps_and_inputs_have_issuer_or_class_lock(&nft_args)? {
         return Ok(false);
-    }
-    if check_first_input_witness_is_none()? {
-        return Err(Error::FirstInputWitnessNoneError);
     }
     Ok(true)
 }
@@ -109,7 +107,11 @@ fn handle_creation(nft_type: &Script) -> Result<(), Error> {
     Ok(())
 }
 
-fn handle_update(nft_args: &Bytes) -> Result<(), Error> {
+fn handle_update(nft_type: &Script) -> Result<(), Error> {
+    // Disable anyone-can-pay lock
+    if check_group_input_witness_is_none_with_type(nft_type)? {
+        return Err(Error::GroupInputWitnessNoneError);
+    }
     let nft_data = (
         load_nft_data(Source::GroupInput)?,
         load_nft_data(Source::GroupOutput)?,
@@ -120,6 +122,7 @@ fn handle_update(nft_args: &Bytes) -> Result<(), Error> {
     );
     validate_immutable_nft_fields(&nfts)?;
 
+    let nft_args: Bytes = nft_type.args().unpack();
     if !issuer_or_class_lock_has_approved(&nft_args)? {
         validate_nft_claim(&nfts)?;
         validate_nft_lock(&nfts)?;
@@ -129,7 +132,12 @@ fn handle_update(nft_args: &Bytes) -> Result<(), Error> {
     Ok(())
 }
 
-fn handle_destroying(nft_args: &Bytes) -> Result<(), Error> {
+fn handle_destroying(nft_type: &Script) -> Result<(), Error> {
+    // Disable anyone-can-pay lock
+    if check_group_input_witness_is_none_with_type(nft_type)? {
+        return Err(Error::GroupInputWitnessNoneError);
+    }
+    let nft_args: Bytes = nft_type.args().unpack();
     if issuer_or_class_lock_has_approved(&nft_args)? {
         return Ok(());
     }
@@ -155,7 +163,7 @@ pub fn main() -> Result<(), Error> {
 
     match parse_nft_action(&nft_type)? {
         Action::Create => handle_creation(&nft_type),
-        Action::Update => handle_update(&nft_args),
-        Action::Destroy => handle_destroying(&nft_args),
+        Action::Update => handle_update(&nft_type),
+        Action::Destroy => handle_destroying(&nft_type),
     }
 }

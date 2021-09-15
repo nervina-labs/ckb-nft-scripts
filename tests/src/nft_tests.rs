@@ -39,7 +39,7 @@ const LOCKED_NFT_CANNOT_TRANSFER: i8 = 36;
 const LOCKED_NFT_CANNOT_ADD_EXT_INFO: i8 = 37;
 const LOCKED_NFT_CANNOT_DESTROY: i8 = 38;
 const LOCKED_NFT_CANNOT_UPDATE_CHARACTERISTIC: i8 = 39;
-const FIRST_INPUT_WITNESS_NONE_ERROR: i8 = 40;
+const GROUP_INPUT_WITNESS_NONE_ERROR : i8 = 40;
 
 #[derive(PartialEq, Eq, Clone, Copy)]
 enum DestroyCase {
@@ -97,8 +97,7 @@ enum NftError {
     UpdateStateWithOtherIssuer,
     UpdateStateWithoutClass,
     UpdateStateWithOtherClass,
-    IssuerLockWitnessNoneError,
-    ClassLockWitnessNoneError,
+    GroupInputWitnessNoneError,
 }
 
 fn create_test_context(action: Action, nft_error: NftError) -> (Context, TransactionView) {
@@ -631,16 +630,27 @@ fn create_test_context(action: Action, nft_error: NftError) -> (Context, Transac
 
     let mut witnesses = vec![];
     match nft_error {
-        NftError::IssuerLockWitnessNoneError | NftError::ClassLockWitnessNoneError => {
+        NftError::GroupInputWitnessNoneError => {
             witnesses.push(Bytes::from("12345678"))
         }
         _ => {
             witnesses.push(Bytes::from(hex::decode("5500000010000000550000005500000041000000b69c542c0ee6c4b6d8350514d876ea7d8ef563e406253e959289457204447d2c4eb4e4a993073f5e76d244d2f93f7c108652e3295a9c8d72c12477e095026b9500").unwrap()))
         }
     }
-    for _ in 1..inputs.len() {
-        witnesses.push(Bytes::from("0x"))
+    match nft_error {
+        NftError::UpdateStateWithOtherIssuer | NftError::UpdateStateWithOtherClass => {
+            witnesses.push(Bytes::from(hex::decode("5500000010000000550000005500000041000000b69c542c0ee6c4b6d8350514d876ea7d8ef563e406253e959289457204447d2c4eb4e4a993073f5e76d244d2f93f7c108652e3295a9c8d72c12477e095026b9500").unwrap()))
+        }
+        _ => {
+            witnesses.push(Bytes::from("0x"))
+        }
     }
+    if inputs.len() > 2 {
+        for _ in 2..inputs.len() {
+            witnesses.push(Bytes::from("0x"))
+        }
+    }
+
 
     let cell_deps = match action {
         Action::Destroy(case) => match case {
@@ -832,6 +842,21 @@ fn test_update_nft_cell_data_len_error() {
     );
 }
 
+#[test]
+fn test_update_nft_with_group_input_witness_none_error() {
+    let (mut context, tx) =
+        create_test_context(Action::Update(UpdateCase::Claim), NftError::GroupInputWitnessNoneError);
+
+    let tx = context.complete_tx(tx);
+    // run
+    let err = context.verify_tx(&tx, MAX_CYCLES).unwrap_err();
+    let script_cell_index = 0;
+    assert_error_eq!(
+        err,
+        ScriptError::ValidationFailure(GROUP_INPUT_WITNESS_NONE_ERROR).input_type_script(script_cell_index)
+    );
+}
+
 // #[test]
 // fn test_create_nft_cells_count_error() {
 //     let (mut context, tx) = create_test_context(Action::Create, NftError::NFTCellsCountError);
@@ -891,41 +916,6 @@ fn test_update_nft_cell_data_len_error() {
 //     assert_errors_contain!(err, errors);
 // }
 
-#[test]
-fn test_update_nft_with_issuer_witness_error() {
-    let (mut context, tx) = create_test_context(
-        Action::Update(UpdateCase::UpdateStateWithIssuer),
-        NftError::IssuerLockWitnessNoneError,
-    );
-
-    let tx = context.complete_tx(tx);
-    // run
-    let err = context.verify_tx(&tx, MAX_CYCLES).unwrap_err();
-    let script_cell_index = 1;
-    assert_error_eq!(
-        err,
-        ScriptError::ValidationFailure(FIRST_INPUT_WITNESS_NONE_ERROR)
-            .input_type_script(script_cell_index)
-    );
-}
-
-#[test]
-fn test_update_nft_with_class_witness_error() {
-    let (mut context, tx) = create_test_context(
-        Action::Update(UpdateCase::UpdateStateWithClass),
-        NftError::ClassLockWitnessNoneError,
-    );
-
-    let tx = context.complete_tx(tx);
-    // run
-    let err = context.verify_tx(&tx, MAX_CYCLES).unwrap_err();
-    let script_cell_index = 1;
-    assert_error_eq!(
-        err,
-        ScriptError::ValidationFailure(FIRST_INPUT_WITNESS_NONE_ERROR)
-            .input_type_script(script_cell_index)
-    );
-}
 
 #[test]
 fn test_update_nft_characteristic_not_same_error() {
@@ -1337,37 +1327,19 @@ fn test_locked_nft_cannot_destroy_error() {
 }
 
 #[test]
-fn test_destroy_nft_with_issuer_witness_none_error() {
+fn test_destroy_nft_with_group_input_witness_none_error() {
     let (mut context, tx) = create_test_context(
-        Action::Destroy(DestroyCase::IssuerInput),
-        NftError::IssuerLockWitnessNoneError,
+        Action::Destroy(DestroyCase::Default),
+        NftError::GroupInputWitnessNoneError,
     );
 
     let tx = context.complete_tx(tx);
     // run
     let err = context.verify_tx(&tx, MAX_CYCLES).unwrap_err();
-    let script_cell_index = 1;
+    let script_cell_index = 0;
     assert_error_eq!(
         err,
-        ScriptError::ValidationFailure(FIRST_INPUT_WITNESS_NONE_ERROR)
-            .input_type_script(script_cell_index)
-    );
-}
-
-#[test]
-fn test_destroy_nft_with_class_witness_none_error() {
-    let (mut context, tx) = create_test_context(
-        Action::Destroy(DestroyCase::ClassInput),
-        NftError::ClassLockWitnessNoneError,
-    );
-
-    let tx = context.complete_tx(tx);
-    // run
-    let err = context.verify_tx(&tx, MAX_CYCLES).unwrap_err();
-    let script_cell_index = 1;
-    assert_error_eq!(
-        err,
-        ScriptError::ValidationFailure(FIRST_INPUT_WITNESS_NONE_ERROR)
+        ScriptError::ValidationFailure(GROUP_INPUT_WITNESS_NONE_ERROR)
             .input_type_script(script_cell_index)
     );
 }
