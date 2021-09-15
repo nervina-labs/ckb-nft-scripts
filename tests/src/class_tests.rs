@@ -12,6 +12,7 @@ use ckb_tool::ckb_types::{
 const MAX_CYCLES: u64 = 10_000_000;
 
 // error numbers
+const ENCODING: i8 = 4;
 const TYPE_ARGS_INVALID: i8 = 7;
 const CLASS_DATA_INVALID: i8 = 12;
 const CLASS_TOTAL_SMALLER_THAN_ISSUED: i8 = 13;
@@ -331,8 +332,11 @@ fn test_update_class_data_error() {
     let tx = context.complete_tx(tx);
     // run
     let err = context.verify_tx(&tx, MAX_CYCLES).unwrap_err();
+    println!("{:?}", err);
     let script_cell_index = 0;
     let errors = vec![
+        ScriptError::ValidationFailure(ENCODING).input_type_script(script_cell_index),
+        ScriptError::ValidationFailure(ENCODING).output_type_script(script_cell_index),
         ScriptError::ValidationFailure(CLASS_DATA_INVALID).input_type_script(script_cell_index),
         ScriptError::ValidationFailure(CLASS_DATA_INVALID).output_type_script(script_cell_index),
     ];
