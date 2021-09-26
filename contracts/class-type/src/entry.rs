@@ -42,10 +42,10 @@ fn parse_class_action(class_type: &Script) -> Result<Action, Error> {
         return Ok(Action::Create);
     }
     let class_outputs_count = count_cells_by_type(Source::Output, &check_class_type(class_type));
-    if class_inputs_count == 1 && class_outputs_count == 0 {
+    if class_outputs_count == 0 {
         return Ok(Action::Destroy);
     }
-    if class_inputs_count == 1 && class_outputs_count == 1 {
+    if class_inputs_count == class_outputs_count {
         return Ok(Action::Update);
     }
     Err(Error::ClassCellsCountError)
