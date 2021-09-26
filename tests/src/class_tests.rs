@@ -23,10 +23,16 @@ const CLASS_CELL_CANNOT_DESTROYED: i8 = 17;
 const CLASS_ID_INCREASE_ERROR: i8 = 18;
 const GROUP_INPUT_WITNESS_NONE_ERROR : i8 = 40;
 
+#[derive(PartialEq, Eq, Clone, Copy)]
+enum UpdateCase {
+    Default,
+    Batch,
+}
+
 #[derive(PartialEq)]
 enum Action {
     Create,
-    Update,
+    Update(UpdateCase),
     Destroy,
 }
 
@@ -99,7 +105,7 @@ fn create_test_context(action: Action, class_error: ClassError) -> (Context, Tra
         .build();
 
     let class_input_data = match action {
-        Action::Update => {
+        Action::Update(_) => {
             Bytes::from(hex::decode("000000000f0000000500000155000266660003898989").unwrap())
         }
         Action::Destroy => match class_error {
@@ -119,6 +125,10 @@ fn create_test_context(action: Action, class_error: ClassError) -> (Context, Tra
     };
     class_type_args.append(&mut args_class_id);
 
+    let mut another_class_type_args = issuer_type_hash[0..20].to_vec();
+    let mut args_class_id = 9u32.to_be_bytes().to_vec();
+    another_class_type_args.append(&mut args_class_id);
+
     let class_type_script = context
         .build_script(
             &class_out_point,
@@ -132,15 +142,38 @@ fn create_test_context(action: Action, class_error: ClassError) -> (Context, Tra
             .lock(lock_script.clone())
             .type_(Some(class_type_script.clone()).pack())
             .build(),
-        class_input_data,
+        class_input_data.clone(),
     );
     let class_input = CellInput::new_builder()
         .previous_output(class_input_out_point.clone())
         .build();
 
+    let another_class_type_script = context
+        .build_script(
+            &class_out_point,
+            Bytes::copy_from_slice(&another_class_type_args[..]),
+        )
+        .expect("script");
+
+    let another_class_input_out_point = context.create_cell(
+        CellOutput::new_builder()
+            .capacity(500u64.pack())
+            .lock(lock_script.clone())
+            .type_(Some(another_class_type_script.clone()).pack())
+            .build(),
+        class_input_data,
+    );
+    let another_class_input = CellInput::new_builder()
+        .previous_output(another_class_input_out_point.clone())
+        .build();
+
     let inputs = match action {
         Action::Create => vec![issuer_input],
-        _ => vec![class_input],
+        Action::Destroy => vec![class_input.clone(), class_input],
+        Action::Update(case) => match case {
+            UpdateCase::Default => vec![class_input],
+            UpdateCase::Batch => vec![class_input, another_class_input],
+        }
     };
 
     let mut class_type_args = issuer_type_hash[0..20].to_vec();
@@ -151,10 +184,21 @@ fn create_test_context(action: Action, class_error: ClassError) -> (Context, Tra
     };
     class_type_args.append(&mut args_class_id);
 
+    let mut another_class_type_args = issuer_type_hash[0..20].to_vec();
+    let mut args_class_id = 9u32.to_be_bytes().to_vec();
+    another_class_type_args.append(&mut args_class_id);
+
     let class_type_script = context
         .build_script(
             &class_out_point,
             Bytes::copy_from_slice(&class_type_args[..]),
+        )
+        .expect("script");
+
+    let another_class_type_script = context
+        .build_script(
+            &class_out_point,
+            Bytes::copy_from_slice(&another_class_type_args[..]),
         )
         .expect("script");
 
@@ -164,11 +208,24 @@ fn create_test_context(action: Action, class_error: ClassError) -> (Context, Tra
             .lock(lock_script.clone())
             .type_(Some(issuer_type_script.clone()).pack())
             .build()],
-        Action::Update => vec![CellOutput::new_builder()
-            .capacity(500u64.pack())
-            .lock(lock_script.clone())
-            .type_(Some(class_type_script.clone()).pack())
-            .build()],
+        Action::Update(case) => match case {
+            UpdateCase::Default => vec![CellOutput::new_builder()
+                .capacity(500u64.pack())
+                .lock(lock_script.clone())
+                .type_(Some(class_type_script.clone()).pack())
+                .build()],
+            UpdateCase::Batch => vec![
+                CellOutput::new_builder()
+                    .capacity(500u64.pack())
+                    .lock(lock_script.clone())
+                    .type_(Some(class_type_script.clone()).pack())
+                    .build(),
+                CellOutput::new_builder()
+                    .capacity(500u64.pack())
+                    .lock(lock_script.clone())
+                    .type_(Some(another_class_type_script.clone()).pack())
+                    .build()]
+        },
         Action::Destroy => vec![CellOutput::new_builder()
             .capacity(2000u64.pack())
             .lock(lock_script.clone())
@@ -220,7 +277,7 @@ fn create_test_context(action: Action, class_error: ClassError) -> (Context, Tra
                 Bytes::from(hex::decode("000000000f0000000000000155000266660003898989").unwrap()),
             ],
         },
-        Action::Update => match class_error {
+        Action::Update(case) => match class_error {
             ClassError::ClassDataInvalid => vec![Bytes::from(
                 hex::decode("000000000f000000050000015500026666").unwrap(),
             )],
@@ -242,9 +299,18 @@ fn create_test_context(action: Action, class_error: ClassError) -> (Context, Tra
             ClassError::ClassDescriptionNotSame => vec![Bytes::from(
                 hex::decode("000000000f0000000500000155000299990003898989").unwrap(),
             )],
-            _ => vec![Bytes::from(
-                hex::decode("000000000f000000050000015500026666000489898949").unwrap(),
-            )],
+            _ => {
+                match case {
+                    UpdateCase::Default => vec![Bytes::from(
+                        hex::decode("000000000f000000050000015500026666000489898949").unwrap(),
+                    )],
+                    UpdateCase::Batch => vec![Bytes::from(
+                        hex::decode("000000000f000000050000015500026666000489898949").unwrap(),
+                    ), Bytes::from(
+                        hex::decode("000000000f000000050000015500026666000489898949").unwrap(),
+                    )]
+                }
+            },
         },
         Action::Destroy => vec![Bytes::new()],
     };
@@ -289,7 +355,19 @@ fn test_create_class_cells_success() {
 
 #[test]
 fn test_update_class_cell_success() {
-    let (mut context, tx) = create_test_context(Action::Update, ClassError::NoError);
+    let (mut context, tx) = create_test_context(Action::Update(UpdateCase::Default), ClassError::NoError);
+
+    let tx = context.complete_tx(tx);
+    // run
+    let cycles = context
+        .verify_tx(&tx, MAX_CYCLES)
+        .expect("pass verification");
+    println!("consume cycles: {}", cycles);
+}
+
+#[test]
+fn test_batch_update_class_cell_success() {
+    let (mut context, tx) = create_test_context(Action::Update(UpdateCase::Batch), ClassError::NoError);
 
     let tx = context.complete_tx(tx);
     // run
@@ -313,7 +391,7 @@ fn test_destroy_class_cell_success() {
 
 #[test]
 fn test_update_class_data_len_error() {
-    let (mut context, tx) = create_test_context(Action::Update, ClassError::ClassDataInvalid);
+    let (mut context, tx) = create_test_context(Action::Update(UpdateCase::Default), ClassError::ClassDataInvalid);
 
     let tx = context.complete_tx(tx);
     // run
@@ -327,7 +405,7 @@ fn test_update_class_data_len_error() {
 
 #[test]
 fn test_update_class_data_error() {
-    let (mut context, tx) = create_test_context(Action::Update, ClassError::TypeArgsClassIdNotSame);
+    let (mut context, tx) = create_test_context(Action::Update(UpdateCase::Default), ClassError::TypeArgsClassIdNotSame);
 
     let tx = context.complete_tx(tx);
     // run
@@ -345,7 +423,7 @@ fn test_update_class_data_error() {
 
 #[test]
 fn test_update_class_with_witness_none_error() {
-    let (mut context, tx) = create_test_context(Action::Update, ClassError::GroupInputWitnessNoneError);
+    let (mut context, tx) = create_test_context(Action::Update(UpdateCase::Default), ClassError::GroupInputWitnessNoneError);
 
     let tx = context.complete_tx(tx);
     // run
@@ -360,7 +438,7 @@ fn test_update_class_with_witness_none_error() {
 
 #[test]
 fn test_update_class_total_smaller_than_issued_error() {
-    let (mut context, tx) = create_test_context(Action::Update, ClassError::TotalSmallerThanIssued);
+    let (mut context, tx) = create_test_context(Action::Update(UpdateCase::Default), ClassError::TotalSmallerThanIssued);
 
     let tx = context.complete_tx(tx);
     // run
@@ -408,7 +486,7 @@ fn test_create_class_issued_not_zero_error() {
 
 #[test]
 fn test_update_class_issued_invalid_error() {
-    let (mut context, tx) = create_test_context(Action::Update, ClassError::ClassIssuedInvalid);
+    let (mut context, tx) = create_test_context(Action::Update(UpdateCase::Default), ClassError::ClassIssuedInvalid);
 
     let tx = context.complete_tx(tx);
     // run
@@ -422,7 +500,7 @@ fn test_update_class_issued_invalid_error() {
 
 #[test]
 fn test_update_class_immutable_total_not_same_error() {
-    let (mut context, tx) = create_test_context(Action::Update, ClassError::ClassTotalNotSame);
+    let (mut context, tx) = create_test_context(Action::Update(UpdateCase::Default), ClassError::ClassTotalNotSame);
 
     let tx = context.complete_tx(tx);
     // run
@@ -437,7 +515,7 @@ fn test_update_class_immutable_total_not_same_error() {
 
 #[test]
 fn test_update_class_immutable_configure_not_same_error() {
-    let (mut context, tx) = create_test_context(Action::Update, ClassError::ClassConfigureNotSame);
+    let (mut context, tx) = create_test_context(Action::Update(UpdateCase::Default), ClassError::ClassConfigureNotSame);
 
     let tx = context.complete_tx(tx);
     // run
@@ -452,7 +530,7 @@ fn test_update_class_immutable_configure_not_same_error() {
 
 #[test]
 fn test_update_class_immutable_name_not_same_error() {
-    let (mut context, tx) = create_test_context(Action::Update, ClassError::ClassNameNotSame);
+    let (mut context, tx) = create_test_context(Action::Update(UpdateCase::Default), ClassError::ClassNameNotSame);
 
     let tx = context.complete_tx(tx);
     // run
@@ -468,7 +546,7 @@ fn test_update_class_immutable_name_not_same_error() {
 #[test]
 fn test_update_class_immutable_description_not_same_error() {
     let (mut context, tx) =
-        create_test_context(Action::Update, ClassError::ClassDescriptionNotSame);
+        create_test_context(Action::Update(UpdateCase::Default), ClassError::ClassDescriptionNotSame);
 
     let tx = context.complete_tx(tx);
     // run
@@ -518,7 +596,7 @@ fn test_create_class_cells_increase_error() {
 
 #[test]
 fn test_update_class_type_args_invalid_error() {
-    let (mut context, tx) = create_test_context(Action::Update, ClassError::ClassTypeArgsInvalid);
+    let (mut context, tx) = create_test_context(Action::Update(UpdateCase::Default), ClassError::ClassTypeArgsInvalid);
 
     let tx = context.complete_tx(tx);
     // run
