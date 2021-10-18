@@ -1,0 +1,12 @@
+array Byte32 [byte; 32];
+
+struct KVPair {
+  k: Byte32,
+  v: Byte32,
+}
+
+vector KVPairVec <KVPair>;
+
+table CompactNFTRegistryEntries {
+  kv_state: KVPairVec,
+}
