@@ -1,4 +1,5 @@
 array Byte32 [byte; 32];
+vector Bytes <byte>;
 
 struct KVPair {
   k: Byte32,
@@ -9,4 +10,5 @@ vector KVPairVec <KVPair>;
 
 table CompactNFTRegistryEntries {
   kv_state: KVPairVec,
+  kv_proof: Bytes,
 }
