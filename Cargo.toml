@@ -1,2 +1,2 @@
 [workspace]
-members = ["tests"]
+members = ["tests", "nft-smt"]

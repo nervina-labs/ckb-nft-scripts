@@ -1,5 +1,5 @@
 [workspace]
-members = ["issuer-type", "class-type", "nft-type", "script-utils"]
+members = ["issuer-type", "class-type", "nft-type", "script-utils", "compact-registry-type"]
 
 [profile.release]
 overflow-checks = true

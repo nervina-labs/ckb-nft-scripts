@@ -29,13 +29,19 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "4785bdd1c96b2a846b2bd7cc02e86b6b3dbf14e7e53446c4f54c92a361040822"
 
 [[package]]
+name = "cfg-if"
+version = "1.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "baf1de4339761588bc0619e3cbc0120ee582ebb74b53b4efbf79117bd2da40fd"
+
+[[package]]
 name = "ckb-standalone-types"
 version = "0.0.1-pre.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "af2cdbdf65ee5b1da71504f5a03d6984bce77d0b4b46daff63f4ba4a3b0eef08"
 dependencies = [
- "cfg-if",
- "molecule",
+ "cfg-if 0.1.10",
+ "molecule 0.6.0",
 ]
 
 [[package]]
@@ -58,6 +64,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "compact-registry-type"
+version = "0.3.0"
+dependencies = [
+ "blake2b-rs",
+ "ckb-std",
+ "nft-smt",
+ "script-utils",
+ "sparse-merkle-tree",
+]
+
+[[package]]
 name = "cty"
 version = "0.2.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -74,11 +91,29 @@ dependencies = [
 
 [[package]]
 name = "molecule"
-version = "0.6.1"
+version = "0.6.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3067ceba3d7f5dcc7427cfc584fc506e756f1161151032fec840455f5a3c2fd5"
+checksum = "663f76cc52219e5957e2f5563cce9d89f98aa8503c9c898b5c412d97df663998"
 dependencies = [
- "cfg-if",
+ "cfg-if 0.1.10",
+]
+
+[[package]]
+name = "molecule"
+version = "0.7.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "be5f63176422224eadd975789462a96cedaf339cd1009ef92fbdfaad39d35f5f"
+dependencies = [
+ "cfg-if 1.0.0",
+]
+
+[[package]]
+name = "nft-smt"
+version = "0.3.0"
+dependencies = [
+ "cfg-if 0.1.10",
+ "ckb-std",
+ "molecule 0.7.2",
 ]
 
 [[package]]
@@ -94,4 +129,13 @@ name = "script-utils"
 version = "0.3.0"
 dependencies = [
  "ckb-std",
+]
+
+[[package]]
+name = "sparse-merkle-tree"
+version = "0.5.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ce70bcf7d75eb7e7a0ed37032b2f13b46c02754a3a983d21bd682140738b67ef"
+dependencies = [
+ "cfg-if 0.1.10",
 ]

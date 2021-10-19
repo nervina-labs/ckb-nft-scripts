@@ -43,6 +43,7 @@ pub enum Error {
     LockedNFTCannotDestroy,
     LockedNFTCannotUpdateCharacteristic,
     GroupInputWitnessNoneError = 40,
+    CompactRegistryTypeArgsNotEqualLockHash,
 }
 
 impl From<SysError> for Error {
