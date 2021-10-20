@@ -125,12 +125,12 @@ pub fn check_group_input_witness_is_none_with_type(type_script: &Script) -> Resu
     let lock_script: Script = QueryIter::new(load_cell_type, Source::Input)
         .position(|type_opt| type_opt.map_or(false, |type_| type_.as_slice() == type_script.as_slice()))
         .map(|index| load_cell_lock(index, Source::Input).map_or(Err(Error::Encoding), Ok))
-        .map_or_else(|| Err(Error::Encoding), |lock_| lock_)?;
+        .map_or(Err(Error::Encoding), |lock_| lock_)?;
 
     QueryIter::new(load_cell_lock, Source::Input)
         .position(|lock| lock.as_slice() == lock_script.as_slice())
         .map(|index| load_witness_args(index, Source::Input).map_or_else(|_| Ok(true), |witness_args| Ok(witness_args.lock().to_opt().is_none())))
-        .map_or_else(|| Err(Error::Encoding), |result_| result_)
+        .map_or(Err(Error::Encoding), |result_| result_)
 }
 
 pub fn parse_dyn_vec_len(data: &[u8]) -> usize {

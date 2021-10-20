@@ -43,7 +43,9 @@ pub enum Error {
     LockedNFTCannotDestroy,
     LockedNFTCannotUpdateCharacteristic,
     GroupInputWitnessNoneError = 40,
+    WitnessTypeParseError,
     CompactRegistryTypeArgsNotEqualLockHash,
+    SMTProofVerifyFailed,
 }
 
 impl From<SysError> for Error {

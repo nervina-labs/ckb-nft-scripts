@@ -9,28 +9,30 @@ use sparse_merkle_tree::{CompiledMerkleProof, H256};
 use script_utils::{
     error::Error,
 };
-use nft_smt::{CompactNFTRegistryEntries, KVPair};
+use nft_smt::{CompactNFTRegistryEntries, molecule::prelude::Entity};
+use crate::hash::Blake2bHasher;
 
 const TYPE_ARGS_LEN: usize = 20;
 const REGISTRY_SMT_ROOT_HASH: usize = 32;
 
 fn check_type_args_equal_lock_hash() -> Result<(), Error> {
-    let load_lock_hash = |source| load_cell_lock_hash(0, source)?[0..20];
-
-    let input_type = load_cell_type(0, Source::Input)?;
-    let output_type = load_cell_type(0, Source::Output)?;
-    if input_type.is_none() && output_type.is_none() {
-        return Err(Error::CompactRegistryTypeArgsNotEqualLockHash);
+    match load_cell_type(0, Source::Output)? {
+        Some(type_) => {
+            let lock_hash = load_cell_lock_hash(0, Source::Output)?;
+            let type_args: Bytes = type_.args().unpack();
+            if type_args[..] != lock_hash[0..20] {
+                return Err(Error::CompactRegistryTypeArgsNotEqualLockHash);
+            }
+        },
+        None => {
+            return Err(Error::CompactRegistryTypeArgsNotEqualLockHash)
+        }
     }
 
-    if let Some(type_) = input_type {
-        if type_.args().as_slice() != &load_lock_hash(Source::Input) {
-            return Err(Error::CompactRegistryTypeArgsNotEqualLockHash);
-        }
-    };
-
-    if let Some(type_) = output_type {
-        if type_.args().as_slice() != &load_lock_hash(Source::Output) {
+    if let Some(type_) = load_cell_type(0, Source::Input)? {
+        let lock_hash = load_cell_lock_hash(0, Source::Input)?;
+        let type_args: Bytes = type_.args().unpack();
+        if type_args[..] != lock_hash[0..20] {
             return Err(Error::CompactRegistryTypeArgsNotEqualLockHash);
         }
     };
@@ -52,9 +54,13 @@ fn verify_smt_proof() -> Result<(), Error> {
     let registry_entries = registry_witness_type
         .to_opt()
         .ok_or(Error::ItemMissing)
-        .map(|witness_type| CompactNFTRegistryEntries::from_slice(witness_type.unpack()).map_err(Error::WitnessTypeParseError)?)?;
-    let merkel_proof_complied = CompiledMerkleProof(Vec::from(registry_entries.kv_proof()));
-    let mut leaves: Vec<(H256, H256)> = Vec![];
+        .map(|witness_type| {
+            let witness_type_: Bytes = witness_type.unpack();
+            CompactNFTRegistryEntries::from_slice(&witness_type_[..])
+        })?
+        .map_err(|_| Error::WitnessTypeParseError)?;
+    let registry_merkel_proof = CompiledMerkleProof(Vec::from(registry_entries.kv_proof().raw_data()));
+    let mut leaves: Vec<(H256, H256)> = Vec::new();
     for kv in registry_entries.kv_state() {
         let mut key = [0u8; 32];
         key.copy_from_slice(kv.v().as_slice());
@@ -63,7 +69,11 @@ fn verify_smt_proof() -> Result<(), Error> {
         leaves.push((H256::from(key), H256::from(value)));
     }
 
-    if !merkel_proof_complied.verify(&H256::from(registry_smt_root_hash), leaves)? {
+    let verify_result = registry_merkel_proof
+            .verify::<Blake2bHasher>(&H256::from(registry_smt_root_hash), leaves)
+            .map_err(|_e| Error::SMTProofVerifyFailed)?;
+
+    if !verify_result {
         return Err(Error::SMTProofVerifyFailed);
     }
 
