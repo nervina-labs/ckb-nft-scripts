@@ -73,7 +73,6 @@ dependencies = [
 name = "compact-registry-type"
 version = "0.3.0"
 dependencies = [
- "blake2b-ref",
  "ckb-std",
  "nft-smt",
  "script-utils",
@@ -134,7 +133,9 @@ dependencies = [
 name = "script-utils"
 version = "0.3.0"
 dependencies = [
+ "blake2b-ref",
  "ckb-std",
+ "sparse-merkle-tree",
 ]
 
 [[package]]

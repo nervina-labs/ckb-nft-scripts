@@ -4,10 +4,9 @@
 #![feature(alloc_error_handler)]
 #![feature(panic_info_message)]
 
-mod entry;
-mod hash;
-
 use ckb_std::default_alloc;
+
+mod entry;
 
 ckb_std::entry!(program_entry);
 default_alloc!();

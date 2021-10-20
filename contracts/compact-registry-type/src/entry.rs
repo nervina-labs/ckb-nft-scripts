@@ -8,9 +8,9 @@ use core::result::Result;
 use sparse_merkle_tree::{CompiledMerkleProof, H256};
 use script_utils::{
     error::Error,
+    hash::Blake2bHasher,
 };
 use nft_smt::{CompactNFTRegistryEntries, molecule::prelude::Entity};
-use crate::hash::Blake2bHasher;
 
 const TYPE_ARGS_LEN: usize = 20;
 const REGISTRY_SMT_ROOT_HASH: usize = 32;
