@@ -21,7 +21,7 @@ const CLASS_ISSUED_INVALID: i8 = 15;
 const CLASS_IMMUTABLE_FIELDS_NOT_SAME: i8 = 16;
 const CLASS_CELL_CANNOT_DESTROYED: i8 = 17;
 const CLASS_ID_INCREASE_ERROR: i8 = 18;
-const GROUP_INPUT_WITNESS_NONE_ERROR: i8 = 40;
+const GROUP_INPUT_WITNESS_NONE_ERROR : i8 = 37;
 
 #[derive(PartialEq, Eq, Clone, Copy)]
 enum UpdateCase {

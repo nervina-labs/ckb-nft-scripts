@@ -138,12 +138,9 @@ pub fn check_group_input_witness_is_none_with_type(type_script: &Script) -> Resu
 
     QueryIter::new(load_cell_lock, Source::Input)
         .position(|lock| lock.as_slice() == lock_script.as_slice())
-        .map(|index| {
-            load_witness_args(index, Source::Input).map_or_else(
-                |_| Ok(true),
-                |witness_args| Ok(witness_args.lock().to_opt().is_none()),
-            )
-        })
+        .map(|index|
+            load_witness_args(index, Source::Input)
+                .map_or_else(|_| Ok(true), |witness_args| Ok(witness_args.lock().to_opt().is_none())))
         .map_or(Err(Error::Encoding), |result_| result_)
 }
 

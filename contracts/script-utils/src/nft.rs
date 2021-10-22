@@ -51,10 +51,6 @@ impl Nft {
         self.configure & 0b0000_0010 == 0b0000_0000
     }
 
-    pub fn allow_ext_info(&self) -> bool {
-        self.configure & 0b0000_0100 == 0b0000_0000
-    }
-
     pub fn allow_update_characteristic(&self) -> bool {
         self.configure & 0b0000_1000 == 0b0000_0000
     }
