@@ -37,7 +37,7 @@ impl Class {
         }
 
         let version: u8 = data[0];
-        if version != 0 {
+        if version != 1 {
             return Err(Error::VersionInvalid);
         }
 
