@@ -149,7 +149,7 @@ fn create_test_context(action: Action, nft_error: NftError) -> (Context, Transac
             .lock(lock_script.clone())
             .type_(Some(issuer_type_script.clone()).pack())
             .build(),
-        Bytes::from(hex::decode("0000000000000000000000").unwrap()),
+        Bytes::from(hex::decode("0100000000000000000000").unwrap()),
     );
     let issuer_cell_dep = CellDep::new_builder()
         .out_point(issuer_cell_dep_out_point.clone())
@@ -170,15 +170,17 @@ fn create_test_context(action: Action, nft_error: NftError) -> (Context, Transac
     let class_input_data = match action {
         // Action::Create => match nft_error {
         //     NftError::NFTCellsCountError => {
-        //         Bytes::from(hex::decode("00000000640000000b00000155000266660003898989").unwrap())
+        //         Bytes::from(hex::decode("01000000640000000b00000155000266660003898989").unwrap())
         //     }
         //     NftError::NFTAndClassConfigureNotSame => {
-        //         Bytes::from(hex::decode("00000000640000000907000155000266660003898989").unwrap())
+        //         Bytes::from(hex::decode("01000000640000000907000155000266660003898989").unwrap())
         //     }
-        //     _ => Bytes::from(hex::decode("00000000640000000100000155000266660003898989").
-        // unwrap()), },
+        //     _ => Bytes::from(hex::decode("01000000640000000100000155000266660003898989").unwrap()),
+        // },
         Action::Destroy(case) => match case {
-            DestroyCase::ClassInput => Bytes::from(hex::decode("0000000000000000000000").unwrap()),
+            DestroyCase::ClassInput => {
+                Bytes::from(hex::decode("0100000000000000000000").unwrap())
+            }
             _ => Bytes::new(),
         },
         Action::Update(_) => Bytes::new(),
@@ -257,74 +259,63 @@ fn create_test_context(action: Action, nft_error: NftError) -> (Context, Transac
 
     // nft type script and inputs
     let nft_input_data = match action {
-        Action::Update(case) => match case {
-            UpdateCase::UpdateStateWithIssuer | UpdateCase::UpdateStateWithClass => {
-                Bytes::from(hex::decode("0000000000000000000303").unwrap())
+        Action::Update(case) => {
+            match case {
+                UpdateCase::UpdateStateWithIssuer | UpdateCase::UpdateStateWithClass => {
+                    Bytes::from(hex::decode("0100000000000000000303").unwrap())
+                },
+                _ => {
+                    match nft_error {
+                        NftError::NFTCharacteristicNotSame => {
+                            Bytes::from(hex::decode("0100000000000000000800").unwrap())
+                        }
+                        NftError::NFTClaimedToUnclaimedError => {
+                            Bytes::from(hex::decode("0100000000000000000001").unwrap())
+                        }
+                        NftError::NFTLockedToUnlockedError => {
+                            Bytes::from(hex::decode("0100000000000000000002").unwrap())
+                        }
+                        NftError::NFTDisallowClaimed => {
+                            Bytes::from(hex::decode("0100000000000000000100").unwrap())
+                        }
+                        NftError::NFTDisallowLocked => {
+                            Bytes::from(hex::decode("0100000000000000000200").unwrap())
+                        }
+                        NftError::NFTCannotTransferBeforeClaim => {
+                            Bytes::from(hex::decode("0100000000000000001000").unwrap())
+                        }
+                        NftError::NFTCannotTransferAfterClaim => {
+                            Bytes::from(hex::decode("0100000000000000002001").unwrap())
+                        }
+                        NftError::LockedNFTCannotClaim => {
+                            Bytes::from(hex::decode("0100000000000000000002").unwrap())
+                        }
+                        NftError::LockedNFTCannotTransfer => {
+                            Bytes::from(hex::decode("0100000000000000000002").unwrap())
+                        }
+                        NftError::LockedNFTCannotUpdateCharacteristic => {
+                            Bytes::from(hex::decode("0100000000000000000002").unwrap())
+                        }
+                        _ => Bytes::from(hex::decode("0100000000000000000000").unwrap()),
+                    }
+                }
             }
-            _ => match nft_error {
-                NftError::NFTCharacteristicNotSame => {
-                    Bytes::from(hex::decode("0000000000000000000800").unwrap())
-                }
-                NftError::NFTClaimedToUnclaimedError => {
-                    Bytes::from(hex::decode("0000000000000000000001").unwrap())
-                }
-                NftError::NFTLockedToUnlockedError => {
-                    Bytes::from(hex::decode("0000000000000000000002").unwrap())
-                }
-                NftError::NFTDisallowClaimed => {
-                    Bytes::from(hex::decode("0000000000000000000100").unwrap())
-                }
-                NftError::NFTDisallowLocked => {
-                    Bytes::from(hex::decode("0000000000000000000200").unwrap())
-                }
-                NftError::NFTCannotTransferBeforeClaim => {
-                    Bytes::from(hex::decode("0000000000000000001000").unwrap())
-                }
-                NftError::NFTCannotTransferAfterClaim => {
-                    Bytes::from(hex::decode("0000000000000000002001").unwrap())
-                }
-                NftError::NFTAllowAddExtInfoShortError => {
-                    Bytes::from(hex::decode("000000000000000000000000028899").unwrap())
-                }
-                NftError::NFTAllowAddExtInfoNotSameError => {
-                    Bytes::from(hex::decode("000000000000000000000000028899").unwrap())
-                }
-                NftError::NFTAllowAddMoreExtInfoNotSameError => {
-                    Bytes::from(hex::decode("00000000000000000000000002889900021234").unwrap())
-                }
-                NftError::NFTDisallowAddExtInfoLenError => {
-                    Bytes::from(hex::decode("0000000000000000000400").unwrap())
-                }
-                NftError::LockedNFTCannotClaim => {
-                    Bytes::from(hex::decode("0000000000000000000002").unwrap())
-                }
-                NftError::LockedNFTCannotTransfer => {
-                    Bytes::from(hex::decode("0000000000000000000002").unwrap())
-                }
-                NftError::LockedNFTCannotAddExtInfo => {
-                    Bytes::from(hex::decode("0000000000000000000002").unwrap())
-                }
-                NftError::LockedNFTCannotUpdateCharacteristic => {
-                    Bytes::from(hex::decode("0000000000000000000002").unwrap())
-                }
-                _ => Bytes::from(hex::decode("0000000000000000000000").unwrap()),
-            },
         },
         Action::Destroy(case) => match case {
             DestroyCase::Default => match nft_error {
                 NftError::NFTCannotDestroyBeforeClaim => {
-                    Bytes::from(hex::decode("0000000000000000004000").unwrap())
+                    Bytes::from(hex::decode("0100000000000000004000").unwrap())
                 }
                 NftError::NFTCannotDestroyAfterClaim => {
-                    Bytes::from(hex::decode("0000000000000000008001").unwrap())
+                    Bytes::from(hex::decode("0100000000000000008001").unwrap())
                 }
                 NftError::LockedNFTCannotDestroy => {
-                    Bytes::from(hex::decode("0000000000000000000002").unwrap())
+                    Bytes::from(hex::decode("0100000000000000000002").unwrap())
                 }
-                _ => Bytes::from(hex::decode("0000000000000000000000").unwrap()),
+                _ => Bytes::from(hex::decode("0100000000000000000000").unwrap()),
             },
-            DestroyCase::Batch => Bytes::from(hex::decode("0000000000000000000000").unwrap()),
-            _ => Bytes::from(hex::decode("000000000000000000c000").unwrap()),
+            DestroyCase::Batch => Bytes::from(hex::decode("0100000000000000000000").unwrap()),
+            _ => Bytes::from(hex::decode("010000000000000000c000").unwrap()),
         },
         // Action::Create => Bytes::new(),
     };
@@ -492,58 +483,58 @@ fn create_test_context(action: Action, nft_error: NftError) -> (Context, Transac
     let outputs_data: Vec<_> = match action {
         // Action::Create => match nft_error {
         //     NftError::NFTAndClassConfigureNotSame => vec![
-        //         Bytes::from(hex::decode("00000000640000001007000155000266660003898989").
-        // unwrap()),         Bytes::from(hex::decode("0000000000000000000000").unwrap()),
-        //         Bytes::from(hex::decode("0000000000000000000000").unwrap()),
-        //         Bytes::from(hex::decode("0000000000000000000000000155").unwrap()),
-        //         Bytes::from(hex::decode("0000000000000000000000").unwrap()),
-        //         Bytes::from(hex::decode("0000000000000000000000").unwrap()),
-        //         Bytes::from(hex::decode("0000000000000000000000000155").unwrap()),
-        //         Bytes::from(hex::decode("0000000000000000000000").unwrap()),
-        //         Bytes::from(hex::decode("0000000000000000000000").unwrap()),
-        //         Bytes::from(hex::decode("0000000000000000000000000155").unwrap()),
-        //         Bytes::from(hex::decode("0000000000000000000000").unwrap()),
-        //         Bytes::from(hex::decode("0000000000000000000000").unwrap()),
-        //         Bytes::from(hex::decode("0000000000000000000000000155").unwrap()),
-        //         Bytes::from(hex::decode("0000000000000000000000").unwrap()),
-        //         Bytes::from(hex::decode("0000000000000000000000").unwrap()),
-        //         Bytes::from(hex::decode("0000000000000000000000000155").unwrap()),
+        //         Bytes::from(hex::decode("01000000640000001007000155000266660003898989").unwrap()),
+        //         Bytes::from(hex::decode("0100000000000000000000").unwrap()),
+        //         Bytes::from(hex::decode("0100000000000000000000").unwrap()),
+        //         Bytes::from(hex::decode("0100000000000000000000000155").unwrap()),
+        //         Bytes::from(hex::decode("0100000000000000000000").unwrap()),
+        //         Bytes::from(hex::decode("0100000000000000000000").unwrap()),
+        //         Bytes::from(hex::decode("0100000000000000000000000155").unwrap()),
+        //         Bytes::from(hex::decode("0100000000000000000000").unwrap()),
+        //         Bytes::from(hex::decode("0100000000000000000000").unwrap()),
+        //         Bytes::from(hex::decode("0100000000000000000000000155").unwrap()),
+        //         Bytes::from(hex::decode("0100000000000000000000").unwrap()),
+        //         Bytes::from(hex::decode("0100000000000000000000").unwrap()),
+        //         Bytes::from(hex::decode("0100000000000000000000000155").unwrap()),
+        //         Bytes::from(hex::decode("0100000000000000000000").unwrap()),
+        //         Bytes::from(hex::decode("0100000000000000000000").unwrap()),
+        //         Bytes::from(hex::decode("0100000000000000000000000155").unwrap()),
         //     ],
         //     _ => vec![
-        //         Bytes::from(hex::decode("00000000640000001000000155000266660003898989").
-        // unwrap()),         Bytes::from(hex::decode("0000000000000000000000").unwrap()),
-        //         Bytes::from(hex::decode("0000000000000000000000").unwrap()),
-        //         Bytes::from(hex::decode("0000000000000000000000000155").unwrap()),
-        //         Bytes::from(hex::decode("0000000000000000000000").unwrap()),
-        //         Bytes::from(hex::decode("0000000000000000000000").unwrap()),
-        //         Bytes::from(hex::decode("0000000000000000000000000155").unwrap()),
-        //         Bytes::from(hex::decode("0000000000000000000000").unwrap()),
-        //         Bytes::from(hex::decode("0000000000000000000000").unwrap()),
-        //         Bytes::from(hex::decode("0000000000000000000000000155").unwrap()),
-        //         Bytes::from(hex::decode("0000000000000000000000").unwrap()),
-        //         Bytes::from(hex::decode("0000000000000000000000").unwrap()),
-        //         Bytes::from(hex::decode("0000000000000000000000000155").unwrap()),
-        //         Bytes::from(hex::decode("0000000000000000000000").unwrap()),
-        //         Bytes::from(hex::decode("0000000000000000000000").unwrap()),
-        //         Bytes::from(hex::decode("0000000000000000000000000155").unwrap()),
+        //         Bytes::from(hex::decode("01000000640000001000000155000266660003898989").unwrap()),
+        //         Bytes::from(hex::decode("0100000000000000000000").unwrap()),
+        //         Bytes::from(hex::decode("0100000000000000000000").unwrap()),
+        //         Bytes::from(hex::decode("0100000000000000000000000155").unwrap()),
+        //         Bytes::from(hex::decode("0100000000000000000000").unwrap()),
+        //         Bytes::from(hex::decode("0100000000000000000000").unwrap()),
+        //         Bytes::from(hex::decode("0100000000000000000000000155").unwrap()),
+        //         Bytes::from(hex::decode("0100000000000000000000").unwrap()),
+        //         Bytes::from(hex::decode("0100000000000000000000").unwrap()),
+        //         Bytes::from(hex::decode("0100000000000000000000000155").unwrap()),
+        //         Bytes::from(hex::decode("0100000000000000000000").unwrap()),
+        //         Bytes::from(hex::decode("0100000000000000000000").unwrap()),
+        //         Bytes::from(hex::decode("0100000000000000000000000155").unwrap()),
+        //         Bytes::from(hex::decode("0100000000000000000000").unwrap()),
+        //         Bytes::from(hex::decode("0100000000000000000000").unwrap()),
+        //         Bytes::from(hex::decode("0100000000000000000000000155").unwrap()),
         //     ],
         // },
         Action::Update(case) => match (case, nft_error) {
-            (UpdateCase::Claim, NftError::NoError) => vec![
-                Bytes::from(hex::decode("0000000000000000000001").unwrap()),
-                Bytes::from(hex::decode("0000000000000000000001").unwrap()),
-            ],
+            (UpdateCase::Claim, NftError::NoError) => {
+                vec![Bytes::from(hex::decode("0100000000000000000001").unwrap()),
+                Bytes::from(hex::decode("0100000000000000000001").unwrap())]
+            }
             (UpdateCase::Lock, NftError::NoError) => {
-                vec![Bytes::from(hex::decode("0000000000000000000002").unwrap())]
+                vec![Bytes::from(hex::decode("0100000000000000000002").unwrap())]
             }
             (UpdateCase::UpdateCharacteristic, NftError::NoError) => vec![Bytes::from(
-                hex::decode("0022334455667788990000").unwrap(),
+                hex::decode("0122334455667788990000").unwrap(),
             )],
             (UpdateCase::UpdateStateWithIssuer, _) => {
-                vec![Bytes::new(), Bytes::from(hex::decode("0000000000000000000300").unwrap())]
+                vec![Bytes::new(), Bytes::from(hex::decode("0100000000000000000300").unwrap())]
             }
             (UpdateCase::UpdateStateWithClass, _) => {
-                vec![Bytes::new(), Bytes::from(hex::decode("0000000000000000000300").unwrap())]
+                vec![Bytes::new(), Bytes::from(hex::decode("0100000000000000000300").unwrap())]
             }
             (UpdateCase::UpdateStateWithIssuer, _) => vec![
                 Bytes::new(),
@@ -554,52 +545,52 @@ fn create_test_context(action: Action, nft_error: NftError) -> (Context, Transac
                 Bytes::from(hex::decode("0000000000000000000300").unwrap()),
             ],
             (UpdateCase::UpdateCharacteristic, NftError::NFTCharacteristicNotSame) => {
-                vec![Bytes::from(hex::decode("0022334455667788990800").unwrap())]
+                vec![Bytes::from(hex::decode("0122334455667788990800").unwrap())]
             }
             (UpdateCase::Claim, NftError::NFTDataInvalid) => {
-                vec![Bytes::from(hex::decode("000000000000000000").unwrap())]
+                vec![Bytes::from(hex::decode("010000000000000000").unwrap())]
             }
             (UpdateCase::Claim, NftError::NFTConfigureNotSame) => {
-                vec![Bytes::from(hex::decode("0000000000000000007800").unwrap())]
+                vec![Bytes::from(hex::decode("0100000000000000007800").unwrap())]
             }
             (UpdateCase::Claim, NftError::NFTClaimedToUnclaimedError) => {
-                vec![Bytes::from(hex::decode("0000000000000000000000").unwrap())]
+                vec![Bytes::from(hex::decode("0100000000000000000000").unwrap())]
             }
             (UpdateCase::Lock, NftError::NFTLockedToUnlockedError) => {
-                vec![Bytes::from(hex::decode("0000000000000000000000").unwrap())]
+                vec![Bytes::from(hex::decode("0100000000000000000000").unwrap())]
             }
             (UpdateCase::Claim, NftError::NFTDisallowClaimed) => {
-                vec![Bytes::from(hex::decode("0000000000000000000101").unwrap())]
+                vec![Bytes::from(hex::decode("0100000000000000000101").unwrap())]
             }
             (UpdateCase::Lock, NftError::NFTDisallowLocked) => {
-                vec![Bytes::from(hex::decode("0000000000000000000202").unwrap())]
+                vec![Bytes::from(hex::decode("0100000000000000000202").unwrap())]
             }
             (UpdateCase::Transfer, NftError::NFTCannotTransferBeforeClaim) => {
-                vec![Bytes::from(hex::decode("0000000000000000001000").unwrap())]
+                vec![Bytes::from(hex::decode("0100000000000000001000").unwrap())]
             }
             (UpdateCase::Transfer, NftError::NFTCannotTransferAfterClaim) => {
-                vec![Bytes::from(hex::decode("0000000000000000002001").unwrap())]
+                vec![Bytes::from(hex::decode("0100000000000000002001").unwrap())]
             }
             (UpdateCase::Claim, NftError::LockedNFTCannotClaim) => {
-                vec![Bytes::from(hex::decode("0000000000000000000003").unwrap())]
+                vec![Bytes::from(hex::decode("0100000000000000000003").unwrap())]
             }
             (UpdateCase::Transfer, NftError::LockedNFTCannotTransfer) => {
-                vec![Bytes::from(hex::decode("0000000000000000000002").unwrap())]
+                vec![Bytes::from(hex::decode("0100000000000000000002").unwrap())]
             }
             (UpdateCase::UpdateCharacteristic, NftError::LockedNFTCannotUpdateCharacteristic) => {
-                vec![Bytes::from(hex::decode("0000000000234567890002").unwrap())]
+                vec![Bytes::from(hex::decode("0100000000234567890002").unwrap())]
             }
-            (_, _) => vec![Bytes::from(hex::decode("0000000000000000000000").unwrap())],
+            (_, _) => vec![Bytes::from(hex::decode("0100000000000000000000").unwrap())],
         },
         Action::Destroy(case) => match case {
             DestroyCase::Default | DestroyCase::Batch => vec![Bytes::new()],
             DestroyCase::ClassInput => vec![
                 Bytes::new(),
-                Bytes::from(hex::decode("0000000000000000000000").unwrap()),
+                Bytes::from(hex::decode("0100000000000000000000").unwrap()),
             ],
             DestroyCase::IssuerInput => vec![
                 Bytes::new(),
-                Bytes::from(hex::decode("0000000000000000000000").unwrap()),
+                Bytes::from(hex::decode("0100000000000000000000").unwrap()),
             ],
         },
     };
