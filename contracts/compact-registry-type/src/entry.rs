@@ -61,8 +61,7 @@ fn verify_smt_proof() -> Result<(), Error> {
 
     debug!("root hash: {:?}", registry_smt_root_hash);
 
-    // Parse witness_args.type to get smt leaves and proof
-    use nft_smt::molecule::prelude::Entity;
+    // Parse witness_args.input_type to get smt leaves and proof to verify smt proof
     let registry_witness_type = load_witness_args(0, Source::Input)?.input_type();
     let registry_entries = registry_witness_type
         .to_opt()

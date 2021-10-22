@@ -1,5 +1,7 @@
 use super::*;
 use ckb_testtool::{builtin::ALWAYS_SUCCESS, context::Context};
+use ckb_tool::ckb_error::assert_error_eq;
+use ckb_tool::ckb_script::ScriptError;
 use ckb_tool::ckb_hash::Blake2bBuilder;
 use ckb_tool::ckb_types::{
     bytes::Bytes,
@@ -38,13 +40,9 @@ enum RegistryError {
     WitnessTypeParseError,
     CompactRegistryTypeArgsNotEqualLockHash,
     SMTProofVerifyFailed,
-    CompactRegistryCellPositionError,
 }
 
 fn generate_smt_data() -> ([u8; 32], Vec<u8>) {
-    use nft_smt::molecule::prelude::Builder;
-    use nft_smt::molecule::prelude::Entity;
-
     let leaves_count = 8;
     let mut smt = SMT::<DefaultStore<H256>>::default();
     let mut rng = thread_rng();
@@ -79,7 +77,7 @@ fn generate_smt_data() -> ([u8; 32], Vec<u8>) {
         registry_merkle_proof.compile(update_leaves.clone()).unwrap();
     let verify_result =
         registry_merkle_proof_compiled.verify::<Blake2bHasher>(&root_hash, update_leaves.clone()).expect("smt proof verify failed");
-    println!("smt proof verify result: {:?}", verify_result);
+    assert!(verify_result, "smt proof verify failed");
 
     let merkel_proof_vec: Vec<u8> = registry_merkle_proof_compiled.into();
 
@@ -191,6 +189,7 @@ fn create_test_context(action: Action, registry_error: RegistryError) -> (Contex
 
     let outputs_data: Vec<Bytes> = match registry_error {
         RegistryError::LengthNotEnough => vec![Bytes::from(hex::decode("00000000000000").unwrap())],
+        RegistryError::SMTProofVerifyFailed => vec![Bytes::from(hex::decode("54dfaba38275883ef9b6d5fb02053b71dbba19630ff5f2ec01d5d6965366c1f7").unwrap())],
         _ => vec![Bytes::from(Vec::from(&root_hash[..]))],
     };
 
@@ -198,7 +197,14 @@ fn create_test_context(action: Action, registry_error: RegistryError) -> (Contex
         .input_type(Some(Bytes::from(witness_data.clone())).pack())
         .build();
 
-    let witnesses = vec![witness_args.as_bytes()];
+    let error_witness_args = WitnessArgsBuilder::default()
+        .input_type(Some(Bytes::from(hex::decode("54dfaba38275883ef9b6d5fb02053b71dbba19630ff5f2ec01d5d6965366c1f7").unwrap())).pack())
+        .build();
+
+    let witnesses = match registry_error {
+        RegistryError::WitnessTypeParseError => vec![error_witness_args.as_bytes()],
+        _ => vec![witness_args.as_bytes()]
+    } ;
 
     // build transaction
     let tx = TransactionBuilder::default()
@@ -224,3 +230,99 @@ fn test_create_registry_cell_success() {
     println!("consume cycles: {}", cycles);
 }
 
+#[test]
+fn test_update_registry_cell_success() {
+    let (mut context, tx) = create_test_context(Action::Update, RegistryError::NoError);
+
+    let tx = context.complete_tx(tx);
+    // run
+    let cycles = context
+        .verify_tx(&tx, MAX_CYCLES)
+        .expect("pass verification");
+    println!("consume cycles: {}", cycles);
+}
+
+#[test]
+fn test_destroy_registry_cell_error() {
+    let (mut context, tx) = create_test_context(Action::Destroy, RegistryError::NoError);
+
+    let tx = context.complete_tx(tx);
+    // run
+    let err = context.verify_tx(&tx, MAX_CYCLES).unwrap_err();
+    let script_cell_index = 0;
+    let errors = vec![
+        ScriptError::ValidationFailure(COMPACT_REGISTRY_CELL_POSITION_ERROR).input_type_script(script_cell_index),
+        ScriptError::ValidationFailure(COMPACT_REGISTRY_CELL_POSITION_ERROR).output_type_script(script_cell_index),
+    ];
+    assert_errors_contain!(err, errors);
+}
+
+#[test]
+fn test_registry_type_args_not_equal_to_lock_hash_error() {
+    let (mut context, tx) = create_test_context(Action::Create, RegistryError::CompactRegistryTypeArgsNotEqualLockHash);
+
+    let tx = context.complete_tx(tx);
+    // run
+    let err = context.verify_tx(&tx, MAX_CYCLES).unwrap_err();
+    let script_cell_index = 0;
+    assert_error_eq!(
+        err,
+        ScriptError::ValidationFailure(COMPACT_REGISTRY_TYPE_ARGS_NOT_EQUAL_LOCK_HASH).output_type_script(script_cell_index)
+    );
+}
+
+#[test]
+fn test_registry_type_smt_verify_error() {
+    let (mut context, tx) = create_test_context(Action::Create, RegistryError::SMTProofVerifyFailed);
+
+    let tx = context.complete_tx(tx);
+    // run
+    let err = context.verify_tx(&tx, MAX_CYCLES).unwrap_err();
+    let script_cell_index = 0;
+    assert_error_eq!(
+        err,
+        ScriptError::ValidationFailure(SMT_PROOF_VERIFY_FAILED).output_type_script(script_cell_index)
+    );
+}
+
+#[test]
+fn test_registry_cell_data_length_error() {
+    let (mut context, tx) = create_test_context(Action::Create, RegistryError::LengthNotEnough);
+
+    let tx = context.complete_tx(tx);
+    // run
+    let err = context.verify_tx(&tx, MAX_CYCLES).unwrap_err();
+    let script_cell_index = 0;
+    assert_error_eq!(
+        err,
+        ScriptError::ValidationFailure(LENGTH_NOT_ENOUGH).output_type_script(script_cell_index)
+    );
+}
+
+#[test]
+fn test_registry_type_args_error() {
+    let (mut context, tx) = create_test_context(Action::Create, RegistryError::TypeArgsInvalid);
+
+    let tx = context.complete_tx(tx);
+    // run
+    let err = context.verify_tx(&tx, MAX_CYCLES).unwrap_err();
+    let script_cell_index = 0;
+    assert_error_eq!(
+        err,
+        ScriptError::ValidationFailure(TYPE_ARGS_INVALID).output_type_script(script_cell_index)
+    );
+}
+
+#[test]
+fn test_registry_type_parse_witness_error() {
+    let (mut context, tx) = create_test_context(Action::Create, RegistryError::WitnessTypeParseError);
+
+    let tx = context.complete_tx(tx);
+    // run
+    let err = context.verify_tx(&tx, MAX_CYCLES).unwrap_err();
+    let script_cell_index = 0;
+    assert_error_eq!(
+        err,
+        ScriptError::ValidationFailure(WITNESS_TYPE_PARSE_ERROR).output_type_script(script_cell_index)
+    );
+}
