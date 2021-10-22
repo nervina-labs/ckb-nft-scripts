@@ -10,8 +10,6 @@ pub const NFT_TYPE_ARGS_LEN: usize = 28;
 /// 2) characteristic: [u8; 8]
 /// 3) configure: u8
 /// 4) state: u8
-/// 5) extinfo_data: <size: u16> + <vartext>
-/// The filed of 5) can be changed and it also can be missing and it will not be validated.
 #[derive(Debug, Clone)]
 pub struct Nft {
     pub version:        u8,

@@ -18,10 +18,8 @@ pub const CLASS_TYPE_ARGS_LEN: usize = 24;
 /// 5) name: <size: u16> + <content>
 /// 6) description: <size: u16> + <content>
 /// 7) renderer: <size: u16> + <content>
-/// 8) extinfo_data: <size: u16> + <content>
 /// The fields of 1), 2), 4), 5) and 6) cannot be changed after they are set and they cannot be
 /// missing. The fields of 3) and 7) can be changed and it cannot be missing.
-/// The filed of 8) can be changed and it also can be missing and it will not be validated.
 #[derive(Debug, Clone)]
 pub struct Class {
     pub version:     u8,
