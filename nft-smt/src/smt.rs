@@ -1,9 +1,16 @@
-use sparse_merkle_tree::{traits::Hasher, H256};
 pub use blake2b_ref::{Blake2b, Blake2bBuilder};
+use sparse_merkle_tree::{traits::Hasher, SparseMerkleTree};
 
-pub const BLAKE2B_KEY: &[u8] = &[];
-pub const BLAKE2B_LEN: usize = 32;
-pub const PERSONALIZATION: &[u8] = b"ckb-default-hash";
+// re-exports
+pub use sparse_merkle_tree::{
+    default_store::DefaultStore, CompiledMerkleProof, MerkleProof, H256,
+};
+
+pub type SMT<S> = SparseMerkleTree<Blake2bHasher, H256, S>;
+
+const BLAKE2B_KEY: &[u8] = &[];
+const BLAKE2B_LEN: usize = 32;
+const PERSONALIZATION: &[u8] = b"ckb-default-hash";
 
 pub struct Blake2bHasher(Blake2b);
 

@@ -5,5 +5,4 @@ edition = "2018"
 
 [dependencies]
 ckb-std = "0.7.1"
-blake2b-ref = "0.1"
-sparse-merkle-tree = {version = "0.5.2", default_features = false}
+

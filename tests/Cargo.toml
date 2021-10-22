@@ -9,3 +9,5 @@ edition = "2018"
 ckb-tool = "0.2"
 ckb-testtool = "0.2"
 hex = "0.4"
+rand = "0.6.5"
+nft-smt = {path = "../nft-smt", default_features = false, features = ["no-std"]}

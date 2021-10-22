@@ -46,6 +46,7 @@ pub enum Error {
     WitnessTypeParseError,
     CompactRegistryTypeArgsNotEqualLockHash,
     SMTProofVerifyFailed,
+    CompactRegistryCellPositionError,
 }
 
 impl From<SysError> for Error {

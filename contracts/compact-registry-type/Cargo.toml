@@ -5,6 +5,5 @@ edition = "2018"
 
 [dependencies]
 ckb-std = "0.7.1"
-sparse-merkle-tree = {version = "0.5.2", default_features = false}
 script-utils = { path = "../script-utils" }
 nft-smt = {path = "../../nft-smt", default_features = false, features = ["no-std"]}
