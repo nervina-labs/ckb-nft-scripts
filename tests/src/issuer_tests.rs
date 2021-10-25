@@ -20,7 +20,7 @@ const ISSUER_CLASS_COUNT_ERROR: i8 = 8;
 const ISSUER_SET_COUNT_ERROR: i8 = 9;
 const ISSUER_CELL_CANNOT_DESTROYED: i8 = 10;
 const VERSION_INVALID: i8 = 11;
-const GROUP_INPUT_WITNESS_NONE_ERROR : i8 = 37;
+const GROUP_INPUT_WITNESS_NONE_ERROR: i8 = 37;
 
 #[derive(PartialEq)]
 enum Action {

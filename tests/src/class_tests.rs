@@ -21,7 +21,7 @@ const CLASS_ISSUED_INVALID: i8 = 15;
 const CLASS_IMMUTABLE_FIELDS_NOT_SAME: i8 = 16;
 const CLASS_CELL_CANNOT_DESTROYED: i8 = 17;
 const CLASS_ID_INCREASE_ERROR: i8 = 18;
-const GROUP_INPUT_WITNESS_NONE_ERROR : i8 = 37;
+const GROUP_INPUT_WITNESS_NONE_ERROR: i8 = 37;
 
 #[derive(PartialEq, Eq, Clone, Copy)]
 enum UpdateCase {
@@ -300,17 +300,18 @@ fn create_test_context(action: Action, class_error: ClassError) -> (Context, Tra
             ClassError::ClassDescriptionNotSame => vec![Bytes::from(
                 hex::decode("010000000f0000000500000155000299990003898989").unwrap(),
             )],
-            _ => {
-                match case {
-                    UpdateCase::Default => vec![Bytes::from(
+            _ => match case {
+                UpdateCase::Default => vec![Bytes::from(
+                    hex::decode("010000000f000000050000015500026666000489898949").unwrap(),
+                )],
+                UpdateCase::Batch => vec![
+                    Bytes::from(
                         hex::decode("010000000f000000050000015500026666000489898949").unwrap(),
-                    )],
-                    UpdateCase::Batch => vec![Bytes::from(
+                    ),
+                    Bytes::from(
                         hex::decode("010000000f000000050000015500026666000489898949").unwrap(),
-                    ), Bytes::from(
-                        hex::decode("010000000f000000050000015500026666000489898949").unwrap(),
-                    )]
-                }
+                    ),
+                ],
             },
         },
         Action::Destroy => vec![Bytes::new()],
