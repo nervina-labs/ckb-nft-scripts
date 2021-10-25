@@ -913,7 +913,7 @@ fn test_update_nft_with_group_input_witness_none_error() {
 //     let errors = script_cell_indexes
 //         .iter()
 //         .map(|index| {
-//             
+//
 // ScriptError::ValidationFailure(NFT_TOKEN_ID_INCREASE_ERROR).output_type_script(*index)         })
 //         .collect::<Vec<_>>();
 
