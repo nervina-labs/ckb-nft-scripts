@@ -46,10 +46,11 @@ enum RegistryError {
 }
 
 fn generate_smt_data() -> ([u8; 32], Vec<u8>) {
-    let leaves_count = 8;
+    let leaves_count = 160;
+    let update_leaves_count = 40;
     let mut smt = SMT::default();
     let mut rng = thread_rng();
-    let mut leaves: Vec<(H256, H256)> = Vec::with_capacity(10);
+    let mut leaves: Vec<(H256, H256)> = Vec::with_capacity(leaves_count + update_leaves_count);
     for _ in 0..leaves_count {
         let key: H256 = rng.gen::<[u8; 32]>().into();
         let value: H256 = H256::from([255u8; 32]);
@@ -57,7 +58,6 @@ fn generate_smt_data() -> ([u8; 32], Vec<u8>) {
         smt.update(key, value).expect("SMT update leave error");
     }
 
-    let update_leaves_count = 2;
     let mut update_leaves: Vec<(H256, H256)> = Vec::with_capacity(update_leaves_count);
     for _ in 0..update_leaves_count {
         let key: H256 = rng.gen::<[u8; 32]>().into();

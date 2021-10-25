@@ -532,14 +532,6 @@ fn create_test_context(action: Action, nft_error: NftError) -> (Context, Transac
                 Bytes::new(),
                 Bytes::from(hex::decode("0100000000000000000300").unwrap()),
             ],
-            (UpdateCase::UpdateStateWithIssuer, _) => vec![
-                Bytes::new(),
-                Bytes::from(hex::decode("0000000000000000000300").unwrap()),
-            ],
-            (UpdateCase::UpdateStateWithClass, _) => vec![
-                Bytes::new(),
-                Bytes::from(hex::decode("0000000000000000000300").unwrap()),
-            ],
             (UpdateCase::UpdateCharacteristic, NftError::NFTCharacteristicNotSame) => {
                 vec![Bytes::from(hex::decode("0122334455667788990800").unwrap())]
             }
