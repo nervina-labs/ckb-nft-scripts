@@ -1,20 +1,24 @@
+use crate::class::CLASS_TYPE_ARGS_LEN;
+use crate::error::Error;
+use crate::issuer::ISSUER_TYPE_ARGS_LEN;
 use alloc::vec::Vec;
-use core::result::Result;
 use ckb_std::{
     ckb_constants::Source,
     ckb_types::{bytes::Bytes, packed::*, prelude::*},
-    high_level::{load_cell_data, load_cell_type, load_cell_type_hash, load_cell_lock, load_witness_args, QueryIter},
+    high_level::{
+        load_cell_data, load_cell_lock, load_cell_type, load_cell_type_hash, load_witness_args,
+        QueryIter,
+    },
 };
-use crate::error::Error;
-use crate::issuer::ISSUER_TYPE_ARGS_LEN;
-use crate::class::CLASS_TYPE_ARGS_LEN;
+use core::result::Result;
 
 const ID_LEN: usize = 4;
 pub const DYN_MIN_LEN: usize = 2; // the length of dynamic data size(u16)
 
 const TYPE: u8 = 1;
 const CLASS_TYPE_CODE_HASH: [u8; 32] = [
-    9, 91, 140, 11, 78, 81, 164, 95, 149, 58, 205, 31, 205, 30, 57, 72, 159, 38, 117, 180, 188, 148, 231, 175, 39, 187,  56, 149, 135, 144, 227, 252
+    9, 91, 140, 11, 78, 81, 164, 95, 149, 58, 205, 31, 205, 30, 57, 72, 159, 38, 117, 180, 188,
+    148, 231, 175, 39, 187, 56, 149, 135, 144, 227, 252,
 ];
 
 pub enum Action {
@@ -62,8 +66,9 @@ pub fn count_cells_by_type_hash(source: Source, predicate: &dyn Fn(&[u8]) -> boo
 }
 
 pub fn load_output_index_by_type(type_script: &Script) -> Option<usize> {
-    QueryIter::new(load_cell_type, Source::Output)
-        .position(|type_opt| type_opt.map_or(false, |type_| type_.as_slice() == type_script.as_slice()))
+    QueryIter::new(load_cell_type, Source::Output).position(|type_opt| {
+        type_opt.map_or(false, |type_| type_.as_slice() == type_script.as_slice())
+    })
 }
 
 pub fn load_cell_data_by_type(
@@ -90,20 +95,22 @@ pub fn load_output_type_args_ids(
 ) -> Vec<u32> {
     QueryIter::new(load_cell_type, Source::Output)
         .filter(|type_opt| parse_type_opt(&type_opt, predicate))
-        .filter_map(|type_opt| {
-            type_opt.and_then(|type_| parse_type_args_id(type_, slice_start))
-        })
+        .filter_map(|type_opt| type_opt.and_then(|type_| parse_type_args_id(type_, slice_start)))
         .collect()
 }
 
 fn cell_deps_have_same_issuer_id(issuer_id: &[u8]) -> Result<bool, Error> {
     let type_hash_opt = load_cell_type_hash(0, Source::CellDep)?;
-    type_hash_opt.map_or(Ok(false), |_type_hash| Ok(&_type_hash[0..ISSUER_TYPE_ARGS_LEN] == issuer_id))
+    type_hash_opt.map_or(Ok(false), |_type_hash| {
+        Ok(&_type_hash[0..ISSUER_TYPE_ARGS_LEN] == issuer_id)
+    })
 }
 
 fn cell_deps_have_same_class_type(class_type: &Script) -> Result<bool, Error> {
     let type_opt = load_cell_type(0, Source::CellDep)?;
-    type_opt.map_or(Ok(false), |_type| Ok(_type.as_slice() == class_type.as_slice()))
+    type_opt.map_or(Ok(false), |_type| {
+        Ok(_type.as_slice() == class_type.as_slice())
+    })
 }
 
 pub fn cell_deps_and_inputs_have_issuer_or_class_lock(nft_args: &Bytes) -> Result<bool, Error> {
@@ -123,13 +130,20 @@ pub fn cell_deps_and_inputs_have_issuer_or_class_lock(nft_args: &Bytes) -> Resul
 
 pub fn check_group_input_witness_is_none_with_type(type_script: &Script) -> Result<bool, Error> {
     let lock_script: Script = QueryIter::new(load_cell_type, Source::Input)
-        .position(|type_opt| type_opt.map_or(false, |type_| type_.as_slice() == type_script.as_slice()))
+        .position(|type_opt| {
+            type_opt.map_or(false, |type_| type_.as_slice() == type_script.as_slice())
+        })
         .map(|index| load_cell_lock(index, Source::Input).map_or(Err(Error::Encoding), Ok))
         .map_or(Err(Error::Encoding), |lock_| lock_)?;
 
     QueryIter::new(load_cell_lock, Source::Input)
         .position(|lock| lock.as_slice() == lock_script.as_slice())
-        .map(|index| load_witness_args(index, Source::Input).map_or_else(|_| Ok(true), |witness_args| Ok(witness_args.lock().to_opt().is_none())))
+        .map(|index| {
+            load_witness_args(index, Source::Input).map_or_else(
+                |_| Ok(true),
+                |witness_args| Ok(witness_args.lock().to_opt().is_none()),
+            )
+        })
         .map_or(Err(Error::Encoding), |result_| result_)
 }
 

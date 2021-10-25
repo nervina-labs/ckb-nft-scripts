@@ -35,6 +35,16 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "4785bdd1c96b2a846b2bd7cc02e86b6b3dbf14e7e53446c4f54c92a361040822"
 
 [[package]]
+name = "ckb-lib-smt"
+version = "0.1.0"
+source = "git+https://github.com/lay2dev/ckb-lib-c-script?branch=main#848dc38f671835acf442bf7781a6113a36f39fe5"
+dependencies = [
+ "blake2b-rs",
+ "cc",
+ "ckb-std",
+]
+
+[[package]]
 name = "ckb-standalone-types"
 version = "0.0.1-pre.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -46,9 +56,9 @@ dependencies = [
 
 [[package]]
 name = "ckb-std"
-version = "0.7.3"
+version = "0.7.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2f16c4f7efbf13f060dcd7a916f353936daf5eaccb411fcc255033eabde92155"
+checksum = "5247e68ff32c17714105e2460db6113fb99efde8c830bbdd99f8bf715100dd64"
 dependencies = [
  "buddy-alloc",
  "cc",
@@ -67,6 +77,7 @@ dependencies = [
 name = "compact-registry-type"
 version = "0.3.0"
 dependencies = [
+ "ckb-lib-smt",
  "ckb-std",
  "nft-smt",
  "script-utils",
@@ -101,6 +112,7 @@ name = "nft-smt"
 version = "0.3.0"
 dependencies = [
  "blake2b-ref",
+ "cc",
  "cfg-if",
  "ckb-std",
  "molecule",

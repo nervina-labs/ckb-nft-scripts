@@ -2,11 +2,9 @@ pub use blake2b_ref::{Blake2b, Blake2bBuilder};
 use sparse_merkle_tree::{traits::Hasher, SparseMerkleTree};
 
 // re-exports
-pub use sparse_merkle_tree::{
-    default_store::DefaultStore, CompiledMerkleProof, MerkleProof, H256,
-};
+pub use sparse_merkle_tree::{default_store::DefaultStore, CompiledMerkleProof, MerkleProof, H256};
 
-pub type SMT<S> = SparseMerkleTree<Blake2bHasher, H256, S>;
+pub type SMT = SparseMerkleTree<Blake2bHasher, H256, DefaultStore<H256>>;
 
 const BLAKE2B_KEY: &[u8] = &[];
 const BLAKE2B_LEN: usize = 32;
@@ -28,9 +26,11 @@ impl Hasher for Blake2bHasher {
     fn write_h256(&mut self, h: &H256) {
         self.0.update(h.as_slice());
     }
+
     fn write_byte(&mut self, b: u8) {
         self.0.update(&[b][..]);
     }
+
     fn finish(self) -> H256 {
         let mut hash = [0u8; 32];
         self.0.finalize(&mut hash);

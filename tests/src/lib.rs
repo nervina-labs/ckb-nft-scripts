@@ -4,14 +4,14 @@ use std::fs;
 use std::path::PathBuf;
 use std::str::FromStr;
 
-#[cfg(test)]
-mod issuer_tests;
-
-#[cfg(test)]
-mod class_tests;
-
-#[cfg(test)]
-mod nft_tests;
+// #[cfg(test)]
+// mod issuer_tests;
+//
+// #[cfg(test)]
+// mod class_tests;
+//
+// #[cfg(test)]
+// mod nft_tests;
 
 #[cfg(test)]
 mod compact_registry_tests;

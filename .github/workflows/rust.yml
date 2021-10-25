@@ -19,11 +19,22 @@ jobs:
           docker_nightly_version: snapshot-20201008
 
       - name: Install Capsule
+        env:
+          CAPSULE_VERSION: v0.4.3
         run: |
-          mkdir -p ./capsule && curl -L https://github.com/nervosnetwork/capsule/releases/download/v0.4.3/capsule_v0.4.3_x86_64-linux.tar.gz | tar xvz -C ./capsule --strip-components=1
-          chmod +x ./capsule/capsule
+          curl -OL https://github.com/nervosnetwork/capsule/releases/download/${CAPSULE_VERSION}/capsule_${CAPSULE_VERSION}_x86_64-linux.tar.gz && tar xf capsule_${CAPSULE_VERSION}_x86_64-linux.tar.gz && echo `pwd`/capsule_${CAPSULE_VERSION}_x86_64-linux >> $GITHUB_PATH
+
+      - name: Check Tests format
+          run: cargo fmt -- --check
+
+      - name: Check Rust format
+        run: cd contracts && cargo fmt -- --check
+
+      - name: Cargo clippy check
+        run: cd contracts && cargo clippy
+
       - name: Build contracts
-        run: ./capsule/capsule build
+        run: make build
 
       - name: Test contracts
-        run: ./capsule/capsule test
+        run: make test

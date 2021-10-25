@@ -1,18 +1,17 @@
+use alloc::vec::Vec;
+use ckb_lib_smt::LibCKBSmt;
 use ckb_std::{
-    debug,
     ckb_constants::Source,
     ckb_types::{bytes::Bytes, packed::*, prelude::*},
-    high_level::{load_script, load_cell_data, load_witness_args, load_cell_lock_hash, load_cell_type},
+    debug,
+    dynamic_loading_c_impl::CKBDLContext,
+    high_level::{
+        load_cell_data, load_cell_lock_hash, load_cell_type, load_script, load_witness_args,
+    },
 };
-use alloc::vec::Vec;
 use core::result::Result;
-use script_utils::{
-    error::Error,
-};
-use nft_smt::{
-    registry::CompactNFTRegistryEntries,
-    smt::{Blake2bHasher, CompiledMerkleProof, H256}
-};
+use nft_smt::registry::CompactNFTRegistryEntries;
+use script_utils::error::Error;
 
 const TYPE_ARGS_LEN: usize = 20;
 const REGISTRY_SMT_ROOT_HASH: usize = 32;
@@ -29,20 +28,19 @@ fn check_type_args_equal_lock_hash(registry_type: &Script) -> Result<(), Error> 
             if type_args[..] != lock_hash[0..TYPE_ARGS_LEN] {
                 return Err(Error::CompactRegistryTypeArgsNotEqualLockHash);
             }
-        },
-        None => {
-            return Err(Error::CompactRegistryCellPositionError)
         }
+        None => return Err(Error::CompactRegistryCellPositionError),
     }
 
-    // If the inputs[0] is compact_registry_cell, then its type_args must be equal to lock_hash[0..20]
+    // If the inputs[0] is compact_registry_cell, then its type_args must be equal to
+    // lock_hash[0..20]
     if let Some(type_) = load_cell_type(0, Source::Input)? {
         if registry_type.as_slice() != type_.as_slice() {
             return Ok(());
         }
         let lock_hash = load_cell_lock_hash(0, Source::Input)?;
         let type_args: Bytes = type_.args().unpack();
-        if  type_args[..] != lock_hash[0..TYPE_ARGS_LEN] {
+        if type_args[..] != lock_hash[0..TYPE_ARGS_LEN] {
             return Err(Error::CompactRegistryTypeArgsNotEqualLockHash);
         }
     };
@@ -71,24 +69,28 @@ fn verify_smt_proof() -> Result<(), Error> {
             CompactNFTRegistryEntries::from_slice(&witness_type_[..])
         })?
         .map_err(|_| Error::WitnessTypeParseError)?;
-    let registry_merkel_proof = CompiledMerkleProof(Vec::from(registry_entries.kv_proof().raw_data()));
-    let mut leaves: Vec<(H256, H256)> = Vec::new();
+
+    let mut context = unsafe { CKBDLContext::<[u8; 128 * 1024]>::new() };
+
+    let mut keys: Vec<u8> = Vec::new();
+    let mut values: Vec<u8> = Vec::new();
     for kv in registry_entries.kv_state() {
-        let mut key = [0u8; 32];
-        key.copy_from_slice(kv.k().as_slice());
-        let mut value = [0u8; 32];
-        value.copy_from_slice(kv.v().as_slice());
-        leaves.push((H256::from(key), H256::from(value)));
+        keys.extend(kv.k().as_slice().iter());
+        values.extend(kv.v().as_slice().iter());
     }
 
-    debug!("leaves: {:?}", leaves);
-    let verify_result = registry_merkel_proof
-            .verify::<Blake2bHasher>(&H256::from(registry_smt_root_hash), leaves)
-            .map_err(|_e| Error::SMTProofVerifyFailed)?;
+    let proof: Vec<u8> = registry_entries.kv_proof().raw_data().to_vec();
 
-    if !verify_result {
-        return Err(Error::SMTProofVerifyFailed);
-    }
+    let lib_ckb_smt = LibCKBSmt::load(&mut context);
+
+    lib_ckb_smt
+        .smt_verify(
+            &registry_smt_root_hash[..],
+            &keys[..],
+            &values[..],
+            &proof[..],
+        )
+        .map_err(|_| Error::SMTProofVerifyFailed)?;
 
     Ok(())
 }
