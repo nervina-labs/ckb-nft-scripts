@@ -1,5 +1,5 @@
 use crate::validator::{
-    validate_immutable_nft_fields, validate_nft_claim, validate_nft_lock, validate_nft_transfer
+    validate_immutable_nft_fields, validate_nft_claim, validate_nft_lock, validate_nft_transfer,
 };
 use alloc::vec::Vec;
 use ckb_std::{
