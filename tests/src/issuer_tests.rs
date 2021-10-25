@@ -20,7 +20,7 @@ const ISSUER_CLASS_COUNT_ERROR: i8 = 8;
 const ISSUER_SET_COUNT_ERROR: i8 = 9;
 const ISSUER_CELL_CANNOT_DESTROYED: i8 = 10;
 const VERSION_INVALID: i8 = 11;
-const GROUP_INPUT_WITNESS_NONE_ERROR : i8 = 40;
+const GROUP_INPUT_WITNESS_NONE_ERROR: i8 = 40;
 
 #[derive(PartialEq)]
 enum Action {
@@ -170,7 +170,9 @@ fn create_test_context(action: Action, issuer_error: IssuerError) -> (Context, T
         .iter()
         .map(|_output| match issuer_error {
             IssuerError::DataLenInvalid => Bytes::from(hex::decode("00000000000000").unwrap()),
-            IssuerError::DataInfoLenInvalid => Bytes::from(hex::decode("00000000000000000000207b226e616d65223a22616c696365227d").unwrap()),
+            IssuerError::DataInfoLenInvalid => Bytes::from(
+                hex::decode("00000000000000000000207b226e616d65223a22616c696365227d").unwrap(),
+            ),
             IssuerError::ClassCountInvalid => {
                 Bytes::from(hex::decode("0000000006000000000000").unwrap())
             }
@@ -275,7 +277,8 @@ fn test_create_issuer_data_info_len_error() {
 
 #[test]
 fn test_update_issuer_cell_witness_none_error() {
-    let (mut context, tx) = create_test_context(Action::Update(1), IssuerError::GroupInputWitnessNoneError);
+    let (mut context, tx) =
+        create_test_context(Action::Update(1), IssuerError::GroupInputWitnessNoneError);
 
     let tx = context.complete_tx(tx);
     // run
@@ -395,8 +398,7 @@ fn test_destroy_issuer_with_witness_none_error() {
 
 #[test]
 fn test_batch_destroy_issuer_error() {
-    let (mut context, tx) =
-        create_test_context(Action::Destroy, IssuerError::BatchDestroyError);
+    let (mut context, tx) = create_test_context(Action::Destroy, IssuerError::BatchDestroyError);
 
     let tx = context.complete_tx(tx);
     // run

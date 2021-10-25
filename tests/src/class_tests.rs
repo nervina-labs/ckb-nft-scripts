@@ -21,7 +21,7 @@ const CLASS_ISSUED_INVALID: i8 = 15;
 const CLASS_IMMUTABLE_FIELDS_NOT_SAME: i8 = 16;
 const CLASS_CELL_CANNOT_DESTROYED: i8 = 17;
 const CLASS_ID_INCREASE_ERROR: i8 = 18;
-const GROUP_INPUT_WITNESS_NONE_ERROR : i8 = 40;
+const GROUP_INPUT_WITNESS_NONE_ERROR: i8 = 40;
 
 #[derive(PartialEq, Eq, Clone, Copy)]
 enum UpdateCase {
@@ -173,7 +173,7 @@ fn create_test_context(action: Action, class_error: ClassError) -> (Context, Tra
         Action::Update(case) => match case {
             UpdateCase::Default => vec![class_input],
             UpdateCase::Batch => vec![class_input, another_class_input],
-        }
+        },
     };
 
     let mut class_type_args = issuer_type_hash[0..20].to_vec();
@@ -224,7 +224,8 @@ fn create_test_context(action: Action, class_error: ClassError) -> (Context, Tra
                     .capacity(500u64.pack())
                     .lock(lock_script.clone())
                     .type_(Some(another_class_type_script.clone()).pack())
-                    .build()]
+                    .build(),
+            ],
         },
         Action::Destroy => vec![CellOutput::new_builder()
             .capacity(2000u64.pack())
@@ -299,17 +300,18 @@ fn create_test_context(action: Action, class_error: ClassError) -> (Context, Tra
             ClassError::ClassDescriptionNotSame => vec![Bytes::from(
                 hex::decode("000000000f0000000500000155000299990003898989").unwrap(),
             )],
-            _ => {
-                match case {
-                    UpdateCase::Default => vec![Bytes::from(
+            _ => match case {
+                UpdateCase::Default => vec![Bytes::from(
+                    hex::decode("000000000f000000050000015500026666000489898949").unwrap(),
+                )],
+                UpdateCase::Batch => vec![
+                    Bytes::from(
                         hex::decode("000000000f000000050000015500026666000489898949").unwrap(),
-                    )],
-                    UpdateCase::Batch => vec![Bytes::from(
+                    ),
+                    Bytes::from(
                         hex::decode("000000000f000000050000015500026666000489898949").unwrap(),
-                    ), Bytes::from(
-                        hex::decode("000000000f000000050000015500026666000489898949").unwrap(),
-                    )]
-                }
+                    ),
+                ],
             },
         },
         Action::Destroy => vec![Bytes::new()],
@@ -355,7 +357,8 @@ fn test_create_class_cells_success() {
 
 #[test]
 fn test_update_class_cell_success() {
-    let (mut context, tx) = create_test_context(Action::Update(UpdateCase::Default), ClassError::NoError);
+    let (mut context, tx) =
+        create_test_context(Action::Update(UpdateCase::Default), ClassError::NoError);
 
     let tx = context.complete_tx(tx);
     // run
@@ -367,7 +370,8 @@ fn test_update_class_cell_success() {
 
 #[test]
 fn test_batch_update_class_cell_success() {
-    let (mut context, tx) = create_test_context(Action::Update(UpdateCase::Batch), ClassError::NoError);
+    let (mut context, tx) =
+        create_test_context(Action::Update(UpdateCase::Batch), ClassError::NoError);
 
     let tx = context.complete_tx(tx);
     // run
@@ -391,7 +395,10 @@ fn test_destroy_class_cell_success() {
 
 #[test]
 fn test_update_class_data_len_error() {
-    let (mut context, tx) = create_test_context(Action::Update(UpdateCase::Default), ClassError::ClassDataInvalid);
+    let (mut context, tx) = create_test_context(
+        Action::Update(UpdateCase::Default),
+        ClassError::ClassDataInvalid,
+    );
 
     let tx = context.complete_tx(tx);
     // run
@@ -405,7 +412,10 @@ fn test_update_class_data_len_error() {
 
 #[test]
 fn test_update_class_data_error() {
-    let (mut context, tx) = create_test_context(Action::Update(UpdateCase::Default), ClassError::TypeArgsClassIdNotSame);
+    let (mut context, tx) = create_test_context(
+        Action::Update(UpdateCase::Default),
+        ClassError::TypeArgsClassIdNotSame,
+    );
 
     let tx = context.complete_tx(tx);
     // run
@@ -423,22 +433,30 @@ fn test_update_class_data_error() {
 
 #[test]
 fn test_update_class_with_witness_none_error() {
-    let (mut context, tx) = create_test_context(Action::Update(UpdateCase::Default), ClassError::GroupInputWitnessNoneError);
+    let (mut context, tx) = create_test_context(
+        Action::Update(UpdateCase::Default),
+        ClassError::GroupInputWitnessNoneError,
+    );
 
     let tx = context.complete_tx(tx);
     // run
     let err = context.verify_tx(&tx, MAX_CYCLES).unwrap_err();
     let script_cell_index = 0;
     let errors = vec![
-        ScriptError::ValidationFailure(GROUP_INPUT_WITNESS_NONE_ERROR).input_type_script(script_cell_index),
-        ScriptError::ValidationFailure(GROUP_INPUT_WITNESS_NONE_ERROR).output_type_script(script_cell_index),
+        ScriptError::ValidationFailure(GROUP_INPUT_WITNESS_NONE_ERROR)
+            .input_type_script(script_cell_index),
+        ScriptError::ValidationFailure(GROUP_INPUT_WITNESS_NONE_ERROR)
+            .output_type_script(script_cell_index),
     ];
     assert_errors_contain!(err, errors);
 }
 
 #[test]
 fn test_update_class_total_smaller_than_issued_error() {
-    let (mut context, tx) = create_test_context(Action::Update(UpdateCase::Default), ClassError::TotalSmallerThanIssued);
+    let (mut context, tx) = create_test_context(
+        Action::Update(UpdateCase::Default),
+        ClassError::TotalSmallerThanIssued,
+    );
 
     let tx = context.complete_tx(tx);
     // run
@@ -486,7 +504,10 @@ fn test_create_class_issued_not_zero_error() {
 
 #[test]
 fn test_update_class_issued_invalid_error() {
-    let (mut context, tx) = create_test_context(Action::Update(UpdateCase::Default), ClassError::ClassIssuedInvalid);
+    let (mut context, tx) = create_test_context(
+        Action::Update(UpdateCase::Default),
+        ClassError::ClassIssuedInvalid,
+    );
 
     let tx = context.complete_tx(tx);
     // run
@@ -500,7 +521,10 @@ fn test_update_class_issued_invalid_error() {
 
 #[test]
 fn test_update_class_immutable_total_not_same_error() {
-    let (mut context, tx) = create_test_context(Action::Update(UpdateCase::Default), ClassError::ClassTotalNotSame);
+    let (mut context, tx) = create_test_context(
+        Action::Update(UpdateCase::Default),
+        ClassError::ClassTotalNotSame,
+    );
 
     let tx = context.complete_tx(tx);
     // run
@@ -515,7 +539,10 @@ fn test_update_class_immutable_total_not_same_error() {
 
 #[test]
 fn test_update_class_immutable_configure_not_same_error() {
-    let (mut context, tx) = create_test_context(Action::Update(UpdateCase::Default), ClassError::ClassConfigureNotSame);
+    let (mut context, tx) = create_test_context(
+        Action::Update(UpdateCase::Default),
+        ClassError::ClassConfigureNotSame,
+    );
 
     let tx = context.complete_tx(tx);
     // run
@@ -530,7 +557,10 @@ fn test_update_class_immutable_configure_not_same_error() {
 
 #[test]
 fn test_update_class_immutable_name_not_same_error() {
-    let (mut context, tx) = create_test_context(Action::Update(UpdateCase::Default), ClassError::ClassNameNotSame);
+    let (mut context, tx) = create_test_context(
+        Action::Update(UpdateCase::Default),
+        ClassError::ClassNameNotSame,
+    );
 
     let tx = context.complete_tx(tx);
     // run
@@ -545,8 +575,10 @@ fn test_update_class_immutable_name_not_same_error() {
 
 #[test]
 fn test_update_class_immutable_description_not_same_error() {
-    let (mut context, tx) =
-        create_test_context(Action::Update(UpdateCase::Default), ClassError::ClassDescriptionNotSame);
+    let (mut context, tx) = create_test_context(
+        Action::Update(UpdateCase::Default),
+        ClassError::ClassDescriptionNotSame,
+    );
 
     let tx = context.complete_tx(tx);
     // run
@@ -596,7 +628,10 @@ fn test_create_class_cells_increase_error() {
 
 #[test]
 fn test_update_class_type_args_invalid_error() {
-    let (mut context, tx) = create_test_context(Action::Update(UpdateCase::Default), ClassError::ClassTypeArgsInvalid);
+    let (mut context, tx) = create_test_context(
+        Action::Update(UpdateCase::Default),
+        ClassError::ClassTypeArgsInvalid,
+    );
 
     let tx = context.complete_tx(tx);
     // run
@@ -610,7 +645,8 @@ fn test_update_class_type_args_invalid_error() {
 
 #[test]
 fn test_destroy_class_with_witness_none_error() {
-    let (mut context, tx) = create_test_context(Action::Destroy, ClassError::GroupInputWitnessNoneError);
+    let (mut context, tx) =
+        create_test_context(Action::Destroy, ClassError::GroupInputWitnessNoneError);
 
     let tx = context.complete_tx(tx);
     // run
@@ -618,6 +654,7 @@ fn test_destroy_class_with_witness_none_error() {
     let script_cell_index = 0;
     assert_error_eq!(
         err,
-        ScriptError::ValidationFailure(GROUP_INPUT_WITNESS_NONE_ERROR).input_type_script(script_cell_index)
+        ScriptError::ValidationFailure(GROUP_INPUT_WITNESS_NONE_ERROR)
+            .input_type_script(script_cell_index)
     );
 }
