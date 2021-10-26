@@ -1,0 +1,29 @@
+array Uint32 [byte; 4];
+array IssuerId [byte; 20];
+array Characteristic [byte; 8];
+
+vector Bytes <byte>;
+vector Script <byte>;
+
+struct CompactNFTId {
+  issuer_id: IssuerId,
+  class_id: Uint32,
+  token_id: Uint32,
+}
+
+vector CompactNFTIdVec <CompactNFTId>;
+
+table CompactNFTInfo {
+	characteristic: Characteristic,
+	configure: byte,
+	state: byte,
+	receiver_lock: Script,
+}
+
+vector CompactNFTInfoVec <CompactNFTInfo>;
+
+table CompactNFTEntries {
+  nft_ids: CompactNFTIdVec,
+  nft_infos: CompactNFTInfoVec,
+  proof: Bytes,
+}

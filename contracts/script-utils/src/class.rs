@@ -4,6 +4,7 @@ use alloc::vec::Vec;
 use core::result::Result;
 
 const FIXED_LEN: usize = 10;
+type Byte32 = [u8; 32];
 
 // FIXED_LEN + DYN_MIN_LEN * 3
 const CLASS_DATA_MIN_LEN: usize = 16;
@@ -22,12 +23,14 @@ pub const CLASS_TYPE_ARGS_LEN: usize = 24;
 /// missing. The fields of 3) and 7) can be changed and it cannot be missing.
 #[derive(Debug, Clone)]
 pub struct Class {
-    pub version:     u8,
-    pub total:       u32,
-    pub issued:      u32,
-    pub configure:   u8,
-    pub name:        Vec<u8>,
-    pub description: Vec<u8>,
+    pub version:      u8,
+    pub total:        u32,
+    pub issued:       u32,
+    pub configure:    u8,
+    pub name:         Vec<u8>,
+    pub description:  Vec<u8>,
+    pub renderer:     Vec<u8>,
+    pub nft_smt_root: Option<Byte32>,
 }
 
 impl Class {
@@ -69,9 +72,18 @@ impl Class {
         let renderer_index = FIXED_LEN + name_len + description_len;
         let renderer_len = parse_dyn_vec_len(&data[renderer_index..(renderer_index + DYN_MIN_LEN)]);
 
-        if data.len() < renderer_index + renderer_len {
+        let required_len = renderer_index + renderer_len;
+        if data.len() < required_len {
             return Err(Error::ClassDataInvalid);
         }
+        let renderer = data[renderer_index..required_len].to_vec();
+        let nft_smt_root = if data.len() - required_len < 32 {
+            None
+        } else {
+            let mut root = [0u8; 32];
+            root.copy_from_slice(&data[required_len..(required_len + 32)]);
+            Some(root)
+        };
 
         Ok(Class {
             version,
@@ -80,6 +92,8 @@ impl Class {
             configure,
             name,
             description,
+            renderer,
+            nft_smt_root,
         })
     }
 

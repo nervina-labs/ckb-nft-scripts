@@ -112,7 +112,6 @@ name = "nft-smt"
 version = "0.3.0"
 dependencies = [
  "blake2b-ref",
- "cc",
  "cfg-if",
  "ckb-std",
  "molecule",

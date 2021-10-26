@@ -2022,7 +2022,6 @@ name = "nft-smt"
 version = "0.3.0"
 dependencies = [
  "blake2b-ref 0.1.0",
- "cc",
  "cfg-if 0.1.10",
  "ckb-std",
  "ckb-types 0.40.0",

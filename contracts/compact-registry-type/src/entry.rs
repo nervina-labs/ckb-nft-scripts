@@ -49,6 +49,7 @@ fn check_type_args_equal_lock_hash(registry_type: &Script) -> Result<(), Error> 
 }
 
 fn verify_smt_proof() -> Result<(), Error> {
+    use nft_smt::molecule::prelude::Entity;
     // Parse cell data to get registry smt root hash
     let registry_smt_root = load_cell_data(0, Source::Output).or(Err(Error::Encoding))?;
     if registry_smt_root.len() != REGISTRY_SMT_ROOT_HASH {

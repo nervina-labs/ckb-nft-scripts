@@ -46,8 +46,8 @@ enum RegistryError {
 }
 
 fn generate_smt_data() -> ([u8; 32], Vec<u8>) {
-    let leaves_count = 160;
-    let update_leaves_count = 40;
+    let leaves_count = 100;
+    let update_leaves_count = 100;
     let mut smt = SMT::default();
     let mut rng = thread_rng();
     let mut leaves: Vec<(H256, H256)> = Vec::with_capacity(leaves_count + update_leaves_count);
