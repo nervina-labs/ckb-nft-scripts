@@ -32,7 +32,7 @@ fn check_type_args_equal_lock_hash(registry_type: &Script) -> Result<(), Error> 
     }
 
     // If the inputs[0] is compact_registry_cell, then its type_args must be equal to
-    // lock_hash[0..20]
+    // lock_hash[0..20] and its lock script must be equal to outputs.compact_registry_cell.
     if let Some(type_) = load_cell_type(0, Source::Input)? {
         if registry_type.as_slice() != type_.as_slice() {
             return Ok(());
@@ -41,6 +41,12 @@ fn check_type_args_equal_lock_hash(registry_type: &Script) -> Result<(), Error> 
         let type_args: Bytes = type_.args().unpack();
         if type_args[..] != lock_hash[0..TYPE_ARGS_LEN] {
             return Err(Error::CompactRegistryTypeArgsNotEqualLockHash);
+        }
+
+        let input_lock = load_cell_lock_hash(0, Source::Input)?;
+        let output_lock = load_cell_lock_hash(0, Source::Output)?;
+        if input_lock != output_lock {
+            return Err(Error::CompactRegistryLockScriptNotSame);
         }
     };
 
