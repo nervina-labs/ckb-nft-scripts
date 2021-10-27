@@ -1,3 +1,4 @@
+use crate::compact_mint::check_compact_nft_mint;
 use alloc::vec::Vec;
 use ckb_std::{
     ckb_constants::Source,
@@ -10,7 +11,8 @@ use script_utils::{
     error::Error,
     helper::{
         check_group_input_witness_is_none_with_type, count_cells_by_type, count_cells_by_type_hash,
-        load_cell_data_by_type_hash, load_output_type_args_ids, Action,
+        load_cell_data_by_type_hash, load_group_input_witness_args_with_type,
+        load_output_type_args_ids, Action,
     },
     issuer::{Issuer, ISSUER_TYPE_ARGS_LEN},
 };
@@ -96,10 +98,13 @@ fn handle_creation(class_type: &Script) -> Result<(), Error> {
 }
 
 fn handle_update(class_type: &Script) -> Result<(), Error> {
+    let witness_args = load_group_input_witness_args_with_type(class_type)?;
+
     // Disable anyone-can-pay lock
-    if check_group_input_witness_is_none_with_type(class_type)? {
+    if witness_args.lock().to_opt().is_none() {
         return Err(Error::GroupInputWitnessNoneError);
     }
+
     let load_class = |source| Class::from_data(&load_class_data(source)?[..]);
 
     let input_class = load_class(Source::GroupInput)?;
@@ -112,14 +117,16 @@ fn handle_update(class_type: &Script) -> Result<(), Error> {
     if !input_class.immutable_equal(&output_class) {
         return Err(Error::ClassImmutableFieldsNotSame);
     }
+
+    check_compact_nft_mint(input_class, output_class, witness_args)?;
+
     Ok(())
 }
 
 fn handle_destroying(class_type: &Script) -> Result<(), Error> {
     // Disable anyone-can-pay lock
-    if check_group_input_witness_is_none_with_type(class_type)? {
-        return Err(Error::GroupInputWitnessNoneError);
-    }
+    check_group_input_witness_is_none_with_type(class_type)?;
+
     let input_class = Class::from_data(&load_class_data(Source::GroupInput)?[..])?;
     if input_class.issued > 0 {
         return Err(Error::ClassCellCannotDestroyed);

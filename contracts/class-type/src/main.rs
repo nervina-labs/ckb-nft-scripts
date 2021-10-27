@@ -4,6 +4,7 @@
 #![feature(alloc_error_handler)]
 #![feature(panic_info_message)]
 
+mod compact_mint;
 mod entry;
 
 use ckb_std::default_alloc;

@@ -10,8 +10,6 @@ pub const NFT_TYPE_ARGS_LEN: usize = 28;
 /// 2) characteristic: [u8; 8]
 /// 3) configure: u8
 /// 4) state: u8
-/// 5) extinfo_data: <size: u16> + <vartext>
-/// The filed of 5) can be changed and it also can be missing and it will not be validated.
 #[derive(Debug, Clone)]
 pub struct Nft {
     pub version:        u8,
@@ -27,7 +25,7 @@ impl Nft {
         }
 
         let version: u8 = data[0];
-        if version != 0 {
+        if version != 1 {
             return Err(Error::VersionInvalid);
         }
 
@@ -51,10 +49,6 @@ impl Nft {
 
     pub fn allow_lock(&self) -> bool {
         self.configure & 0b0000_0010 == 0b0000_0000
-    }
-
-    pub fn allow_ext_info(&self) -> bool {
-        self.configure & 0b0000_0100 == 0b0000_0000
     }
 
     pub fn allow_update_characteristic(&self) -> bool {

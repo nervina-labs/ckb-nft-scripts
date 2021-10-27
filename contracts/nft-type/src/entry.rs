@@ -1,6 +1,5 @@
 use crate::validator::{
-    validate_immutable_nft_fields, validate_nft_claim, validate_nft_ext_info, validate_nft_lock,
-    validate_nft_transfer,
+    validate_immutable_nft_fields, validate_nft_claim, validate_nft_lock, validate_nft_transfer,
 };
 use alloc::vec::Vec;
 use ckb_std::{
@@ -108,9 +107,8 @@ fn handle_creation(nft_type: &Script) -> Result<(), Error> {
 
 fn handle_update(nft_type: &Script) -> Result<(), Error> {
     // Disable anyone-can-pay lock
-    if check_group_input_witness_is_none_with_type(nft_type)? {
-        return Err(Error::GroupInputWitnessNoneError);
-    }
+    check_group_input_witness_is_none_with_type(nft_type)?;
+
     let nft_data = (
         load_nft_data(Source::GroupInput)?,
         load_nft_data(Source::GroupOutput)?,
@@ -127,15 +125,13 @@ fn handle_update(nft_type: &Script) -> Result<(), Error> {
         validate_nft_lock(&nfts)?;
     }
     validate_nft_transfer(&nfts.0)?;
-    validate_nft_ext_info(&nfts.0, &nft_data)?;
     Ok(())
 }
 
 fn handle_destroying(nft_type: &Script) -> Result<(), Error> {
     // Disable anyone-can-pay lock
-    if check_group_input_witness_is_none_with_type(nft_type)? {
-        return Err(Error::GroupInputWitnessNoneError);
-    }
+    check_group_input_witness_is_none_with_type(nft_type)?;
+
     let nft_args: Bytes = nft_type.args().unpack();
     if issuer_or_class_lock_has_approved(&nft_args)? {
         return Ok(());

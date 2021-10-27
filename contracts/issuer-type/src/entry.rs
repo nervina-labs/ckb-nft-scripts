@@ -61,9 +61,8 @@ fn handle_creation(issuer_type: &Script) -> Result<(), Error> {
 
 fn handle_update(issuer_type: &Script) -> Result<(), Error> {
     // Disable anyone-can-pay lock
-    if check_group_input_witness_is_none_with_type(issuer_type)? {
-        return Err(Error::GroupInputWitnessNoneError);
-    }
+    check_group_input_witness_is_none_with_type(issuer_type)?;
+
     let load_issuer = |source| Issuer::from_data(&load_issuer_data(source)?[..]);
     let input_issuer = load_issuer(Source::GroupInput)?;
     let output_issuer = load_issuer(Source::GroupOutput)?;
@@ -78,9 +77,8 @@ fn handle_update(issuer_type: &Script) -> Result<(), Error> {
 
 fn handle_destroying(issuer_type: &Script) -> Result<(), Error> {
     // Disable anyone-can-pay lock
-    if check_group_input_witness_is_none_with_type(issuer_type)? {
-        return Err(Error::GroupInputWitnessNoneError);
-    }
+    check_group_input_witness_is_none_with_type(issuer_type)?;
+
     let input_issuer = Issuer::from_data(&load_issuer_data(Source::GroupInput)?[..])?;
     if input_issuer.class_count != 0 || input_issuer.set_count != 0 {
         return Err(Error::IssuerCellCannotDestroyed);

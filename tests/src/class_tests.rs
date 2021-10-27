@@ -21,7 +21,7 @@ const CLASS_ISSUED_INVALID: i8 = 15;
 const CLASS_IMMUTABLE_FIELDS_NOT_SAME: i8 = 16;
 const CLASS_CELL_CANNOT_DESTROYED: i8 = 17;
 const CLASS_ID_INCREASE_ERROR: i8 = 18;
-const GROUP_INPUT_WITNESS_NONE_ERROR: i8 = 40;
+const GROUP_INPUT_WITNESS_NONE_ERROR: i8 = 37;
 
 #[derive(PartialEq, Eq, Clone, Copy)]
 enum UpdateCase {
@@ -106,13 +106,13 @@ fn create_test_context(action: Action, class_error: ClassError) -> (Context, Tra
 
     let class_input_data = match action {
         Action::Update(_) => {
-            Bytes::from(hex::decode("000000000f0000000500000155000266660003898989").unwrap())
+            Bytes::from(hex::decode("010000000f0000000500000155000266660003898989").unwrap())
         }
         Action::Destroy => match class_error {
             ClassError::ClassCellCannotDestroyed => {
-                Bytes::from(hex::decode("000000000f0000000500000155000266660003898989").unwrap())
+                Bytes::from(hex::decode("010000000f0000000500000155000266660003898989").unwrap())
             }
-            _ => Bytes::from(hex::decode("000000000f0000000000000155000266660003898989").unwrap()),
+            _ => Bytes::from(hex::decode("010000000f0000000000000155000266660003898989").unwrap()),
         },
         Action::Create => Bytes::new(),
     };
@@ -267,49 +267,49 @@ fn create_test_context(action: Action, class_error: ClassError) -> (Context, Tra
         Action::Create => match class_error {
             ClassError::ClassIssuedInvalid => vec![
                 Bytes::from(hex::decode("000000000b000000000000").unwrap()),
-                Bytes::from(hex::decode("000000000f0000000600000155000266660003898989").unwrap()),
-                Bytes::from(hex::decode("000000000f0000000000000155000266660003898989").unwrap()),
-                Bytes::from(hex::decode("000000000f0000000000000155000266660003898989").unwrap()),
+                Bytes::from(hex::decode("010000000f0000000600000155000266660003898989").unwrap()),
+                Bytes::from(hex::decode("010000000f0000000000000155000266660003898989").unwrap()),
+                Bytes::from(hex::decode("010000000f0000000000000155000266660003898989").unwrap()),
             ],
             _ => vec![
                 Bytes::from(hex::decode("000000000b000000000000").unwrap()),
-                Bytes::from(hex::decode("000000000f0000000000000155000266660003898989").unwrap()),
-                Bytes::from(hex::decode("000000000f0000000000000155000266660003898989").unwrap()),
-                Bytes::from(hex::decode("000000000f0000000000000155000266660003898989").unwrap()),
+                Bytes::from(hex::decode("010000000f0000000000000155000266660003898989").unwrap()),
+                Bytes::from(hex::decode("010000000f0000000000000155000266660003898989").unwrap()),
+                Bytes::from(hex::decode("010000000f0000000000000155000266660003898989").unwrap()),
             ],
         },
         Action::Update(case) => match class_error {
             ClassError::ClassDataInvalid => vec![Bytes::from(
-                hex::decode("000000000f000000050000015500026666").unwrap(),
+                hex::decode("010000000f000000050000015500026666").unwrap(),
             )],
             ClassError::TotalSmallerThanIssued => vec![Bytes::from(
-                hex::decode("000000000f000000150000015500026666000489898949").unwrap(),
+                hex::decode("010000000f000000150000015500026666000489898949").unwrap(),
             )],
             ClassError::ClassIssuedInvalid => vec![Bytes::from(
-                hex::decode("000000000f000000030000015500026666000489898949").unwrap(),
+                hex::decode("010000000f000000030000015500026666000489898949").unwrap(),
             )],
             ClassError::ClassTotalNotSame => vec![Bytes::from(
-                hex::decode("000000002f0000000500000155000266660003898989").unwrap(),
+                hex::decode("010000002f0000000500000155000266660003898989").unwrap(),
             )],
             ClassError::ClassConfigureNotSame => vec![Bytes::from(
-                hex::decode("000000000f0000000507000155000266660003898989").unwrap(),
+                hex::decode("010000000f0000000507000155000266660003898989").unwrap(),
             )],
             ClassError::ClassNameNotSame => vec![Bytes::from(
-                hex::decode("000000000f00000005000001aa000266660003898989").unwrap(),
+                hex::decode("010000000f00000005000001aa000266660003898989").unwrap(),
             )],
             ClassError::ClassDescriptionNotSame => vec![Bytes::from(
-                hex::decode("000000000f0000000500000155000299990003898989").unwrap(),
+                hex::decode("010000000f0000000500000155000299990003898989").unwrap(),
             )],
             _ => match case {
                 UpdateCase::Default => vec![Bytes::from(
-                    hex::decode("000000000f000000050000015500026666000489898949").unwrap(),
+                    hex::decode("010000000f000000050000015500026666000489898949").unwrap(),
                 )],
                 UpdateCase::Batch => vec![
                     Bytes::from(
-                        hex::decode("000000000f000000050000015500026666000489898949").unwrap(),
+                        hex::decode("010000000f000000050000015500026666000489898949").unwrap(),
                     ),
                     Bytes::from(
-                        hex::decode("000000000f000000050000015500026666000489898949").unwrap(),
+                        hex::decode("010000000f000000050000015500026666000489898949").unwrap(),
                     ),
                 ],
             },
@@ -420,7 +420,6 @@ fn test_update_class_data_error() {
     let tx = context.complete_tx(tx);
     // run
     let err = context.verify_tx(&tx, MAX_CYCLES).unwrap_err();
-    println!("{:?}", err);
     let script_cell_index = 0;
     let errors = vec![
         ScriptError::ValidationFailure(ENCODING).input_type_script(script_cell_index),
