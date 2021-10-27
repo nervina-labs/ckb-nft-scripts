@@ -2814,8 +2814,8 @@ impl<'t: 'r, 'r> ::core::iter::ExactSizeIterator for CompactNFTInfoVecReaderIter
     }
 }
 #[derive(Clone)]
-pub struct CompactNFTEntries(molecule::bytes::Bytes);
-impl ::core::fmt::LowerHex for CompactNFTEntries {
+pub struct CompactNFTMintEntries(molecule::bytes::Bytes);
+impl ::core::fmt::LowerHex for CompactNFTMintEntries {
     fn fmt(&self, f: &mut ::core::fmt::Formatter) -> ::core::fmt::Result {
         use molecule::hex_string;
         if f.alternate() {
@@ -2824,12 +2824,12 @@ impl ::core::fmt::LowerHex for CompactNFTEntries {
         write!(f, "{}", hex_string(self.as_slice()))
     }
 }
-impl ::core::fmt::Debug for CompactNFTEntries {
+impl ::core::fmt::Debug for CompactNFTMintEntries {
     fn fmt(&self, f: &mut ::core::fmt::Formatter) -> ::core::fmt::Result {
         write!(f, "{}({:#x})", Self::NAME, self)
     }
 }
-impl ::core::fmt::Display for CompactNFTEntries {
+impl ::core::fmt::Display for CompactNFTMintEntries {
     fn fmt(&self, f: &mut ::core::fmt::Formatter) -> ::core::fmt::Result {
         write!(f, "{} {{ ", Self::NAME)?;
         write!(f, "{}: {}", "nft_ids", self.nft_ids())?;
@@ -2842,15 +2842,15 @@ impl ::core::fmt::Display for CompactNFTEntries {
         write!(f, " }}")
     }
 }
-impl ::core::default::Default for CompactNFTEntries {
+impl ::core::default::Default for CompactNFTMintEntries {
     fn default() -> Self {
         let v: Vec<u8> = vec![
             28, 0, 0, 0, 16, 0, 0, 0, 20, 0, 0, 0, 24, 0, 0, 0, 0, 0, 0, 0, 4, 0, 0, 0, 0, 0, 0, 0,
         ];
-        CompactNFTEntries::new_unchecked(v.into())
+        CompactNFTMintEntries::new_unchecked(v.into())
     }
 }
-impl CompactNFTEntries {
+impl CompactNFTMintEntries {
     pub const FIELD_COUNT: usize = 3;
 
     pub fn total_size(&self) -> usize {
@@ -2898,17 +2898,17 @@ impl CompactNFTEntries {
         }
     }
 
-    pub fn as_reader<'r>(&'r self) -> CompactNFTEntriesReader<'r> {
-        CompactNFTEntriesReader::new_unchecked(self.as_slice())
+    pub fn as_reader<'r>(&'r self) -> CompactNFTMintEntriesReader<'r> {
+        CompactNFTMintEntriesReader::new_unchecked(self.as_slice())
     }
 }
-impl molecule::prelude::Entity for CompactNFTEntries {
-    type Builder = CompactNFTEntriesBuilder;
+impl molecule::prelude::Entity for CompactNFTMintEntries {
+    type Builder = CompactNFTMintEntriesBuilder;
 
-    const NAME: &'static str = "CompactNFTEntries";
+    const NAME: &'static str = "CompactNFTMintEntries";
 
     fn new_unchecked(data: molecule::bytes::Bytes) -> Self {
-        CompactNFTEntries(data)
+        CompactNFTMintEntries(data)
     }
 
     fn as_bytes(&self) -> molecule::bytes::Bytes {
@@ -2920,11 +2920,11 @@ impl molecule::prelude::Entity for CompactNFTEntries {
     }
 
     fn from_slice(slice: &[u8]) -> molecule::error::VerificationResult<Self> {
-        CompactNFTEntriesReader::from_slice(slice).map(|reader| reader.to_entity())
+        CompactNFTMintEntriesReader::from_slice(slice).map(|reader| reader.to_entity())
     }
 
     fn from_compatible_slice(slice: &[u8]) -> molecule::error::VerificationResult<Self> {
-        CompactNFTEntriesReader::from_compatible_slice(slice).map(|reader| reader.to_entity())
+        CompactNFTMintEntriesReader::from_compatible_slice(slice).map(|reader| reader.to_entity())
     }
 
     fn new_builder() -> Self::Builder {
@@ -2939,8 +2939,8 @@ impl molecule::prelude::Entity for CompactNFTEntries {
     }
 }
 #[derive(Clone, Copy)]
-pub struct CompactNFTEntriesReader<'r>(&'r [u8]);
-impl<'r> ::core::fmt::LowerHex for CompactNFTEntriesReader<'r> {
+pub struct CompactNFTMintEntriesReader<'r>(&'r [u8]);
+impl<'r> ::core::fmt::LowerHex for CompactNFTMintEntriesReader<'r> {
     fn fmt(&self, f: &mut ::core::fmt::Formatter) -> ::core::fmt::Result {
         use molecule::hex_string;
         if f.alternate() {
@@ -2949,12 +2949,12 @@ impl<'r> ::core::fmt::LowerHex for CompactNFTEntriesReader<'r> {
         write!(f, "{}", hex_string(self.as_slice()))
     }
 }
-impl<'r> ::core::fmt::Debug for CompactNFTEntriesReader<'r> {
+impl<'r> ::core::fmt::Debug for CompactNFTMintEntriesReader<'r> {
     fn fmt(&self, f: &mut ::core::fmt::Formatter) -> ::core::fmt::Result {
         write!(f, "{}({:#x})", Self::NAME, self)
     }
 }
-impl<'r> ::core::fmt::Display for CompactNFTEntriesReader<'r> {
+impl<'r> ::core::fmt::Display for CompactNFTMintEntriesReader<'r> {
     fn fmt(&self, f: &mut ::core::fmt::Formatter) -> ::core::fmt::Result {
         write!(f, "{} {{ ", Self::NAME)?;
         write!(f, "{}: {}", "nft_ids", self.nft_ids())?;
@@ -2967,7 +2967,7 @@ impl<'r> ::core::fmt::Display for CompactNFTEntriesReader<'r> {
         write!(f, " }}")
     }
 }
-impl<'r> CompactNFTEntriesReader<'r> {
+impl<'r> CompactNFTMintEntriesReader<'r> {
     pub const FIELD_COUNT: usize = 3;
 
     pub fn total_size(&self) -> usize {
@@ -3015,17 +3015,17 @@ impl<'r> CompactNFTEntriesReader<'r> {
         }
     }
 }
-impl<'r> molecule::prelude::Reader<'r> for CompactNFTEntriesReader<'r> {
-    type Entity = CompactNFTEntries;
+impl<'r> molecule::prelude::Reader<'r> for CompactNFTMintEntriesReader<'r> {
+    type Entity = CompactNFTMintEntries;
 
-    const NAME: &'static str = "CompactNFTEntriesReader";
+    const NAME: &'static str = "CompactNFTMintEntriesReader";
 
     fn to_entity(&self) -> Self::Entity {
         Self::Entity::new_unchecked(self.as_slice().to_owned().into())
     }
 
     fn new_unchecked(slice: &'r [u8]) -> Self {
-        CompactNFTEntriesReader(slice)
+        CompactNFTMintEntriesReader(slice)
     }
 
     fn as_slice(&self) -> &'r [u8] {
@@ -3076,12 +3076,12 @@ impl<'r> molecule::prelude::Reader<'r> for CompactNFTEntriesReader<'r> {
     }
 }
 #[derive(Debug, Default)]
-pub struct CompactNFTEntriesBuilder {
+pub struct CompactNFTMintEntriesBuilder {
     pub(crate) nft_ids:   CompactNFTIdVec,
     pub(crate) nft_infos: CompactNFTInfoVec,
     pub(crate) proof:     Bytes,
 }
-impl CompactNFTEntriesBuilder {
+impl CompactNFTMintEntriesBuilder {
     pub const FIELD_COUNT: usize = 3;
 
     pub fn nft_ids(mut self, v: CompactNFTIdVec) -> Self {
@@ -3099,10 +3099,10 @@ impl CompactNFTEntriesBuilder {
         self
     }
 }
-impl molecule::prelude::Builder for CompactNFTEntriesBuilder {
-    type Entity = CompactNFTEntries;
+impl molecule::prelude::Builder for CompactNFTMintEntriesBuilder {
+    type Entity = CompactNFTMintEntries;
 
-    const NAME: &'static str = "CompactNFTEntriesBuilder";
+    const NAME: &'static str = "CompactNFTMintEntriesBuilder";
 
     fn expected_length(&self) -> usize {
         molecule::NUMBER_SIZE * (Self::FIELD_COUNT + 1)
@@ -3134,6 +3134,6 @@ impl molecule::prelude::Builder for CompactNFTEntriesBuilder {
         let mut inner = Vec::with_capacity(self.expected_length());
         self.write(&mut inner)
             .unwrap_or_else(|_| panic!("{} build should be ok", Self::NAME));
-        CompactNFTEntries::new_unchecked(inner.into())
+        CompactNFTMintEntries::new_unchecked(inner.into())
     }
 }

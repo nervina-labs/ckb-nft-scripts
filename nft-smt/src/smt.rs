@@ -2,6 +2,7 @@ pub use blake2b_ref::{Blake2b, Blake2bBuilder};
 use sparse_merkle_tree::{traits::Hasher, SparseMerkleTree};
 
 // re-exports
+pub use ckb_lib_smt::LibCKBSmt;
 pub use sparse_merkle_tree::{default_store::DefaultStore, CompiledMerkleProof, MerkleProof, H256};
 
 pub type SMT = SparseMerkleTree<Blake2bHasher, H256, DefaultStore<H256>>;
@@ -36,4 +37,19 @@ impl Hasher for Blake2bHasher {
         self.0.finalize(&mut hash);
         hash.into()
     }
+}
+
+pub fn new_blake2b() -> Blake2b {
+    Blake2bBuilder::new(32)
+        .personal(PERSONALIZATION)
+        .key(BLAKE2B_KEY)
+        .build()
+}
+
+pub fn blake2b_256<T: AsRef<[u8]>>(s: T) -> [u8; 32] {
+    let mut result = [0u8; 32];
+    let mut blake2b = new_blake2b();
+    blake2b.update(s.as_ref());
+    blake2b.finalize(&mut result);
+    result
 }

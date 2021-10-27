@@ -107,9 +107,8 @@ fn handle_creation(nft_type: &Script) -> Result<(), Error> {
 
 fn handle_update(nft_type: &Script) -> Result<(), Error> {
     // Disable anyone-can-pay lock
-    if check_group_input_witness_is_none_with_type(nft_type)? {
-        return Err(Error::GroupInputWitnessNoneError);
-    }
+    check_group_input_witness_is_none_with_type(nft_type)?;
+
     let nft_data = (
         load_nft_data(Source::GroupInput)?,
         load_nft_data(Source::GroupOutput)?,
@@ -131,9 +130,8 @@ fn handle_update(nft_type: &Script) -> Result<(), Error> {
 
 fn handle_destroying(nft_type: &Script) -> Result<(), Error> {
     // Disable anyone-can-pay lock
-    if check_group_input_witness_is_none_with_type(nft_type)? {
-        return Err(Error::GroupInputWitnessNoneError);
-    }
+    check_group_input_witness_is_none_with_type(nft_type)?;
+
     let nft_args: Bytes = nft_type.args().unpack();
     if issuer_or_class_lock_has_approved(&nft_args)? {
         return Ok(());

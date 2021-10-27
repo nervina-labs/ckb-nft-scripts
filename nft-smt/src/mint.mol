@@ -22,7 +22,7 @@ table CompactNFTInfo {
 
 vector CompactNFTInfoVec <CompactNFTInfo>;
 
-table CompactNFTEntries {
+table CompactNFTMintEntries {
   nft_ids: CompactNFTIdVec,
   nft_infos: CompactNFTInfoVec,
   proof: Bytes,

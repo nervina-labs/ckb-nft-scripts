@@ -138,13 +138,20 @@ pub fn load_group_input_witness_args_with_type(type_script: &Script) -> Result<W
 
     QueryIter::new(load_cell_lock, Source::Input)
         .position(|lock| lock.as_slice() == lock_script.as_slice())
-        .map(|index| load_witness_args(index, Source::Input).map_err(|_e| Error::GroupInputWitnessNoneError))
-        .map_or(Err(Error::GroupInputWitnessNoneError), |witness_args| witness_args)
+        .map(|index| {
+            load_witness_args(index, Source::Input).map_err(|_e| Error::GroupInputWitnessNoneError)
+        })
+        .map_or(Err(Error::GroupInputWitnessNoneError), |witness_args| {
+            witness_args
+        })
 }
 
-pub fn check_group_input_witness_is_none_with_type(type_script: &Script) -> Result<bool, Error> {
+pub fn check_group_input_witness_is_none_with_type(type_script: &Script) -> Result<(), Error> {
     let witness_args = load_group_input_witness_args_with_type(type_script)?;
-    Ok(witness_args.lock().to_opt().is_none())
+    if witness_args.lock().to_opt().is_none() {
+        return Err(Error::GroupInputWitnessNoneError);
+    }
+    Ok(())
 }
 
 pub fn parse_dyn_vec_len(data: &[u8]) -> usize {

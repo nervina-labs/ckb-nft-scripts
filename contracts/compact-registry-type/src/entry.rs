@@ -1,5 +1,4 @@
 use alloc::vec::Vec;
-use ckb_lib_smt::LibCKBSmt;
 use ckb_std::{
     ckb_constants::Source,
     ckb_types::{bytes::Bytes, packed::*, prelude::*},
@@ -10,7 +9,7 @@ use ckb_std::{
     },
 };
 use core::result::Result;
-use nft_smt::registry::CompactNFTRegistryEntries;
+use nft_smt::{registry::CompactNFTRegistryEntries, smt::LibCKBSmt};
 use script_utils::error::Error;
 
 const TYPE_ARGS_LEN: usize = 20;
@@ -49,7 +48,6 @@ fn check_type_args_equal_lock_hash(registry_type: &Script) -> Result<(), Error> 
 }
 
 fn verify_smt_proof() -> Result<(), Error> {
-    use nft_smt::molecule::prelude::Entity;
     // Parse cell data to get registry smt root hash
     let registry_smt_root = load_cell_data(0, Source::Output).or(Err(Error::Encoding))?;
     if registry_smt_root.len() != REGISTRY_SMT_ROOT_HASH {

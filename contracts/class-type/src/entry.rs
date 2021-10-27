@@ -1,3 +1,4 @@
+use crate::compact_mint::check_compact_nft_mint;
 use alloc::vec::Vec;
 use ckb_std::{
     ckb_constants::Source,
@@ -116,14 +117,16 @@ fn handle_update(class_type: &Script) -> Result<(), Error> {
     if !input_class.immutable_equal(&output_class) {
         return Err(Error::ClassImmutableFieldsNotSame);
     }
+
+    check_compact_nft_mint(input_class, output_class, witness_args)?;
+
     Ok(())
 }
 
 fn handle_destroying(class_type: &Script) -> Result<(), Error> {
     // Disable anyone-can-pay lock
-    if check_group_input_witness_is_none_with_type(class_type)? {
-        return Err(Error::GroupInputWitnessNoneError);
-    }
+    check_group_input_witness_is_none_with_type(class_type)?;
+
     let input_class = Class::from_data(&load_class_data(Source::GroupInput)?[..])?;
     if input_class.issued > 0 {
         return Err(Error::ClassCellCannotDestroyed);

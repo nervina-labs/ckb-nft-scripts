@@ -144,6 +144,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "blake2b-rs"
+version = "0.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a89a8565807f21b913288968e391819e7f9b2f0f46c7b89549c051cccf3a2771"
+dependencies = [
+ "cc",
+ "cty",
+]
+
+[[package]]
 name = "block-buffer"
 version = "0.7.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -504,7 +514,7 @@ version = "0.37.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7508217d38998e44b783e1d6fdf2a5d77f1ae2c425a1bca0dd08ac9b22e3bac5"
 dependencies = [
- "blake2b-rs",
+ "blake2b-rs 0.1.5",
 ]
 
 [[package]]
@@ -514,7 +524,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "11d4f751b424962da459cacc19b2da0597bf7ec6786ee49a20e145bd74240f9e"
 dependencies = [
  "blake2b-ref 0.2.1",
- "blake2b-rs",
+ "blake2b-rs 0.1.5",
 ]
 
 [[package]]
@@ -528,6 +538,16 @@ dependencies = [
  "jsonrpc-core",
  "serde",
  "serde_json",
+]
+
+[[package]]
+name = "ckb-lib-smt"
+version = "0.1.0"
+source = "git+https://github.com/lay2dev/ckb-lib-c-script?branch=main#848dc38f671835acf442bf7781a6113a36f39fe5"
+dependencies = [
+ "blake2b-rs 0.2.0",
+ "cc",
+ "ckb-std",
 ]
 
 [[package]]
@@ -767,7 +787,7 @@ version = "0.5.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "261dd95a93c09ea24397c85b4fbca061e1da2d6573189749aeb99fe840aaf0c9"
 dependencies = [
- "blake2b-rs",
+ "blake2b-rs 0.1.5",
  "faster-hex 0.3.1",
  "includedir",
  "includedir_codegen",
@@ -1108,6 +1128,12 @@ dependencies = [
  "cfg-if 1.0.0",
  "lazy_static",
 ]
+
+[[package]]
+name = "cty"
+version = "0.2.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b365fabc795046672053e29c954733ec3b05e4be654ab130fe8f1f94d7051f35"
 
 [[package]]
 name = "debugid"
@@ -2023,6 +2049,7 @@ version = "0.3.0"
 dependencies = [
  "blake2b-ref 0.1.0",
  "cfg-if 0.1.10",
+ "ckb-lib-smt",
  "ckb-std",
  "ckb-types 0.40.0",
  "molecule",

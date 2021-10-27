@@ -10,6 +10,7 @@ ckb-std = {version = "0.7.1", optional = true}
 ckb-types = {version = "0.40.0", optional = true}
 molecule = {version = "0.6.0", default_features = false, optional = true}
 sparse-merkle-tree = {version = "0.5.2", default_features = false}
+ckb-lib-smt = {package = "ckb-lib-smt", git = "https://github.com/lay2dev/ckb-lib-c-script", branch = "main"}
 
 [features]
 default = ["std", "ckb-types"]
