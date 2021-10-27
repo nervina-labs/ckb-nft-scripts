@@ -2,7 +2,6 @@ pub use blake2b_ref::{Blake2b, Blake2bBuilder};
 use sparse_merkle_tree::{traits::Hasher, SparseMerkleTree};
 
 // re-exports
-pub use ckb_lib_smt::LibCKBSmt;
 pub use sparse_merkle_tree::{default_store::DefaultStore, CompiledMerkleProof, MerkleProof, H256};
 
 pub type SMT = SparseMerkleTree<Blake2bHasher, H256, DefaultStore<H256>>;

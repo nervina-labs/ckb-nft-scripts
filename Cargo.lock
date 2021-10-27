@@ -124,15 +124,15 @@ checksum = "cf1de2fe8c75bc145a2f577add951f8134889b4795d47466a54a5c846d691693"
 
 [[package]]
 name = "blake2b-ref"
-version = "0.1.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d9f6b7b71e3097ed6ee470bab30e1025dd1327eee94ab1e3040b5b5c3f992117"
-
-[[package]]
-name = "blake2b-ref"
 version = "0.2.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "95916998c798756098a4eb1b3f2cd510659705a9817bf203d61abd30fbec3e7b"
+
+[[package]]
+name = "blake2b-ref"
+version = "0.3.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "88756126a7634ad9c13ed0a6da9aa3376a6b7000eb5fcdbb89d153196326bbcd"
 
 [[package]]
 name = "blake2b-rs"
@@ -141,16 +141,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "6e35e362830ef90ecea16f09b21b75d22d33a8562a679c74ab4f4fa49b4fcb87"
 dependencies = [
  "cc",
-]
-
-[[package]]
-name = "blake2b-rs"
-version = "0.2.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a89a8565807f21b913288968e391819e7f9b2f0f46c7b89549c051cccf3a2771"
-dependencies = [
- "cc",
- "cty",
 ]
 
 [[package]]
@@ -514,7 +504,7 @@ version = "0.37.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7508217d38998e44b783e1d6fdf2a5d77f1ae2c425a1bca0dd08ac9b22e3bac5"
 dependencies = [
- "blake2b-rs 0.1.5",
+ "blake2b-rs",
 ]
 
 [[package]]
@@ -524,7 +514,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "11d4f751b424962da459cacc19b2da0597bf7ec6786ee49a20e145bd74240f9e"
 dependencies = [
  "blake2b-ref 0.2.1",
- "blake2b-rs 0.1.5",
+ "blake2b-rs",
 ]
 
 [[package]]
@@ -538,16 +528,6 @@ dependencies = [
  "jsonrpc-core",
  "serde",
  "serde_json",
-]
-
-[[package]]
-name = "ckb-lib-smt"
-version = "0.1.0"
-source = "git+https://github.com/lay2dev/ckb-lib-c-script?branch=main#848dc38f671835acf442bf7781a6113a36f39fe5"
-dependencies = [
- "blake2b-rs 0.2.0",
- "cc",
- "ckb-std",
 ]
 
 [[package]]
@@ -787,7 +767,7 @@ version = "0.5.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "261dd95a93c09ea24397c85b4fbca061e1da2d6573189749aeb99fe840aaf0c9"
 dependencies = [
- "blake2b-rs 0.1.5",
+ "blake2b-rs",
  "faster-hex 0.3.1",
  "includedir",
  "includedir_codegen",
@@ -1038,9 +1018,9 @@ dependencies = [
 
 [[package]]
 name = "crossbeam-deque"
-version = "0.7.3"
+version = "0.7.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9f02af974daeee82218205558e51ec8768b48cf524bd01d550abe5573a608285"
+checksum = "c20ff29ded3204c5106278a81a38f4b482636ed4fa1e6cfbeef193291beb29ed"
 dependencies = [
  "crossbeam-epoch 0.8.2",
  "crossbeam-utils 0.7.2",
@@ -1128,12 +1108,6 @@ dependencies = [
  "cfg-if 1.0.0",
  "lazy_static",
 ]
-
-[[package]]
-name = "cty"
-version = "0.2.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b365fabc795046672053e29c954733ec3b05e4be654ab130fe8f1f94d7051f35"
 
 [[package]]
 name = "debugid"
@@ -1835,9 +1809,9 @@ checksum = "e2abad23fbc42b3700f2f279844dc832adb2b2eb069b2df918f455c4e18cc646"
 
 [[package]]
 name = "libc"
-version = "0.2.98"
+version = "0.2.105"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "320cfe77175da3a483efed4bc0adc1968ca050b098ce4f2f1c13a56626128790"
+checksum = "869d572136620d55835903746bcb5cdc54cb2851fd0aeec53220b4bb65ef3013"
 
 [[package]]
 name = "linked-hash-map"
@@ -2047,9 +2021,8 @@ dependencies = [
 name = "nft-smt"
 version = "0.3.0"
 dependencies = [
- "blake2b-ref 0.1.0",
+ "blake2b-ref 0.3.0",
  "cfg-if 0.1.10",
- "ckb-lib-smt",
  "ckb-std",
  "ckb-types 0.40.0",
  "molecule",
@@ -2717,9 +2690,9 @@ dependencies = [
 
 [[package]]
 name = "rustc-demangle"
-version = "0.1.20"
+version = "0.1.21"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "dead70b0b5e03e9c814bcb6b01e03e68f7c57a80aa48c72ec92152ab3e818d49"
+checksum = "7ef03e0a2b150c7a90d01faf6254c9c48a41e95fb2a8c2ac1c6f0d2b9aefc342"
 
 [[package]]
 name = "rustc_version"
@@ -3147,7 +3120,7 @@ dependencies = [
  "ckb-tool",
  "hex",
  "nft-smt",
- "rand 0.6.5",
+ "rand 0.7.3",
 ]
 
 [[package]]
@@ -3333,7 +3306,7 @@ version = "0.1.18"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "df720b6581784c118f0eb4310796b12b1d242a7eb95f716a8367855325c25f89"
 dependencies = [
- "crossbeam-deque 0.7.3",
+ "crossbeam-deque 0.7.4",
  "crossbeam-queue",
  "crossbeam-utils 0.7.2",
  "futures 0.1.31",

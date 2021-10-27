@@ -2,9 +2,9 @@
 # It is not intended for manual editing.
 [[package]]
 name = "blake2b-ref"
-version = "0.1.0"
+version = "0.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d9f6b7b71e3097ed6ee470bab30e1025dd1327eee94ab1e3040b5b5c3f992117"
+checksum = "88756126a7634ad9c13ed0a6da9aa3376a6b7000eb5fcdbb89d153196326bbcd"
 
 [[package]]
 name = "blake2b-rs"
@@ -113,7 +113,6 @@ version = "0.3.0"
 dependencies = [
  "blake2b-ref",
  "cfg-if",
- "ckb-lib-smt",
  "ckb-std",
  "molecule",
  "sparse-merkle-tree",
@@ -131,6 +130,7 @@ dependencies = [
 name = "script-utils"
 version = "0.3.0"
 dependencies = [
+ "ckb-lib-smt",
  "ckb-std",
 ]
 

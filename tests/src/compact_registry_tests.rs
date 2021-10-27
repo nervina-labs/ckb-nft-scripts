@@ -1,7 +1,6 @@
 use super::*;
 use ckb_testtool::{builtin::ALWAYS_SUCCESS, context::Context};
 use ckb_tool::ckb_error::assert_error_eq;
-use ckb_tool::ckb_hash::Blake2bBuilder;
 use ckb_tool::ckb_script::ScriptError;
 use ckb_tool::ckb_types::{
     bytes::Bytes,
@@ -9,6 +8,7 @@ use ckb_tool::ckb_types::{
     packed::*,
     prelude::*,
 };
+use nft_smt::smt::blake2b_256;
 use nft_smt::{
     registry::{
         Byte32, BytesBuilder, CompactNFTRegistryEntriesBuilder, KVPair, KVPairBuilder,
@@ -133,13 +133,7 @@ fn create_test_context(
     let lock_script = context
         .build_script(&always_success_out_point, Default::default())
         .expect("script");
-    let mut blake2b = Blake2bBuilder::new(32)
-        .personal(b"ckb-default-hash")
-        .build();
-    blake2b.update(lock_script.as_slice());
-    let mut ret = [0; 32];
-    blake2b.finalize(&mut ret);
-    let lock_hash_160 = &ret[0..20];
+    let lock_hash_160 = &blake2b_256(lock_script.as_slice())[0..20];
 
     let lock_script_dep = CellDep::new_builder()
         .out_point(always_success_out_point)
@@ -158,7 +152,7 @@ fn create_test_context(
         .build();
 
     let registry_type_args = match registry_error {
-        RegistryError::TypeArgsInvalid => Bytes::copy_from_slice(&ret[0..10]),
+        RegistryError::TypeArgsInvalid => Bytes::copy_from_slice(&lock_hash_160[0..10]),
         RegistryError::CompactRegistryTypeArgsNotEqualLockHash => {
             let error_lock_hash = [0u8; 20];
             Bytes::copy_from_slice(&error_lock_hash[..])
@@ -191,7 +185,12 @@ fn create_test_context(
             .capacity(500u64.pack())
             .lock(lock_script.clone())
             .build()],
-        _ => vec![CellOutput::new_builder()
+        Action::Create => vec![CellOutput::new_builder()
+            .capacity(500u64.pack())
+            .lock(lock_script.clone())
+            .type_(Some(registry_type_script.clone()).pack())
+            .build()],
+        Action::Update => vec![CellOutput::new_builder()
             .capacity(500u64.pack())
             .lock(lock_script.clone())
             .type_(Some(registry_type_script.clone()).pack())
@@ -209,10 +208,6 @@ fn create_test_context(
         _ => vec![Bytes::from(Vec::from(&root_hash[..]))],
     };
 
-    let witness_args = WitnessArgsBuilder::default()
-        .input_type(Some(Bytes::from(witness_data.clone())).pack())
-        .build();
-
     let error_witness_args = WitnessArgsBuilder::default()
         .input_type(
             Some(Bytes::from(
@@ -221,6 +216,10 @@ fn create_test_context(
             ))
             .pack(),
         )
+        .build();
+
+    let witness_args = WitnessArgsBuilder::default()
+        .input_type(Some(Bytes::from(witness_data.clone())).pack())
         .build();
 
     let witnesses = match registry_error {

@@ -9,8 +9,8 @@ use ckb_std::{
     },
 };
 use core::result::Result;
-use nft_smt::{registry::CompactNFTRegistryEntries, smt::LibCKBSmt};
-use script_utils::error::Error;
+use nft_smt::registry::CompactNFTRegistryEntries;
+use script_utils::{error::Error, smt::LibCKBSmt};
 
 const TYPE_ARGS_LEN: usize = 20;
 const REGISTRY_SMT_ROOT_HASH: usize = 32;
@@ -41,12 +41,6 @@ fn check_type_args_equal_lock_hash(registry_type: &Script) -> Result<(), Error> 
         let type_args: Bytes = type_.args().unpack();
         if type_args[..] != lock_hash[0..TYPE_ARGS_LEN] {
             return Err(Error::CompactRegistryTypeArgsNotEqualLockHash);
-        }
-
-        let input_lock = load_cell_lock_hash(0, Source::Input)?;
-        let output_lock = load_cell_lock_hash(0, Source::Output)?;
-        if input_lock != output_lock {
-            return Err(Error::CompactRegistryLockScriptNotSame);
         }
     };
 

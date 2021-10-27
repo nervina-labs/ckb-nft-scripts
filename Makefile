@@ -1,8 +1,6 @@
-fmt:
+build:
 	cd contracts && cargo fmt
 	cargo fmt
-build:
-	fmt
 	capsule build
 
 build-release:
