@@ -75,6 +75,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "compact-nft-type"
+version = "0.3.0"
+dependencies = [
+ "ckb-std",
+ "nft-smt",
+ "script-utils",
+]
+
+[[package]]
 name = "compact-registry-type"
 version = "0.3.0"
 dependencies = [
