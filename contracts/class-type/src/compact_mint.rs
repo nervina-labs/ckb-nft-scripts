@@ -1,6 +1,7 @@
 use alloc::vec::Vec;
 use ckb_std::{
     ckb_types::{bytes::Bytes, packed::*, prelude::*},
+    debug,
     dynamic_loading_c_impl::CKBDLContext,
 };
 use core::result::Result;
@@ -49,6 +50,8 @@ pub fn check_compact_nft_mint(
         for token_id in input_class.issued..output_class.issued {
             class_cell_token_ids.push(token_id);
         }
+        debug!("token_ids: {:?}", token_ids);
+        debug!("class_cell_token_ids: {:?}", token_ids);
         if token_ids != class_cell_token_ids {
             return Err(Error::NFTTokenIdIncreaseError);
         }

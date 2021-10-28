@@ -31,7 +31,10 @@ const CLASS_ISSUED_INVALID: i8 = 15;
 const CLASS_IMMUTABLE_FIELDS_NOT_SAME: i8 = 16;
 const CLASS_CELL_CANNOT_DESTROYED: i8 = 17;
 const CLASS_ID_INCREASE_ERROR: i8 = 18;
+const NFT_AND_CLASS_CONFIGURE_NOT_SAME: i8 = 22;
 const GROUP_INPUT_WITNESS_NONE_ERROR: i8 = 37;
+const COMPACT_ISSUER_ID_OR_CLASS_ID_INVALID: i8 = 42;
+const CLASS_COMPACT_SMT_ROOT_ERROR: i8 = 43;
 
 #[derive(PartialEq, Eq, Clone, Copy)]
 enum UpdateCase {
@@ -63,12 +66,16 @@ enum ClassError {
     ClassTypeArgsInvalid,
     TypeArgsClassIdNotSame,
     GroupInputWitnessNoneError,
+    CompactIssuerIdOrClassIdInvalid,
+    ClassCompactSmtRootError,
+    NFTAndClassConfigureNotSame,
 }
 
 const RESERVED: [u8; 4] = [0u8; 4];
 
 fn generate_smt_data(
     action: &Action,
+    class_error: &ClassError,
     class_type_args: Vec<u8>,
     receiver_lock_script: Script,
 ) -> Option<([u8; 32], Vec<u8>)> {
@@ -78,12 +85,16 @@ fn generate_smt_data(
     if class_type_args.len() != 24 {
         panic!("class type args length is error");
     }
-    let class_type_args_bytes = class_type_args
-        .iter()
-        .map(|v| Byte::from(*v))
-        .collect::<Vec<Byte>>();
+    let class_type_args_bytes = if class_error == &ClassError::CompactIssuerIdOrClassIdInvalid {
+        Vec::from([Byte::from(0u8); 24])
+    } else {
+        class_type_args
+            .iter()
+            .map(|v| Byte::from(*v))
+            .collect::<Vec<Byte>>()
+    };
     let leaves_count = 100;
-    let update_leaves_count = 80;
+    let update_leaves_count = 100;
     let mut smt = SMT::default();
     let mut rng = thread_rng();
     for _ in 0..leaves_count {
@@ -133,9 +144,14 @@ fn generate_smt_data(
             .iter()
             .map(|v| Byte::from(*v))
             .collect();
+        let configure = if class_error == &ClassError::NFTAndClassConfigureNotSame {
+            1u8
+        } else {
+            0u8
+        };
         let nft_info = CompactNFTInfoBuilder::default()
             .characteristic(characteristic)
-            .configure(Byte::from(0u8))
+            .configure(Byte::from(configure))
             .state(Byte::from(0u8))
             .receiver_lock(BytesBuilder::default().set(receiver_lock).build())
             .build();
@@ -400,7 +416,7 @@ fn create_test_context(action: Action, class_error: ClassError) -> (Context, Tra
         _ => (),
     }
 
-    let smt_data = generate_smt_data(&action, class_type_args, receiver_lock_script);
+    let smt_data = generate_smt_data(&action, &class_error, class_type_args, receiver_lock_script);
     let outputs_data: Vec<_> = match action {
         Action::Create => match class_error {
             ClassError::ClassIssuedInvalid => vec![
@@ -451,9 +467,16 @@ fn create_test_context(action: Action, class_error: ClassError) -> (Context, Tra
                     ),
                 ],
                 UpdateCase::Compact => {
-                    let mut data =
-                        hex::decode("01000000ff000000550000015500026666000489898949").unwrap();
-                    data.extend(&smt_data.clone().unwrap().0[..]);
+                    let mut data = if class_error == ClassError::ClassIssuedInvalid {
+                        hex::decode("01000000ff000000500000015500026666000489898949").unwrap()
+                    } else {
+                        hex::decode("01000000ff000000690000015500026666000489898949").unwrap()
+                    };
+                    if class_error == ClassError::ClassCompactSmtRootError {
+                        data.extend(&smt_data.clone().unwrap().0[..30]);
+                    } else {
+                        data.extend(&smt_data.clone().unwrap().0[..]);
+                    }
                     vec![Bytes::from(data)]
                 }
             },
@@ -471,6 +494,7 @@ fn create_test_context(action: Action, class_error: ClassError) -> (Context, Tra
                     .lock(lock)
                     .input_type(Some(Bytes::from(witness_data)).pack())
                     .build();
+                println!("witness_args length: {:?}", witness_args.as_slice().len());
                 witnesses.push(Bytes::from(Vec::from(witness_args.clone().as_slice())));
             } else {
                 witnesses.push(Bytes::from(hex::decode("550000001000000055000000550000004100000010f86974898b2f3685facb78741801bf2b932c7c548afe5bbc5d06ee135aeb792d700a02b62c492f1fd6e88afd655ffe305489fe9a76670a8999c641c8e2b16701").unwrap()))
@@ -823,6 +847,77 @@ fn test_destroy_class_with_witness_none_error() {
     assert_error_eq!(
         err,
         ScriptError::ValidationFailure(GROUP_INPUT_WITNESS_NONE_ERROR)
+            .input_type_script(script_cell_index)
+    );
+}
+
+#[test]
+fn test_update_class_compact_smt_root_error() {
+    let (mut context, tx) = create_test_context(
+        Action::Update(UpdateCase::Compact),
+        ClassError::ClassCompactSmtRootError,
+    );
+
+    let tx = context.complete_tx(tx);
+    // run
+    let err = context.verify_tx(&tx, MAX_CYCLES).unwrap_err();
+    let script_cell_index = 0;
+    assert_error_eq!(
+        err,
+        ScriptError::ValidationFailure(CLASS_COMPACT_SMT_ROOT_ERROR)
+            .input_type_script(script_cell_index)
+    );
+}
+
+#[test]
+fn test_update_class_compact_issued_error() {
+    let (mut context, tx) = create_test_context(
+        Action::Update(UpdateCase::Compact),
+        ClassError::ClassIssuedInvalid,
+    );
+
+    let tx = context.complete_tx(tx);
+    // run
+    let err = context.verify_tx(&tx, MAX_CYCLES).unwrap_err();
+    let script_cell_index = 0;
+    assert_error_eq!(
+        err,
+        ScriptError::ValidationFailure(CLASS_ISSUED_INVALID).input_type_script(script_cell_index)
+    );
+}
+
+#[test]
+fn test_update_class_compact_issuer_id_or_class_id_error() {
+    let (mut context, tx) = create_test_context(
+        Action::Update(UpdateCase::Compact),
+        ClassError::CompactIssuerIdOrClassIdInvalid,
+    );
+
+    let tx = context.complete_tx(tx);
+    // run
+    let err = context.verify_tx(&tx, MAX_CYCLES).unwrap_err();
+    let script_cell_index = 0;
+    assert_error_eq!(
+        err,
+        ScriptError::ValidationFailure(COMPACT_ISSUER_ID_OR_CLASS_ID_INVALID)
+            .input_type_script(script_cell_index)
+    );
+}
+
+#[test]
+fn test_update_compact_nft_and_class_configure_not_same_error() {
+    let (mut context, tx) = create_test_context(
+        Action::Update(UpdateCase::Compact),
+        ClassError::NFTAndClassConfigureNotSame,
+    );
+
+    let tx = context.complete_tx(tx);
+    // run
+    let err = context.verify_tx(&tx, MAX_CYCLES).unwrap_err();
+    let script_cell_index = 0;
+    assert_error_eq!(
+        err,
+        ScriptError::ValidationFailure(NFT_AND_CLASS_CONFIGURE_NOT_SAME)
             .input_type_script(script_cell_index)
     );
 }
