@@ -69,14 +69,16 @@ impl Class {
         }
         let description = data[description_index..(description_index + description_len)].to_vec();
 
-        let renderer_index = FIXED_LEN + name_len + description_len;
+        let renderer_index = description_index + description_len;
         let renderer_len = parse_dyn_vec_len(&data[renderer_index..(renderer_index + DYN_MIN_LEN)]);
 
         let required_len = renderer_index + renderer_len;
         if data.len() < required_len {
             return Err(Error::ClassDataInvalid);
         }
+
         let renderer = data[renderer_index..required_len].to_vec();
+
         let nft_smt_root = if data.len() - required_len < 32 {
             None
         } else {

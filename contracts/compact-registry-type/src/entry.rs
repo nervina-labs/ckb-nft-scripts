@@ -74,8 +74,8 @@ fn verify_smt_proof() -> Result<(), Error> {
     let mut keys: Vec<u8> = Vec::new();
     let mut values: Vec<u8> = Vec::new();
     for kv in registry_entries.kv_state() {
-        keys.extend(kv.k().as_slice().iter());
-        values.extend(kv.v().as_slice().iter());
+        keys.extend(kv.k().as_slice());
+        values.extend(kv.v().as_slice());
     }
 
     let proof: Vec<u8> = registry_entries.kv_proof().raw_data().to_vec();

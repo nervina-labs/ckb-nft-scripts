@@ -44,6 +44,8 @@ pub enum Error {
     CompactRegistryTypeArgsNotEqualLockHash,
     SMTProofVerifyFailed = 40,
     CompactRegistryCellPositionError,
+    CompactIssuerIdOrClassIdInvalid,
+    ClassCompactSmtRootError,
 }
 
 impl From<SysError> for Error {

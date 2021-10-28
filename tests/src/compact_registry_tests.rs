@@ -50,11 +50,9 @@ fn generate_smt_data() -> ([u8; 32], Vec<u8>) {
     let update_leaves_count = 100;
     let mut smt = SMT::default();
     let mut rng = thread_rng();
-    let mut leaves: Vec<(H256, H256)> = Vec::with_capacity(leaves_count + update_leaves_count);
     for _ in 0..leaves_count {
         let key: H256 = rng.gen::<[u8; 32]>().into();
         let value: H256 = H256::from([255u8; 32]);
-        leaves.push((key, value));
         smt.update(key, value).expect("SMT update leave error");
     }
 
@@ -62,7 +60,6 @@ fn generate_smt_data() -> ([u8; 32], Vec<u8>) {
     for _ in 0..update_leaves_count {
         let key: H256 = rng.gen::<[u8; 32]>().into();
         let value: H256 = H256::from([255u8; 32]);
-        leaves.push((key, value));
         update_leaves.push((key, value));
         smt.update(key, value).expect("SMT update leave error");
     }

@@ -118,7 +118,8 @@ fn handle_update(class_type: &Script) -> Result<(), Error> {
         return Err(Error::ClassImmutableFieldsNotSame);
     }
 
-    check_compact_nft_mint(input_class, output_class, witness_args)?;
+    let class_args: Bytes = class_type.args().unpack();
+    check_compact_nft_mint(input_class, output_class, witness_args, class_args)?;
 
     Ok(())
 }

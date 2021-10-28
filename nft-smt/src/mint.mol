@@ -3,7 +3,6 @@ array IssuerId [byte; 20];
 array Characteristic [byte; 8];
 
 vector Bytes <byte>;
-vector Script <byte>;
 
 struct CompactNFTId {
   issuer_id: IssuerId,
@@ -17,7 +16,7 @@ table CompactNFTInfo {
 	characteristic: Characteristic,
 	configure: byte,
 	state: byte,
-	receiver_lock: Script,
+	receiver_lock: Bytes,
 }
 
 vector CompactNFTInfoVec <CompactNFTInfo>;

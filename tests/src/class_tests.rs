@@ -8,8 +8,18 @@ use ckb_tool::ckb_types::{
     packed::*,
     prelude::*,
 };
+use nft_smt::mint::{
+    CharacteristicBuilder, CompactNFTId, CompactNFTIdBuilder, CompactNFTIdVecBuilder,
+    CompactNFTInfo, CompactNFTInfoBuilder, CompactNFTInfoVecBuilder, IssuerIdBuilder,
+};
+use nft_smt::smt::blake2b_256;
+use nft_smt::{
+    mint::{BytesBuilder, CompactNFTMintEntriesBuilder, Uint32Builder},
+    smt::{Blake2bHasher, H256, SMT},
+};
+use rand::{thread_rng, Rng};
 
-const MAX_CYCLES: u64 = 10_000_000;
+const MAX_CYCLES: u64 = 70_000_000;
 
 // error numbers
 const ENCODING: i8 = 4;
@@ -27,6 +37,7 @@ const GROUP_INPUT_WITNESS_NONE_ERROR: i8 = 37;
 enum UpdateCase {
     Default,
     Batch,
+    Compact,
 }
 
 #[derive(PartialEq)]
@@ -36,6 +47,7 @@ enum Action {
     Destroy,
 }
 
+#[derive(PartialEq)]
 enum ClassError {
     NoError,
     ClassDataInvalid,
@@ -51,6 +63,115 @@ enum ClassError {
     ClassTypeArgsInvalid,
     TypeArgsClassIdNotSame,
     GroupInputWitnessNoneError,
+}
+
+const RESERVED: [u8; 4] = [0u8; 4];
+
+fn generate_smt_data(
+    action: &Action,
+    class_type_args: Vec<u8>,
+    receiver_lock_script: Script,
+) -> Option<([u8; 32], Vec<u8>)> {
+    if action != &Action::Update(UpdateCase::Compact) {
+        return None;
+    }
+    if class_type_args.len() != 24 {
+        panic!("class type args length is error");
+    }
+    let class_type_args_bytes = class_type_args
+        .iter()
+        .map(|v| Byte::from(*v))
+        .collect::<Vec<Byte>>();
+    let leaves_count = 100;
+    let update_leaves_count = 80;
+    let mut smt = SMT::default();
+    let mut rng = thread_rng();
+    for _ in 0..leaves_count {
+        let key: H256 = rng.gen::<[u8; 32]>().into();
+        let value: H256 = H256::from([255u8; 32]);
+        smt.update(key, value).expect("SMT update leave error");
+    }
+
+    let mut nft_ids: Vec<CompactNFTId> = Vec::new();
+    let mut nft_infos: Vec<CompactNFTInfo> = Vec::new();
+    let mut update_leaves: Vec<(H256, H256)> = Vec::with_capacity(update_leaves_count);
+    for index in 0..update_leaves_count {
+        let mut issuer_id_bytes = [Byte::from(0); 20];
+        issuer_id_bytes.copy_from_slice(&class_type_args_bytes[0..20]);
+        let issuer_id = IssuerIdBuilder::default().set(issuer_id_bytes).build();
+
+        let mut class_id_bytes = [Byte::from(0); 4];
+        class_id_bytes.copy_from_slice(&class_type_args_bytes[20..24]);
+        let class_id = Uint32Builder::default().set(class_id_bytes).build();
+
+        let token_id_vec = ((index + 5) as u32)
+            .to_be_bytes()
+            .iter()
+            .map(|v| Byte::from(*v))
+            .collect::<Vec<Byte>>();
+        let mut token_id_bytes = [Byte::from(0); 4];
+        token_id_bytes.copy_from_slice(&token_id_vec);
+        let token_id = Uint32Builder::default().set(token_id_bytes).build();
+        let nft_id = CompactNFTIdBuilder::default()
+            .issuer_id(issuer_id)
+            .class_id(class_id)
+            .token_id(token_id)
+            .build();
+        nft_ids.push(nft_id.clone());
+        let mut nft_id_vec = Vec::new();
+        nft_id_vec.extend(&RESERVED);
+        nft_id_vec.extend(&nft_id.as_slice().to_vec());
+        let mut nft_id_bytes = [0u8; 32];
+        nft_id_bytes.copy_from_slice(&nft_id_vec);
+        let key = H256::from(nft_id_bytes);
+
+        let characteristic = CharacteristicBuilder::default()
+            .set([Byte::from(0); 8])
+            .build();
+        let receiver_lock = receiver_lock_script
+            .as_slice()
+            .iter()
+            .map(|v| Byte::from(*v))
+            .collect();
+        let nft_info = CompactNFTInfoBuilder::default()
+            .characteristic(characteristic)
+            .configure(Byte::from(0u8))
+            .state(Byte::from(0u8))
+            .receiver_lock(BytesBuilder::default().set(receiver_lock).build())
+            .build();
+        nft_infos.push(nft_info.clone());
+
+        let value: H256 = H256::from(blake2b_256(nft_info.as_slice()));
+        update_leaves.push((key, value));
+        smt.update(key, value).expect("SMT update leave error");
+    }
+    let root_hash = smt.root().clone();
+
+    let mut root_hash_bytes = [0u8; 32];
+    root_hash_bytes.copy_from_slice(root_hash.as_slice());
+
+    let mint_merkle_proof = smt
+        .merkle_proof(update_leaves.iter().map(|leave| leave.0).collect())
+        .unwrap();
+    let mint_merkle_proof_compiled = mint_merkle_proof.compile(update_leaves.clone()).unwrap();
+    let verify_result = mint_merkle_proof_compiled
+        .verify::<Blake2bHasher>(&root_hash, update_leaves.clone())
+        .expect("smt proof verify failed");
+    assert!(verify_result, "smt proof verify failed");
+
+    let merkel_proof_vec: Vec<u8> = mint_merkle_proof_compiled.into();
+
+    let merkel_proof_bytes = BytesBuilder::default()
+        .extend(merkel_proof_vec.iter().map(|v| Byte::from(*v)))
+        .build();
+
+    let mint_entries = CompactNFTMintEntriesBuilder::default()
+        .nft_ids(CompactNFTIdVecBuilder::default().set(nft_ids).build())
+        .nft_infos(CompactNFTInfoVecBuilder::default().set(nft_infos).build())
+        .proof(merkel_proof_bytes)
+        .build();
+
+    Some((root_hash_bytes, Vec::from(mint_entries.as_slice())))
 }
 
 fn create_test_context(action: Action, class_error: ClassError) -> (Context, TransactionView) {
@@ -69,12 +190,22 @@ fn create_test_context(action: Action, class_error: ClassError) -> (Context, Tra
         .out_point(issuer_out_point.clone())
         .build();
 
+    let smt_bin: Bytes = Loader::default().load_binary("ckb_smt");
+    let smt_out_point = context.deploy_cell(smt_bin);
+    let smt_dep = CellDep::new_builder().out_point(smt_out_point).build();
+
     // deploy always_success script
     let always_success_out_point = context.deploy_cell(ALWAYS_SUCCESS.clone());
 
     // prepare scripts
     let lock_script = context
         .build_script(&always_success_out_point, Default::default())
+        .expect("script");
+    let receiver_lock_script = context
+        .build_script(
+            &always_success_out_point,
+            Bytes::from(hex::decode("157a3633c3477d84b604a25e5fca5ca681762c10").unwrap()),
+        )
         .expect("script");
     let lock_script_dep = CellDep::new_builder()
         .out_point(always_success_out_point)
@@ -106,7 +237,7 @@ fn create_test_context(action: Action, class_error: ClassError) -> (Context, Tra
 
     let class_input_data = match action {
         Action::Update(_) => {
-            Bytes::from(hex::decode("010000000f0000000500000155000266660003898989").unwrap())
+            Bytes::from(hex::decode("01000000ff0000000500000155000266660003898989").unwrap())
         }
         Action::Destroy => match class_error {
             ClassError::ClassCellCannotDestroyed => {
@@ -173,6 +304,7 @@ fn create_test_context(action: Action, class_error: ClassError) -> (Context, Tra
         Action::Update(case) => match case {
             UpdateCase::Default => vec![class_input],
             UpdateCase::Batch => vec![class_input, another_class_input],
+            UpdateCase::Compact => vec![class_input],
         },
     };
 
@@ -226,6 +358,11 @@ fn create_test_context(action: Action, class_error: ClassError) -> (Context, Tra
                     .type_(Some(another_class_type_script.clone()).pack())
                     .build(),
             ],
+            UpdateCase::Compact => vec![CellOutput::new_builder()
+                .capacity(500u64.pack())
+                .lock(lock_script.clone())
+                .type_(Some(class_type_script.clone()).pack())
+                .build()],
         },
         Action::Destroy => vec![CellOutput::new_builder()
             .capacity(2000u64.pack())
@@ -263,6 +400,7 @@ fn create_test_context(action: Action, class_error: ClassError) -> (Context, Tra
         _ => (),
     }
 
+    let smt_data = generate_smt_data(&action, class_type_args, receiver_lock_script);
     let outputs_data: Vec<_> = match action {
         Action::Create => match class_error {
             ClassError::ClassIssuedInvalid => vec![
@@ -280,51 +418,68 @@ fn create_test_context(action: Action, class_error: ClassError) -> (Context, Tra
         },
         Action::Update(case) => match class_error {
             ClassError::ClassDataInvalid => vec![Bytes::from(
-                hex::decode("010000000f000000050000015500026666").unwrap(),
+                hex::decode("01000000ff000000050000015500026666").unwrap(),
             )],
             ClassError::TotalSmallerThanIssued => vec![Bytes::from(
-                hex::decode("010000000f000000150000015500026666000489898949").unwrap(),
+                hex::decode("01000000ff000001ff0000015500026666000489898949").unwrap(),
             )],
             ClassError::ClassIssuedInvalid => vec![Bytes::from(
-                hex::decode("010000000f000000030000015500026666000489898949").unwrap(),
+                hex::decode("01000000ff000000030000015500026666000489898949").unwrap(),
             )],
             ClassError::ClassTotalNotSame => vec![Bytes::from(
                 hex::decode("010000002f0000000500000155000266660003898989").unwrap(),
             )],
             ClassError::ClassConfigureNotSame => vec![Bytes::from(
-                hex::decode("010000000f0000000507000155000266660003898989").unwrap(),
+                hex::decode("01000000ff0000000507000155000266660003898989").unwrap(),
             )],
             ClassError::ClassNameNotSame => vec![Bytes::from(
-                hex::decode("010000000f00000005000001aa000266660003898989").unwrap(),
+                hex::decode("01000000ff00000005000001aa000266660003898989").unwrap(),
             )],
             ClassError::ClassDescriptionNotSame => vec![Bytes::from(
-                hex::decode("010000000f0000000500000155000299990003898989").unwrap(),
+                hex::decode("01000000ff0000000500000155000299990003898989").unwrap(),
             )],
             _ => match case {
                 UpdateCase::Default => vec![Bytes::from(
-                    hex::decode("010000000f000000050000015500026666000489898949").unwrap(),
+                    hex::decode("01000000ff000000050000015500026666000489898949").unwrap(),
                 )],
                 UpdateCase::Batch => vec![
                     Bytes::from(
-                        hex::decode("010000000f000000050000015500026666000489898949").unwrap(),
+                        hex::decode("01000000ff000000050000015500026666000489898949").unwrap(),
                     ),
                     Bytes::from(
-                        hex::decode("010000000f000000050000015500026666000489898949").unwrap(),
+                        hex::decode("01000000ff000000050000015500026666000489898949").unwrap(),
                     ),
                 ],
+                UpdateCase::Compact => {
+                    let mut data =
+                        hex::decode("01000000ff000000550000015500026666000489898949").unwrap();
+                    data.extend(&smt_data.clone().unwrap().0[..]);
+                    vec![Bytes::from(data)]
+                }
             },
         },
         Action::Destroy => vec![Bytes::new()],
     };
 
     let mut witnesses = vec![];
-    match class_error {
-        ClassError::GroupInputWitnessNoneError => {
-            witnesses.push(Bytes::from("0x"))
+    match action {
+        Action::Update(case ) => {
+            if case == UpdateCase::Compact {
+                let lock = Some(Bytes::from(hex::decode("12345678").unwrap())).pack();
+                let witness_data = smt_data.unwrap().1;
+                let witness_args = WitnessArgsBuilder::default()
+                    .lock(lock)
+                    .input_type(Some(Bytes::from(witness_data)).pack())
+                    .build();
+                witnesses.push(Bytes::from(Vec::from(witness_args.clone().as_slice())));
+            } else {
+                witnesses.push(Bytes::from(hex::decode("550000001000000055000000550000004100000010f86974898b2f3685facb78741801bf2b932c7c548afe5bbc5d06ee135aeb792d700a02b62c492f1fd6e88afd655ffe305489fe9a76670a8999c641c8e2b16701").unwrap()))
+            }
         }
-        _ => {
-            witnesses.push(Bytes::from(hex::decode("5500000010000000550000005500000041000000b69c542c0ee6c4b6d8350514d876ea7d8ef563e406253e959289457204447d2c4eb4e4a993073f5e76d244d2f93f7c108652e3295a9c8d72c12477e095026b9500").unwrap()))
-        }
+        _ => witnesses.push(Bytes::from(hex::decode("550000001000000055000000550000004100000010f86974898b2f3685facb78741801bf2b932c7c548afe5bbc5d06ee135aeb792d700a02b62c492f1fd6e88afd655ffe305489fe9a76670a8999c641c8e2b16701").unwrap()))
+    }
+    if class_error == ClassError::GroupInputWitnessNoneError {
+        witnesses[0] = Bytes::from("0x");
     }
     for _ in 1..inputs.len() {
         witnesses.push(Bytes::from("0x"))
@@ -338,6 +493,7 @@ fn create_test_context(action: Action, class_error: ClassError) -> (Context, Tra
         .cell_dep(lock_script_dep)
         .cell_dep(issuer_type_script_dep)
         .cell_dep(class_type_script_dep)
+        .cell_dep(smt_dep)
         .witnesses(witnesses.pack())
         .build();
     (context, tx)
@@ -372,6 +528,19 @@ fn test_update_class_cell_success() {
 fn test_batch_update_class_cell_success() {
     let (mut context, tx) =
         create_test_context(Action::Update(UpdateCase::Batch), ClassError::NoError);
+
+    let tx = context.complete_tx(tx);
+    // run
+    let cycles = context
+        .verify_tx(&tx, MAX_CYCLES)
+        .expect("pass verification");
+    println!("consume cycles: {}", cycles);
+}
+
+#[test]
+fn test_update_compact_class_cell_success() {
+    let (mut context, tx) =
+        create_test_context(Action::Update(UpdateCase::Compact), ClassError::NoError);
 
     let tx = context.complete_tx(tx);
     // run

@@ -1,5 +1,12 @@
 [workspace]
-members = ["issuer-type", "class-type", "nft-type", "script-utils", "compact-registry-type", "compact-nft-type"]
+members = [
+    "issuer-type",
+    "class-type",
+    "nft-type",
+    "script-utils",
+    "compact-registry-type",
+    "compact-nft-type"
+]
 
 [profile.release]
 overflow-checks = true
@@ -7,3 +14,4 @@ opt-level = 's'
 lto = true
 codegen-units = 1
 panic = 'abort'
+
