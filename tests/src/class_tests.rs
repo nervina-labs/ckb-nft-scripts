@@ -1,20 +1,23 @@
 use super::*;
 use ckb_testtool::{builtin::ALWAYS_SUCCESS, context::Context};
-use ckb_tool::ckb_error::assert_error_eq;
-use ckb_tool::ckb_script::ScriptError;
-use ckb_tool::ckb_types::{
+use ckb_testtool::ckb_error::assert_error_eq;
+use ckb_testtool::ckb_script::ScriptError;
+use ckb_testtool::ckb_types::{
     bytes::Bytes,
     core::{TransactionBuilder, TransactionView},
     packed::*,
     prelude::*,
 };
+
+use nft_smt::common::{CharacteristicBuilder, IssuerIdBuilder};
+
 use nft_smt::mint::{
-    CharacteristicBuilder, CompactNFTId, CompactNFTIdBuilder, CompactNFTIdVecBuilder,
-    CompactNFTInfo, CompactNFTInfoBuilder, CompactNFTInfoVecBuilder, IssuerIdBuilder,
+    CompactNFTId, CompactNFTIdBuilder, CompactNFTIdVecBuilder, CompactNFTInfo,
+    CompactNFTInfoBuilder, CompactNFTInfoVecBuilder,
 };
 use nft_smt::smt::blake2b_256;
 use nft_smt::{
-    mint::{BytesBuilder, CompactNFTMintEntriesBuilder, Uint32Builder},
+    mint::CompactNFTMintEntriesBuilder,
     smt::{Blake2bHasher, H256, SMT},
 };
 use rand::{thread_rng, Rng};

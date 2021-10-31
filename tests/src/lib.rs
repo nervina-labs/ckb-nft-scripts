@@ -1,4 +1,4 @@
-use ckb_tool::ckb_types::bytes::Bytes;
+use ckb_testtool::ckb_types::bytes::Bytes;
 use std::env;
 use std::fs;
 use std::path::PathBuf;
@@ -72,7 +72,7 @@ impl Loader {
 #[macro_export]
 macro_rules! assert_errors_contain {
     ($err:expr, $errors:expr) => {
-        type Error = ckb_tool::ckb_error::Error;
+        type Error = ckb_testtool::ckb_error::Error;
         let err_ = Into::<Error>::into($err).to_string();
         let result = $errors
             .into_iter()

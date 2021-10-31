@@ -1,0 +1,26 @@
+import blockchain;
+import common;
+// update.mol
+
+struct CompactNFTId {
+    smt_type: byte,
+    issuer_id: IssuerId,
+    class_id: Uint32,
+    token_id: Uint32,
+}
+
+vector CompactNFTIdVec <CompactNFTId>;
+
+struct CompactNFTInfo {
+	characteristic: Characteristic,
+	configure: byte,
+	state: byte,
+}
+
+vector CompactNFTInfoVec <CompactNFTInfo>;
+
+table UpdateCompactNFTEntries {
+    nft_ids: CompactNFTIdVec,
+    nft_infos: CompactNFTInfoVec,
+    kv_proof: Bytes,
+}

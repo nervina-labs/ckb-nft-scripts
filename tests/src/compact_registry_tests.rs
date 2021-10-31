@@ -1,8 +1,8 @@
 use super::*;
 use ckb_testtool::{builtin::ALWAYS_SUCCESS, context::Context};
-use ckb_tool::ckb_error::assert_error_eq;
-use ckb_tool::ckb_script::ScriptError;
-use ckb_tool::ckb_types::{
+use ckb_testtool::ckb_error::assert_error_eq;
+use ckb_testtool::ckb_script::ScriptError;
+use ckb_testtool::ckb_types::{
     bytes::Bytes,
     core::{TransactionBuilder, TransactionView},
     packed::*,
@@ -10,10 +10,7 @@ use ckb_tool::ckb_types::{
 };
 use nft_smt::smt::blake2b_256;
 use nft_smt::{
-    registry::{
-        Byte32, BytesBuilder, CompactNFTRegistryEntriesBuilder, KVPair, KVPairBuilder,
-        KVPairVecBuilder,
-    },
+    registry::{CompactNFTRegistryEntriesBuilder, KVPair, KVPairBuilder, KVPairVecBuilder},
     smt::{Blake2bHasher, H256, SMT},
 };
 use rand::{thread_rng, Rng};

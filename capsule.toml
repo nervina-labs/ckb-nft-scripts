@@ -1,8 +1,10 @@
-version = "0.4.3 13d6f1d"
+version = "0.6.0 b850e01"
 deployment = "deployment.toml"
+
 [rust]
-workspace_dir = "contracts"
-toolchain = "nightly-2020-09-28"
+workspace_dir = "."
+toolchain = "nightly-2021-08-16"
+docker_image = "thewawar/ckb-capsule:2021-08-16"
 
 [[contracts]]
 name = "issuer-type"
@@ -18,4 +20,8 @@ template_type = "Rust"
 
 [[contracts]]
 name = "compact-registry-type"
+template_type = "Rust"
+
+[[contracts]]
+name = "compact-nft-type"
 template_type = "Rust"

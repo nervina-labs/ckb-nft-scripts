@@ -1,0 +1,56 @@
+import blockchain;
+import common;
+
+// transfer.mol
+
+struct CompactNFTId {
+    smt_type: byte,
+    issuer_id: IssuerId,
+    class_id: Uint32,
+    token_id: Uint32,
+}
+
+vector CompactNFTIdVec <CompactNFTId>;
+
+struct OwnedCompactNFTValue {
+    characteristic: Characteristic,
+    configure: byte,
+    state: byte,
+}
+
+vector OwnedCompactNFTValueVec <OwnedCompactNFTValue>;
+
+struct ClaimedCompactNFTKey {
+	smt_type: byte,
+    out_point: OutPoint,
+}
+
+vector ClaimedCompactNFTKeyVec <ClaimedCompactNFTKey>;
+
+vector ClaimedCommpactNFTValueVec <Byte32>;
+
+struct WithdrawCompactNFTValue {
+    characteristic: Characteristic,
+    configure: byte,
+    state: byte,
+    to: LockHash,
+    out_point: OutPoint,
+}
+
+vector WithdrawCompactNFTValueVec <WithdrawCompactNFTValue>;
+
+table ClaimCompactNFTEntries {
+    owned_nft_ids: CompactNFTIdVec,
+    owned_nft_values: OwnedCompactNFTValueVec,
+	claimed_nft_keys: ClaimedCompactNFTKeyVec,
+    claimed_nft_values: ClaimedCommpactNFTValueVec,
+    proof: Bytes,
+}
+
+table WithdrawCompactNFTEntries {
+    owned_nft_ids: CompactNFTIdVec,
+    owned_nft_values: OwnedCompactNFTValueVec,
+	withdrawal_nft_ids: CompactNFTIdVec,
+	withdrawal_nft_values: WithdrawCompactNFTValueVec,
+    proof: Bytes,
+}

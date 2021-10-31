@@ -1,0 +1,6 @@
+import blockchain;
+
+array IssuerId [byte; 20];
+array Characteristic [byte; 8];
+array CompactOutPoint [byte; 24];
+array LockHash [byte; 20];

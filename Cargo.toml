@@ -1,2 +1,18 @@
 [workspace]
-members = ["tests", "nft-smt"]
+members = [
+    "tests", 
+    "nft-smt",
+    "contracts/issuer-type",
+    "contracts/class-type",
+    "contracts/nft-type",
+    "contracts/compact-registry-type",
+    "contracts/compact-nft-type",
+    "contracts/script-utils",
+    ]
+
+[profile.release]
+overflow-checks = true
+opt-level = 's'
+lto = true
+codegen-units = 1
+panic = 'abort'

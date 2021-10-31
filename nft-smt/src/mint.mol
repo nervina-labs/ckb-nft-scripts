@@ -1,8 +1,5 @@
-array Uint32 [byte; 4];
-array IssuerId [byte; 20];
-array Characteristic [byte; 8];
-
-vector Bytes <byte>;
+import blockchain;
+import common;
 
 struct CompactNFTId {
   issuer_id: IssuerId,

@@ -30,7 +30,8 @@ impl ::core::fmt::Debug for CompactNFTId {
 impl ::core::fmt::Display for CompactNFTId {
     fn fmt(&self, f: &mut ::core::fmt::Formatter) -> ::core::fmt::Result {
         write!(f, "{} {{ ", Self::NAME)?;
-        write!(f, "{}: {}", "issuer_id", self.issuer_id())?;
+        write!(f, "{}: {}", "smt_type", self.smt_type())?;
+        write!(f, ", {}: {}", "issuer_id", self.issuer_id())?;
         write!(f, ", {}: {}", "class_id", self.class_id())?;
         write!(f, ", {}: {}", "token_id", self.token_id())?;
         write!(f, " }}")
@@ -39,26 +40,30 @@ impl ::core::fmt::Display for CompactNFTId {
 impl ::core::default::Default for CompactNFTId {
     fn default() -> Self {
         let v: Vec<u8> = vec![
-            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
         ];
         CompactNFTId::new_unchecked(v.into())
     }
 }
 impl CompactNFTId {
-    pub const FIELD_COUNT: usize = 3;
-    pub const FIELD_SIZES: [usize; 3] = [20, 4, 4];
-    pub const TOTAL_SIZE: usize = 28;
+    pub const FIELD_COUNT: usize = 4;
+    pub const FIELD_SIZES: [usize; 4] = [1, 20, 4, 4];
+    pub const TOTAL_SIZE: usize = 29;
+
+    pub fn smt_type(&self) -> Byte {
+        Byte::new_unchecked(self.0.slice(0..1))
+    }
 
     pub fn issuer_id(&self) -> IssuerId {
-        IssuerId::new_unchecked(self.0.slice(0..20))
+        IssuerId::new_unchecked(self.0.slice(1..21))
     }
 
     pub fn class_id(&self) -> Uint32 {
-        Uint32::new_unchecked(self.0.slice(20..24))
+        Uint32::new_unchecked(self.0.slice(21..25))
     }
 
     pub fn token_id(&self) -> Uint32 {
-        Uint32::new_unchecked(self.0.slice(24..28))
+        Uint32::new_unchecked(self.0.slice(25..29))
     }
 
     pub fn as_reader<'r>(&'r self) -> CompactNFTIdReader<'r> {
@@ -96,6 +101,7 @@ impl molecule::prelude::Entity for CompactNFTId {
 
     fn as_builder(self) -> Self::Builder {
         Self::new_builder()
+            .smt_type(self.smt_type())
             .issuer_id(self.issuer_id())
             .class_id(self.class_id())
             .token_id(self.token_id())
@@ -120,27 +126,32 @@ impl<'r> ::core::fmt::Debug for CompactNFTIdReader<'r> {
 impl<'r> ::core::fmt::Display for CompactNFTIdReader<'r> {
     fn fmt(&self, f: &mut ::core::fmt::Formatter) -> ::core::fmt::Result {
         write!(f, "{} {{ ", Self::NAME)?;
-        write!(f, "{}: {}", "issuer_id", self.issuer_id())?;
+        write!(f, "{}: {}", "smt_type", self.smt_type())?;
+        write!(f, ", {}: {}", "issuer_id", self.issuer_id())?;
         write!(f, ", {}: {}", "class_id", self.class_id())?;
         write!(f, ", {}: {}", "token_id", self.token_id())?;
         write!(f, " }}")
     }
 }
 impl<'r> CompactNFTIdReader<'r> {
-    pub const FIELD_COUNT: usize = 3;
-    pub const FIELD_SIZES: [usize; 3] = [20, 4, 4];
-    pub const TOTAL_SIZE: usize = 28;
+    pub const FIELD_COUNT: usize = 4;
+    pub const FIELD_SIZES: [usize; 4] = [1, 20, 4, 4];
+    pub const TOTAL_SIZE: usize = 29;
+
+    pub fn smt_type(&self) -> ByteReader<'r> {
+        ByteReader::new_unchecked(&self.as_slice()[0..1])
+    }
 
     pub fn issuer_id(&self) -> IssuerIdReader<'r> {
-        IssuerIdReader::new_unchecked(&self.as_slice()[0..20])
+        IssuerIdReader::new_unchecked(&self.as_slice()[1..21])
     }
 
     pub fn class_id(&self) -> Uint32Reader<'r> {
-        Uint32Reader::new_unchecked(&self.as_slice()[20..24])
+        Uint32Reader::new_unchecked(&self.as_slice()[21..25])
     }
 
     pub fn token_id(&self) -> Uint32Reader<'r> {
-        Uint32Reader::new_unchecked(&self.as_slice()[24..28])
+        Uint32Reader::new_unchecked(&self.as_slice()[25..29])
     }
 }
 impl<'r> molecule::prelude::Reader<'r> for CompactNFTIdReader<'r> {
@@ -171,14 +182,20 @@ impl<'r> molecule::prelude::Reader<'r> for CompactNFTIdReader<'r> {
 }
 #[derive(Debug, Default)]
 pub struct CompactNFTIdBuilder {
+    pub(crate) smt_type:  Byte,
     pub(crate) issuer_id: IssuerId,
     pub(crate) class_id:  Uint32,
     pub(crate) token_id:  Uint32,
 }
 impl CompactNFTIdBuilder {
-    pub const FIELD_COUNT: usize = 3;
-    pub const FIELD_SIZES: [usize; 3] = [20, 4, 4];
-    pub const TOTAL_SIZE: usize = 28;
+    pub const FIELD_COUNT: usize = 4;
+    pub const FIELD_SIZES: [usize; 4] = [1, 20, 4, 4];
+    pub const TOTAL_SIZE: usize = 29;
+
+    pub fn smt_type(mut self, v: Byte) -> Self {
+        self.smt_type = v;
+        self
+    }
 
     pub fn issuer_id(mut self, v: IssuerId) -> Self {
         self.issuer_id = v;
@@ -205,6 +222,7 @@ impl molecule::prelude::Builder for CompactNFTIdBuilder {
     }
 
     fn write<W: molecule::io::Write>(&self, writer: &mut W) -> molecule::io::Result<()> {
+        writer.write_all(self.smt_type.as_slice())?;
         writer.write_all(self.issuer_id.as_slice())?;
         writer.write_all(self.class_id.as_slice())?;
         writer.write_all(self.token_id.as_slice())?;
@@ -254,7 +272,7 @@ impl ::core::default::Default for CompactNFTIdVec {
     }
 }
 impl CompactNFTIdVec {
-    pub const ITEM_SIZE: usize = 28;
+    pub const ITEM_SIZE: usize = 29;
 
     pub fn total_size(&self) -> usize {
         molecule::NUMBER_SIZE * (self.item_count() + 1)
@@ -353,7 +371,7 @@ impl<'r> ::core::fmt::Display for CompactNFTIdVecReader<'r> {
     }
 }
 impl<'r> CompactNFTIdVecReader<'r> {
-    pub const ITEM_SIZE: usize = 28;
+    pub const ITEM_SIZE: usize = 29;
 
     pub fn total_size(&self) -> usize {
         molecule::NUMBER_SIZE * (self.item_count() + 1)
@@ -425,7 +443,7 @@ impl<'r> molecule::prelude::Reader<'r> for CompactNFTIdVecReader<'r> {
 #[derive(Debug, Default)]
 pub struct CompactNFTIdVecBuilder(pub(crate) Vec<CompactNFTId>);
 impl CompactNFTIdVecBuilder {
-    pub const ITEM_SIZE: usize = 28;
+    pub const ITEM_SIZE: usize = 29;
 
     pub fn set(mut self, v: Vec<CompactNFTId>) -> Self {
         self.0 = v;
@@ -542,76 +560,30 @@ impl ::core::fmt::Display for CompactNFTInfo {
         write!(f, "{}: {}", "characteristic", self.characteristic())?;
         write!(f, ", {}: {}", "configure", self.configure())?;
         write!(f, ", {}: {}", "state", self.state())?;
-        write!(f, ", {}: {}", "receiver_lock", self.receiver_lock())?;
-        let extra_count = self.count_extra_fields();
-        if extra_count != 0 {
-            write!(f, ", .. ({} fields)", extra_count)?;
-        }
         write!(f, " }}")
     }
 }
 impl ::core::default::Default for CompactNFTInfo {
     fn default() -> Self {
-        let v: Vec<u8> = vec![
-            34, 0, 0, 0, 20, 0, 0, 0, 28, 0, 0, 0, 29, 0, 0, 0, 30, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-            0, 0, 0, 0, 0, 0, 0,
-        ];
+        let v: Vec<u8> = vec![0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
         CompactNFTInfo::new_unchecked(v.into())
     }
 }
 impl CompactNFTInfo {
-    pub const FIELD_COUNT: usize = 4;
-
-    pub fn total_size(&self) -> usize {
-        molecule::unpack_number(self.as_slice()) as usize
-    }
-
-    pub fn field_count(&self) -> usize {
-        if self.total_size() == molecule::NUMBER_SIZE {
-            0
-        } else {
-            (molecule::unpack_number(&self.as_slice()[molecule::NUMBER_SIZE..]) as usize / 4) - 1
-        }
-    }
-
-    pub fn count_extra_fields(&self) -> usize {
-        self.field_count() - Self::FIELD_COUNT
-    }
-
-    pub fn has_extra_fields(&self) -> bool {
-        Self::FIELD_COUNT != self.field_count()
-    }
+    pub const FIELD_COUNT: usize = 3;
+    pub const FIELD_SIZES: [usize; 3] = [8, 1, 1];
+    pub const TOTAL_SIZE: usize = 10;
 
     pub fn characteristic(&self) -> Characteristic {
-        let slice = self.as_slice();
-        let start = molecule::unpack_number(&slice[4..]) as usize;
-        let end = molecule::unpack_number(&slice[8..]) as usize;
-        Characteristic::new_unchecked(self.0.slice(start..end))
+        Characteristic::new_unchecked(self.0.slice(0..8))
     }
 
     pub fn configure(&self) -> Byte {
-        let slice = self.as_slice();
-        let start = molecule::unpack_number(&slice[8..]) as usize;
-        let end = molecule::unpack_number(&slice[12..]) as usize;
-        Byte::new_unchecked(self.0.slice(start..end))
+        Byte::new_unchecked(self.0.slice(8..9))
     }
 
     pub fn state(&self) -> Byte {
-        let slice = self.as_slice();
-        let start = molecule::unpack_number(&slice[12..]) as usize;
-        let end = molecule::unpack_number(&slice[16..]) as usize;
-        Byte::new_unchecked(self.0.slice(start..end))
-    }
-
-    pub fn receiver_lock(&self) -> Bytes {
-        let slice = self.as_slice();
-        let start = molecule::unpack_number(&slice[16..]) as usize;
-        if self.has_extra_fields() {
-            let end = molecule::unpack_number(&slice[20..]) as usize;
-            Bytes::new_unchecked(self.0.slice(start..end))
-        } else {
-            Bytes::new_unchecked(self.0.slice(start..))
-        }
+        Byte::new_unchecked(self.0.slice(9..10))
     }
 
     pub fn as_reader<'r>(&'r self) -> CompactNFTInfoReader<'r> {
@@ -652,7 +624,6 @@ impl molecule::prelude::Entity for CompactNFTInfo {
             .characteristic(self.characteristic())
             .configure(self.configure())
             .state(self.state())
-            .receiver_lock(self.receiver_lock())
     }
 }
 #[derive(Clone, Copy)]
@@ -677,67 +648,24 @@ impl<'r> ::core::fmt::Display for CompactNFTInfoReader<'r> {
         write!(f, "{}: {}", "characteristic", self.characteristic())?;
         write!(f, ", {}: {}", "configure", self.configure())?;
         write!(f, ", {}: {}", "state", self.state())?;
-        write!(f, ", {}: {}", "receiver_lock", self.receiver_lock())?;
-        let extra_count = self.count_extra_fields();
-        if extra_count != 0 {
-            write!(f, ", .. ({} fields)", extra_count)?;
-        }
         write!(f, " }}")
     }
 }
 impl<'r> CompactNFTInfoReader<'r> {
-    pub const FIELD_COUNT: usize = 4;
-
-    pub fn total_size(&self) -> usize {
-        molecule::unpack_number(self.as_slice()) as usize
-    }
-
-    pub fn field_count(&self) -> usize {
-        if self.total_size() == molecule::NUMBER_SIZE {
-            0
-        } else {
-            (molecule::unpack_number(&self.as_slice()[molecule::NUMBER_SIZE..]) as usize / 4) - 1
-        }
-    }
-
-    pub fn count_extra_fields(&self) -> usize {
-        self.field_count() - Self::FIELD_COUNT
-    }
-
-    pub fn has_extra_fields(&self) -> bool {
-        Self::FIELD_COUNT != self.field_count()
-    }
+    pub const FIELD_COUNT: usize = 3;
+    pub const FIELD_SIZES: [usize; 3] = [8, 1, 1];
+    pub const TOTAL_SIZE: usize = 10;
 
     pub fn characteristic(&self) -> CharacteristicReader<'r> {
-        let slice = self.as_slice();
-        let start = molecule::unpack_number(&slice[4..]) as usize;
-        let end = molecule::unpack_number(&slice[8..]) as usize;
-        CharacteristicReader::new_unchecked(&self.as_slice()[start..end])
+        CharacteristicReader::new_unchecked(&self.as_slice()[0..8])
     }
 
     pub fn configure(&self) -> ByteReader<'r> {
-        let slice = self.as_slice();
-        let start = molecule::unpack_number(&slice[8..]) as usize;
-        let end = molecule::unpack_number(&slice[12..]) as usize;
-        ByteReader::new_unchecked(&self.as_slice()[start..end])
+        ByteReader::new_unchecked(&self.as_slice()[8..9])
     }
 
     pub fn state(&self) -> ByteReader<'r> {
-        let slice = self.as_slice();
-        let start = molecule::unpack_number(&slice[12..]) as usize;
-        let end = molecule::unpack_number(&slice[16..]) as usize;
-        ByteReader::new_unchecked(&self.as_slice()[start..end])
-    }
-
-    pub fn receiver_lock(&self) -> BytesReader<'r> {
-        let slice = self.as_slice();
-        let start = molecule::unpack_number(&slice[16..]) as usize;
-        if self.has_extra_fields() {
-            let end = molecule::unpack_number(&slice[20..]) as usize;
-            BytesReader::new_unchecked(&self.as_slice()[start..end])
-        } else {
-            BytesReader::new_unchecked(&self.as_slice()[start..])
-        }
+        ByteReader::new_unchecked(&self.as_slice()[9..10])
     }
 }
 impl<'r> molecule::prelude::Reader<'r> for CompactNFTInfoReader<'r> {
@@ -757,47 +685,12 @@ impl<'r> molecule::prelude::Reader<'r> for CompactNFTInfoReader<'r> {
         self.0
     }
 
-    fn verify(slice: &[u8], compatible: bool) -> molecule::error::VerificationResult<()> {
+    fn verify(slice: &[u8], _compatible: bool) -> molecule::error::VerificationResult<()> {
         use molecule::verification_error as ve;
         let slice_len = slice.len();
-        if slice_len < molecule::NUMBER_SIZE {
-            return ve!(Self, HeaderIsBroken, molecule::NUMBER_SIZE, slice_len);
+        if slice_len != Self::TOTAL_SIZE {
+            return ve!(Self, TotalSizeNotMatch, Self::TOTAL_SIZE, slice_len);
         }
-        let total_size = molecule::unpack_number(slice) as usize;
-        if slice_len != total_size {
-            return ve!(Self, TotalSizeNotMatch, total_size, slice_len);
-        }
-        if slice_len == molecule::NUMBER_SIZE && Self::FIELD_COUNT == 0 {
-            return Ok(());
-        }
-        if slice_len < molecule::NUMBER_SIZE * 2 {
-            return ve!(Self, HeaderIsBroken, molecule::NUMBER_SIZE * 2, slice_len);
-        }
-        let offset_first = molecule::unpack_number(&slice[molecule::NUMBER_SIZE..]) as usize;
-        if offset_first % molecule::NUMBER_SIZE != 0 || offset_first < molecule::NUMBER_SIZE * 2 {
-            return ve!(Self, OffsetsNotMatch);
-        }
-        if slice_len < offset_first {
-            return ve!(Self, HeaderIsBroken, offset_first, slice_len);
-        }
-        let field_count = offset_first / molecule::NUMBER_SIZE - 1;
-        if field_count < Self::FIELD_COUNT {
-            return ve!(Self, FieldCountNotMatch, Self::FIELD_COUNT, field_count);
-        } else if !compatible && field_count > Self::FIELD_COUNT {
-            return ve!(Self, FieldCountNotMatch, Self::FIELD_COUNT, field_count);
-        };
-        let mut offsets: Vec<usize> = slice[molecule::NUMBER_SIZE..offset_first]
-            .chunks_exact(molecule::NUMBER_SIZE)
-            .map(|x| molecule::unpack_number(x) as usize)
-            .collect();
-        offsets.push(total_size);
-        if offsets.windows(2).any(|i| i[0] > i[1]) {
-            return ve!(Self, OffsetsNotMatch);
-        }
-        CharacteristicReader::verify(&slice[offsets[0]..offsets[1]], compatible)?;
-        ByteReader::verify(&slice[offsets[1]..offsets[2]], compatible)?;
-        ByteReader::verify(&slice[offsets[2]..offsets[3]], compatible)?;
-        BytesReader::verify(&slice[offsets[3]..offsets[4]], compatible)?;
         Ok(())
     }
 }
@@ -806,10 +699,11 @@ pub struct CompactNFTInfoBuilder {
     pub(crate) characteristic: Characteristic,
     pub(crate) configure:      Byte,
     pub(crate) state:          Byte,
-    pub(crate) receiver_lock:  Bytes,
 }
 impl CompactNFTInfoBuilder {
-    pub const FIELD_COUNT: usize = 4;
+    pub const FIELD_COUNT: usize = 3;
+    pub const FIELD_SIZES: [usize; 3] = [8, 1, 1];
+    pub const TOTAL_SIZE: usize = 10;
 
     pub fn characteristic(mut self, v: Characteristic) -> Self {
         self.characteristic = v;
@@ -825,11 +719,6 @@ impl CompactNFTInfoBuilder {
         self.state = v;
         self
     }
-
-    pub fn receiver_lock(mut self, v: Bytes) -> Self {
-        self.receiver_lock = v;
-        self
-    }
 }
 impl molecule::prelude::Builder for CompactNFTInfoBuilder {
     type Entity = CompactNFTInfo;
@@ -837,32 +726,13 @@ impl molecule::prelude::Builder for CompactNFTInfoBuilder {
     const NAME: &'static str = "CompactNFTInfoBuilder";
 
     fn expected_length(&self) -> usize {
-        molecule::NUMBER_SIZE * (Self::FIELD_COUNT + 1)
-            + self.characteristic.as_slice().len()
-            + self.configure.as_slice().len()
-            + self.state.as_slice().len()
-            + self.receiver_lock.as_slice().len()
+        Self::TOTAL_SIZE
     }
 
     fn write<W: molecule::io::Write>(&self, writer: &mut W) -> molecule::io::Result<()> {
-        let mut total_size = molecule::NUMBER_SIZE * (Self::FIELD_COUNT + 1);
-        let mut offsets = Vec::with_capacity(Self::FIELD_COUNT);
-        offsets.push(total_size);
-        total_size += self.characteristic.as_slice().len();
-        offsets.push(total_size);
-        total_size += self.configure.as_slice().len();
-        offsets.push(total_size);
-        total_size += self.state.as_slice().len();
-        offsets.push(total_size);
-        total_size += self.receiver_lock.as_slice().len();
-        writer.write_all(&molecule::pack_number(total_size as molecule::Number))?;
-        for offset in offsets.into_iter() {
-            writer.write_all(&molecule::pack_number(offset as molecule::Number))?;
-        }
         writer.write_all(self.characteristic.as_slice())?;
         writer.write_all(self.configure.as_slice())?;
         writer.write_all(self.state.as_slice())?;
-        writer.write_all(self.receiver_lock.as_slice())?;
         Ok(())
     }
 
@@ -904,21 +774,19 @@ impl ::core::fmt::Display for CompactNFTInfoVec {
 }
 impl ::core::default::Default for CompactNFTInfoVec {
     fn default() -> Self {
-        let v: Vec<u8> = vec![4, 0, 0, 0];
+        let v: Vec<u8> = vec![0, 0, 0, 0];
         CompactNFTInfoVec::new_unchecked(v.into())
     }
 }
 impl CompactNFTInfoVec {
+    pub const ITEM_SIZE: usize = 10;
+
     pub fn total_size(&self) -> usize {
-        molecule::unpack_number(self.as_slice()) as usize
+        molecule::NUMBER_SIZE * (self.item_count() + 1)
     }
 
     pub fn item_count(&self) -> usize {
-        if self.total_size() == molecule::NUMBER_SIZE {
-            0
-        } else {
-            (molecule::unpack_number(&self.as_slice()[molecule::NUMBER_SIZE..]) as usize / 4) - 1
-        }
+        molecule::unpack_number(self.as_slice()) as usize
     }
 
     pub fn len(&self) -> usize {
@@ -938,16 +806,9 @@ impl CompactNFTInfoVec {
     }
 
     pub fn get_unchecked(&self, idx: usize) -> CompactNFTInfo {
-        let slice = self.as_slice();
-        let start_idx = molecule::NUMBER_SIZE * (1 + idx);
-        let start = molecule::unpack_number(&slice[start_idx..]) as usize;
-        if idx == self.len() - 1 {
-            CompactNFTInfo::new_unchecked(self.0.slice(start..))
-        } else {
-            let end_idx = start_idx + molecule::NUMBER_SIZE;
-            let end = molecule::unpack_number(&slice[end_idx..]) as usize;
-            CompactNFTInfo::new_unchecked(self.0.slice(start..end))
-        }
+        let start = molecule::NUMBER_SIZE + Self::ITEM_SIZE * idx;
+        let end = start + Self::ITEM_SIZE;
+        CompactNFTInfo::new_unchecked(self.0.slice(start..end))
     }
 
     pub fn as_reader<'r>(&'r self) -> CompactNFTInfoVecReader<'r> {
@@ -1017,16 +878,14 @@ impl<'r> ::core::fmt::Display for CompactNFTInfoVecReader<'r> {
     }
 }
 impl<'r> CompactNFTInfoVecReader<'r> {
+    pub const ITEM_SIZE: usize = 10;
+
     pub fn total_size(&self) -> usize {
-        molecule::unpack_number(self.as_slice()) as usize
+        molecule::NUMBER_SIZE * (self.item_count() + 1)
     }
 
     pub fn item_count(&self) -> usize {
-        if self.total_size() == molecule::NUMBER_SIZE {
-            0
-        } else {
-            (molecule::unpack_number(&self.as_slice()[molecule::NUMBER_SIZE..]) as usize / 4) - 1
-        }
+        molecule::unpack_number(self.as_slice()) as usize
     }
 
     pub fn len(&self) -> usize {
@@ -1046,16 +905,9 @@ impl<'r> CompactNFTInfoVecReader<'r> {
     }
 
     pub fn get_unchecked(&self, idx: usize) -> CompactNFTInfoReader<'r> {
-        let slice = self.as_slice();
-        let start_idx = molecule::NUMBER_SIZE * (1 + idx);
-        let start = molecule::unpack_number(&slice[start_idx..]) as usize;
-        if idx == self.len() - 1 {
-            CompactNFTInfoReader::new_unchecked(&self.as_slice()[start..])
-        } else {
-            let end_idx = start_idx + molecule::NUMBER_SIZE;
-            let end = molecule::unpack_number(&slice[end_idx..]) as usize;
-            CompactNFTInfoReader::new_unchecked(&self.as_slice()[start..end])
-        }
+        let start = molecule::NUMBER_SIZE + Self::ITEM_SIZE * idx;
+        let end = start + Self::ITEM_SIZE;
+        CompactNFTInfoReader::new_unchecked(&self.as_slice()[start..end])
     }
 }
 impl<'r> molecule::prelude::Reader<'r> for CompactNFTInfoVecReader<'r> {
@@ -1075,46 +927,22 @@ impl<'r> molecule::prelude::Reader<'r> for CompactNFTInfoVecReader<'r> {
         self.0
     }
 
-    fn verify(slice: &[u8], compatible: bool) -> molecule::error::VerificationResult<()> {
+    fn verify(slice: &[u8], _compatible: bool) -> molecule::error::VerificationResult<()> {
         use molecule::verification_error as ve;
         let slice_len = slice.len();
         if slice_len < molecule::NUMBER_SIZE {
             return ve!(Self, HeaderIsBroken, molecule::NUMBER_SIZE, slice_len);
         }
-        let total_size = molecule::unpack_number(slice) as usize;
-        if slice_len != total_size {
-            return ve!(Self, TotalSizeNotMatch, total_size, slice_len);
-        }
-        if slice_len == molecule::NUMBER_SIZE {
+        let item_count = molecule::unpack_number(slice) as usize;
+        if item_count == 0 {
+            if slice_len != molecule::NUMBER_SIZE {
+                return ve!(Self, TotalSizeNotMatch, molecule::NUMBER_SIZE, slice_len);
+            }
             return Ok(());
         }
-        if slice_len < molecule::NUMBER_SIZE * 2 {
-            return ve!(
-                Self,
-                TotalSizeNotMatch,
-                molecule::NUMBER_SIZE * 2,
-                slice_len
-            );
-        }
-        let offset_first = molecule::unpack_number(&slice[molecule::NUMBER_SIZE..]) as usize;
-        if offset_first % molecule::NUMBER_SIZE != 0 || offset_first < molecule::NUMBER_SIZE * 2 {
-            return ve!(Self, OffsetsNotMatch);
-        }
-        if slice_len < offset_first {
-            return ve!(Self, HeaderIsBroken, offset_first, slice_len);
-        }
-        let mut offsets: Vec<usize> = slice[molecule::NUMBER_SIZE..offset_first]
-            .chunks_exact(molecule::NUMBER_SIZE)
-            .map(|x| molecule::unpack_number(x) as usize)
-            .collect();
-        offsets.push(total_size);
-        if offsets.windows(2).any(|i| i[0] > i[1]) {
-            return ve!(Self, OffsetsNotMatch);
-        }
-        for pair in offsets.windows(2) {
-            let start = pair[0];
-            let end = pair[1];
-            CompactNFTInfoReader::verify(&slice[start..end], compatible)?;
+        let total_size = molecule::NUMBER_SIZE + Self::ITEM_SIZE * item_count;
+        if slice_len != total_size {
+            return ve!(Self, TotalSizeNotMatch, total_size, slice_len);
         }
         Ok(())
     }
@@ -1122,6 +950,8 @@ impl<'r> molecule::prelude::Reader<'r> for CompactNFTInfoVecReader<'r> {
 #[derive(Debug, Default)]
 pub struct CompactNFTInfoVecBuilder(pub(crate) Vec<CompactNFTInfo>);
 impl CompactNFTInfoVecBuilder {
+    pub const ITEM_SIZE: usize = 10;
+
     pub fn set(mut self, v: Vec<CompactNFTInfo>) -> Self {
         self.0 = v;
         self
@@ -1145,38 +975,13 @@ impl molecule::prelude::Builder for CompactNFTInfoVecBuilder {
     const NAME: &'static str = "CompactNFTInfoVecBuilder";
 
     fn expected_length(&self) -> usize {
-        molecule::NUMBER_SIZE * (self.0.len() + 1)
-            + self
-                .0
-                .iter()
-                .map(|inner| inner.as_slice().len())
-                .sum::<usize>()
+        molecule::NUMBER_SIZE + Self::ITEM_SIZE * self.0.len()
     }
 
     fn write<W: molecule::io::Write>(&self, writer: &mut W) -> molecule::io::Result<()> {
-        let item_count = self.0.len();
-        if item_count == 0 {
-            writer.write_all(&molecule::pack_number(
-                molecule::NUMBER_SIZE as molecule::Number,
-            ))?;
-        } else {
-            let (total_size, offsets) = self.0.iter().fold(
-                (
-                    molecule::NUMBER_SIZE * (item_count + 1),
-                    Vec::with_capacity(item_count),
-                ),
-                |(start, mut offsets), inner| {
-                    offsets.push(start);
-                    (start + inner.as_slice().len(), offsets)
-                },
-            );
-            writer.write_all(&molecule::pack_number(total_size as molecule::Number))?;
-            for offset in offsets.into_iter() {
-                writer.write_all(&molecule::pack_number(offset as molecule::Number))?;
-            }
-            for inner in self.0.iter() {
-                writer.write_all(inner.as_slice())?;
-            }
+        writer.write_all(&molecule::pack_number(self.0.len() as molecule::Number))?;
+        for inner in &self.0[..] {
+            writer.write_all(inner.as_slice())?;
         }
         Ok(())
     }
@@ -1241,8 +1046,8 @@ impl<'t: 'r, 'r> ::core::iter::ExactSizeIterator for CompactNFTInfoVecReaderIter
     }
 }
 #[derive(Clone)]
-pub struct CompactNFTMintEntries(molecule::bytes::Bytes);
-impl ::core::fmt::LowerHex for CompactNFTMintEntries {
+pub struct UpdateCompactNFTEntries(molecule::bytes::Bytes);
+impl ::core::fmt::LowerHex for UpdateCompactNFTEntries {
     fn fmt(&self, f: &mut ::core::fmt::Formatter) -> ::core::fmt::Result {
         use molecule::hex_string;
         if f.alternate() {
@@ -1251,17 +1056,17 @@ impl ::core::fmt::LowerHex for CompactNFTMintEntries {
         write!(f, "{}", hex_string(self.as_slice()))
     }
 }
-impl ::core::fmt::Debug for CompactNFTMintEntries {
+impl ::core::fmt::Debug for UpdateCompactNFTEntries {
     fn fmt(&self, f: &mut ::core::fmt::Formatter) -> ::core::fmt::Result {
         write!(f, "{}({:#x})", Self::NAME, self)
     }
 }
-impl ::core::fmt::Display for CompactNFTMintEntries {
+impl ::core::fmt::Display for UpdateCompactNFTEntries {
     fn fmt(&self, f: &mut ::core::fmt::Formatter) -> ::core::fmt::Result {
         write!(f, "{} {{ ", Self::NAME)?;
         write!(f, "{}: {}", "nft_ids", self.nft_ids())?;
         write!(f, ", {}: {}", "nft_infos", self.nft_infos())?;
-        write!(f, ", {}: {}", "proof", self.proof())?;
+        write!(f, ", {}: {}", "kv_proof", self.kv_proof())?;
         let extra_count = self.count_extra_fields();
         if extra_count != 0 {
             write!(f, ", .. ({} fields)", extra_count)?;
@@ -1269,15 +1074,15 @@ impl ::core::fmt::Display for CompactNFTMintEntries {
         write!(f, " }}")
     }
 }
-impl ::core::default::Default for CompactNFTMintEntries {
+impl ::core::default::Default for UpdateCompactNFTEntries {
     fn default() -> Self {
         let v: Vec<u8> = vec![
-            28, 0, 0, 0, 16, 0, 0, 0, 20, 0, 0, 0, 24, 0, 0, 0, 0, 0, 0, 0, 4, 0, 0, 0, 0, 0, 0, 0,
+            28, 0, 0, 0, 16, 0, 0, 0, 20, 0, 0, 0, 24, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
         ];
-        CompactNFTMintEntries::new_unchecked(v.into())
+        UpdateCompactNFTEntries::new_unchecked(v.into())
     }
 }
-impl CompactNFTMintEntries {
+impl UpdateCompactNFTEntries {
     pub const FIELD_COUNT: usize = 3;
 
     pub fn total_size(&self) -> usize {
@@ -1314,7 +1119,7 @@ impl CompactNFTMintEntries {
         CompactNFTInfoVec::new_unchecked(self.0.slice(start..end))
     }
 
-    pub fn proof(&self) -> Bytes {
+    pub fn kv_proof(&self) -> Bytes {
         let slice = self.as_slice();
         let start = molecule::unpack_number(&slice[12..]) as usize;
         if self.has_extra_fields() {
@@ -1325,17 +1130,17 @@ impl CompactNFTMintEntries {
         }
     }
 
-    pub fn as_reader<'r>(&'r self) -> CompactNFTMintEntriesReader<'r> {
-        CompactNFTMintEntriesReader::new_unchecked(self.as_slice())
+    pub fn as_reader<'r>(&'r self) -> UpdateCompactNFTEntriesReader<'r> {
+        UpdateCompactNFTEntriesReader::new_unchecked(self.as_slice())
     }
 }
-impl molecule::prelude::Entity for CompactNFTMintEntries {
-    type Builder = CompactNFTMintEntriesBuilder;
+impl molecule::prelude::Entity for UpdateCompactNFTEntries {
+    type Builder = UpdateCompactNFTEntriesBuilder;
 
-    const NAME: &'static str = "CompactNFTMintEntries";
+    const NAME: &'static str = "UpdateCompactNFTEntries";
 
     fn new_unchecked(data: molecule::bytes::Bytes) -> Self {
-        CompactNFTMintEntries(data)
+        UpdateCompactNFTEntries(data)
     }
 
     fn as_bytes(&self) -> molecule::bytes::Bytes {
@@ -1347,11 +1152,11 @@ impl molecule::prelude::Entity for CompactNFTMintEntries {
     }
 
     fn from_slice(slice: &[u8]) -> molecule::error::VerificationResult<Self> {
-        CompactNFTMintEntriesReader::from_slice(slice).map(|reader| reader.to_entity())
+        UpdateCompactNFTEntriesReader::from_slice(slice).map(|reader| reader.to_entity())
     }
 
     fn from_compatible_slice(slice: &[u8]) -> molecule::error::VerificationResult<Self> {
-        CompactNFTMintEntriesReader::from_compatible_slice(slice).map(|reader| reader.to_entity())
+        UpdateCompactNFTEntriesReader::from_compatible_slice(slice).map(|reader| reader.to_entity())
     }
 
     fn new_builder() -> Self::Builder {
@@ -1362,12 +1167,12 @@ impl molecule::prelude::Entity for CompactNFTMintEntries {
         Self::new_builder()
             .nft_ids(self.nft_ids())
             .nft_infos(self.nft_infos())
-            .proof(self.proof())
+            .kv_proof(self.kv_proof())
     }
 }
 #[derive(Clone, Copy)]
-pub struct CompactNFTMintEntriesReader<'r>(&'r [u8]);
-impl<'r> ::core::fmt::LowerHex for CompactNFTMintEntriesReader<'r> {
+pub struct UpdateCompactNFTEntriesReader<'r>(&'r [u8]);
+impl<'r> ::core::fmt::LowerHex for UpdateCompactNFTEntriesReader<'r> {
     fn fmt(&self, f: &mut ::core::fmt::Formatter) -> ::core::fmt::Result {
         use molecule::hex_string;
         if f.alternate() {
@@ -1376,17 +1181,17 @@ impl<'r> ::core::fmt::LowerHex for CompactNFTMintEntriesReader<'r> {
         write!(f, "{}", hex_string(self.as_slice()))
     }
 }
-impl<'r> ::core::fmt::Debug for CompactNFTMintEntriesReader<'r> {
+impl<'r> ::core::fmt::Debug for UpdateCompactNFTEntriesReader<'r> {
     fn fmt(&self, f: &mut ::core::fmt::Formatter) -> ::core::fmt::Result {
         write!(f, "{}({:#x})", Self::NAME, self)
     }
 }
-impl<'r> ::core::fmt::Display for CompactNFTMintEntriesReader<'r> {
+impl<'r> ::core::fmt::Display for UpdateCompactNFTEntriesReader<'r> {
     fn fmt(&self, f: &mut ::core::fmt::Formatter) -> ::core::fmt::Result {
         write!(f, "{} {{ ", Self::NAME)?;
         write!(f, "{}: {}", "nft_ids", self.nft_ids())?;
         write!(f, ", {}: {}", "nft_infos", self.nft_infos())?;
-        write!(f, ", {}: {}", "proof", self.proof())?;
+        write!(f, ", {}: {}", "kv_proof", self.kv_proof())?;
         let extra_count = self.count_extra_fields();
         if extra_count != 0 {
             write!(f, ", .. ({} fields)", extra_count)?;
@@ -1394,7 +1199,7 @@ impl<'r> ::core::fmt::Display for CompactNFTMintEntriesReader<'r> {
         write!(f, " }}")
     }
 }
-impl<'r> CompactNFTMintEntriesReader<'r> {
+impl<'r> UpdateCompactNFTEntriesReader<'r> {
     pub const FIELD_COUNT: usize = 3;
 
     pub fn total_size(&self) -> usize {
@@ -1431,7 +1236,7 @@ impl<'r> CompactNFTMintEntriesReader<'r> {
         CompactNFTInfoVecReader::new_unchecked(&self.as_slice()[start..end])
     }
 
-    pub fn proof(&self) -> BytesReader<'r> {
+    pub fn kv_proof(&self) -> BytesReader<'r> {
         let slice = self.as_slice();
         let start = molecule::unpack_number(&slice[12..]) as usize;
         if self.has_extra_fields() {
@@ -1442,17 +1247,17 @@ impl<'r> CompactNFTMintEntriesReader<'r> {
         }
     }
 }
-impl<'r> molecule::prelude::Reader<'r> for CompactNFTMintEntriesReader<'r> {
-    type Entity = CompactNFTMintEntries;
+impl<'r> molecule::prelude::Reader<'r> for UpdateCompactNFTEntriesReader<'r> {
+    type Entity = UpdateCompactNFTEntries;
 
-    const NAME: &'static str = "CompactNFTMintEntriesReader";
+    const NAME: &'static str = "UpdateCompactNFTEntriesReader";
 
     fn to_entity(&self) -> Self::Entity {
         Self::Entity::new_unchecked(self.as_slice().to_owned().into())
     }
 
     fn new_unchecked(slice: &'r [u8]) -> Self {
-        CompactNFTMintEntriesReader(slice)
+        UpdateCompactNFTEntriesReader(slice)
     }
 
     fn as_slice(&self) -> &'r [u8] {
@@ -1503,12 +1308,12 @@ impl<'r> molecule::prelude::Reader<'r> for CompactNFTMintEntriesReader<'r> {
     }
 }
 #[derive(Debug, Default)]
-pub struct CompactNFTMintEntriesBuilder {
+pub struct UpdateCompactNFTEntriesBuilder {
     pub(crate) nft_ids:   CompactNFTIdVec,
     pub(crate) nft_infos: CompactNFTInfoVec,
-    pub(crate) proof:     Bytes,
+    pub(crate) kv_proof:  Bytes,
 }
-impl CompactNFTMintEntriesBuilder {
+impl UpdateCompactNFTEntriesBuilder {
     pub const FIELD_COUNT: usize = 3;
 
     pub fn nft_ids(mut self, v: CompactNFTIdVec) -> Self {
@@ -1521,21 +1326,21 @@ impl CompactNFTMintEntriesBuilder {
         self
     }
 
-    pub fn proof(mut self, v: Bytes) -> Self {
-        self.proof = v;
+    pub fn kv_proof(mut self, v: Bytes) -> Self {
+        self.kv_proof = v;
         self
     }
 }
-impl molecule::prelude::Builder for CompactNFTMintEntriesBuilder {
-    type Entity = CompactNFTMintEntries;
+impl molecule::prelude::Builder for UpdateCompactNFTEntriesBuilder {
+    type Entity = UpdateCompactNFTEntries;
 
-    const NAME: &'static str = "CompactNFTMintEntriesBuilder";
+    const NAME: &'static str = "UpdateCompactNFTEntriesBuilder";
 
     fn expected_length(&self) -> usize {
         molecule::NUMBER_SIZE * (Self::FIELD_COUNT + 1)
             + self.nft_ids.as_slice().len()
             + self.nft_infos.as_slice().len()
-            + self.proof.as_slice().len()
+            + self.kv_proof.as_slice().len()
     }
 
     fn write<W: molecule::io::Write>(&self, writer: &mut W) -> molecule::io::Result<()> {
@@ -1546,14 +1351,14 @@ impl molecule::prelude::Builder for CompactNFTMintEntriesBuilder {
         offsets.push(total_size);
         total_size += self.nft_infos.as_slice().len();
         offsets.push(total_size);
-        total_size += self.proof.as_slice().len();
+        total_size += self.kv_proof.as_slice().len();
         writer.write_all(&molecule::pack_number(total_size as molecule::Number))?;
         for offset in offsets.into_iter() {
             writer.write_all(&molecule::pack_number(offset as molecule::Number))?;
         }
         writer.write_all(self.nft_ids.as_slice())?;
         writer.write_all(self.nft_infos.as_slice())?;
-        writer.write_all(self.proof.as_slice())?;
+        writer.write_all(self.kv_proof.as_slice())?;
         Ok(())
     }
 
@@ -1561,6 +1366,6 @@ impl molecule::prelude::Builder for CompactNFTMintEntriesBuilder {
         let mut inner = Vec::with_capacity(self.expected_length());
         self.write(&mut inner)
             .unwrap_or_else(|_| panic!("{} build should be ok", Self::NAME));
-        CompactNFTMintEntries::new_unchecked(inner.into())
+        UpdateCompactNFTEntries::new_unchecked(inner.into())
     }
 }
