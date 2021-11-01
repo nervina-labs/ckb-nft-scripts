@@ -47,8 +47,9 @@ pub enum Error {
     CompactIssuerIdOrClassIdInvalid,
     ClassCompactSmtRootError,
     CompactNFTDataInvalid,
-    CompactClassCellDepInvalid,
+    CompactClassCellDepInvalid = 45,
     CompactNFTSmtRootError,
+    CompactNFTClassDepError,
 }
 
 impl From<SysError> for Error {

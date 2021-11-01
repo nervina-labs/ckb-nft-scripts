@@ -93,8 +93,6 @@ fn validate_type_and_verify_smt(registry_type: &Script) -> Result<(), Error> {
         let mut input_registry_smt_root_hash = [0u8; 32];
         input_registry_smt_root_hash.copy_from_slice(&input_registry_smt_root);
 
-        debug!("input root hash: {:?}", input_registry_smt_root_hash);
-
         values.clear();
         for _ in registry_entries.kv_state() {
             values.extend(&ALL_ZEROS);

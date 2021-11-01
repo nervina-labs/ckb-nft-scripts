@@ -55,6 +55,14 @@ pub fn load_class_type(nft_args: &Bytes) -> Script {
         .build()
 }
 
+pub fn load_class_type_with_args(class_args: &Bytes) -> Script {
+    Script::new_builder()
+        .code_hash(CLASS_TYPE_CODE_HASH.pack())
+        .args(class_args[..].pack())
+        .hash_type(Byte::new(TYPE))
+        .build()
+}
+
 pub fn count_cells_by_type(source: Source, predicate: &dyn Fn(&Script) -> bool) -> usize {
     QueryIter::new(load_cell_type, source)
         .filter(|type_opt| parse_type_opt(&type_opt, predicate))
