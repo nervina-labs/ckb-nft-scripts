@@ -41,11 +41,14 @@ pub enum Error {
     LockedNFTCannotUpdateCharacteristic,
     GroupInputWitnessNoneError,
     WitnessTypeParseError,
-    CompactRegistryTypeArgsNotEqualLockHash,
+    CompactTypeArgsNotEqualLockHash,
     SMTProofVerifyFailed = 40,
-    CompactRegistryCellPositionError,
+    CompactCellPositionError,
     CompactIssuerIdOrClassIdInvalid,
     ClassCompactSmtRootError,
+    CompactNFTDataInvalid,
+    CompactClassCellDepInvalid,
+    CompactNFTSmtRootError,
 }
 
 impl From<SysError> for Error {

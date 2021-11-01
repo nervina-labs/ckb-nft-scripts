@@ -15,20 +15,24 @@ use script_utils::{error::Error, smt::LibCKBSmt};
 const TYPE_ARGS_LEN: usize = 20;
 const REGISTRY_SMT_ROOT_HASH: usize = 32;
 
+fn check_type_args_not_equal_lock_hash(type_: &Script, source: Source) -> bool {
+    let lock_hash = load_cell_lock_hash(0, source)?;
+    let type_args: Bytes = type_.args().unpack();
+    type_args[..] != lock_hash[0..TYPE_ARGS_LEN]
+}
+
 fn check_type_args_equal_lock_hash(registry_type: &Script) -> Result<(), Error> {
     // Outputs[0] must be compact_registry_cell whose type_args must be equal the lock_hash[0..20]
     match load_cell_type(0, Source::Output)? {
         Some(type_) => {
             if registry_type.as_slice() != type_.as_slice() {
-                return Err(Error::CompactRegistryCellPositionError);
+                return Err(Error::CompactCellPositionError);
             }
-            let lock_hash = load_cell_lock_hash(0, Source::Output)?;
-            let type_args: Bytes = type_.args().unpack();
-            if type_args[..] != lock_hash[0..TYPE_ARGS_LEN] {
-                return Err(Error::CompactRegistryTypeArgsNotEqualLockHash);
+            if check_type_args_not_equal_lock_hash(&type_, Source::Output) {
+                return Err(Error::CompactTypeArgsNotEqualLockHash);
             }
         }
-        None => return Err(Error::CompactRegistryCellPositionError),
+        None => return Err(Error::CompactCellPositionError),
     }
 
     // If the inputs[0] is compact_registry_cell, then its type_args must be equal to
@@ -37,10 +41,8 @@ fn check_type_args_equal_lock_hash(registry_type: &Script) -> Result<(), Error> 
         if registry_type.as_slice() != type_.as_slice() {
             return Ok(());
         }
-        let lock_hash = load_cell_lock_hash(0, Source::Input)?;
-        let type_args: Bytes = type_.args().unpack();
-        if type_args[..] != lock_hash[0..TYPE_ARGS_LEN] {
-            return Err(Error::CompactRegistryTypeArgsNotEqualLockHash);
+        if check_type_args_not_equal_lock_hash(&type_, Source::Input) {
+            return Err(Error::CompactTypeArgsNotEqualLockHash);
         }
     };
 

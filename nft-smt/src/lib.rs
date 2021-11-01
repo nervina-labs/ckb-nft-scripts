@@ -5,6 +5,7 @@
 
 pub mod mint;
 pub mod registry;
+pub mod transfer;
 pub mod smt;
 
 cfg_if::cfg_if! {

@@ -24,9 +24,9 @@ const MAX_CYCLES: u64 = 70_000_000;
 const LENGTH_NOT_ENOUGH: i8 = 3;
 const TYPE_ARGS_INVALID: i8 = 7;
 const WITNESS_TYPE_PARSE_ERROR: i8 = 38;
-const COMPACT_REGISTRY_TYPE_ARGS_NOT_EQUAL_LOCK_HASH: i8 = 39;
+const COMPACT_TYPE_ARGS_NOT_EQUAL_LOCK_HASH: i8 = 39;
 const SMT_PROOF_VERIFY_FAILED: i8 = 40;
-const COMPACT_REGISTRY_CELL_POSITION_ERROR: i8 = 41;
+const COMPACT_CELL_POSITION_ERROR: i8 = 41;
 
 #[derive(PartialEq)]
 enum Action {
@@ -41,7 +41,7 @@ enum RegistryError {
     LengthNotEnough,
     TypeArgsInvalid,
     WitnessTypeParseError,
-    CompactRegistryTypeArgsNotEqualLockHash,
+    CompactTypeArgsNotEqualLockHash,
     SMTProofVerifyFailed,
 }
 
@@ -150,7 +150,7 @@ fn create_test_context(
 
     let registry_type_args = match registry_error {
         RegistryError::TypeArgsInvalid => Bytes::copy_from_slice(&lock_hash_160[0..10]),
-        RegistryError::CompactRegistryTypeArgsNotEqualLockHash => {
+        RegistryError::CompactTypeArgsNotEqualLockHash => {
             let error_lock_hash = [0u8; 20];
             Bytes::copy_from_slice(&error_lock_hash[..])
         }
@@ -270,9 +270,9 @@ fn test_destroy_registry_cell_error() {
     let err = context.verify_tx(&tx, MAX_CYCLES).unwrap_err();
     let script_cell_index = 0;
     let errors = vec![
-        ScriptError::ValidationFailure(COMPACT_REGISTRY_CELL_POSITION_ERROR)
+        ScriptError::ValidationFailure(COMPACT_CELL_POSITION_ERROR)
             .input_type_script(script_cell_index),
-        ScriptError::ValidationFailure(COMPACT_REGISTRY_CELL_POSITION_ERROR)
+        ScriptError::ValidationFailure(COMPACT_CELL_POSITION_ERROR)
             .output_type_script(script_cell_index),
     ];
     assert_errors_contain!(err, errors);
@@ -282,7 +282,7 @@ fn test_destroy_registry_cell_error() {
 fn test_registry_type_args_not_equal_to_lock_hash_error() {
     let (mut context, tx) = create_test_context(
         Action::Create,
-        RegistryError::CompactRegistryTypeArgsNotEqualLockHash,
+        RegistryError::CompactTypeArgsNotEqualLockHash,
     );
 
     let tx = context.complete_tx(tx);
@@ -291,7 +291,7 @@ fn test_registry_type_args_not_equal_to_lock_hash_error() {
     let script_cell_index = 0;
     assert_error_eq!(
         err,
-        ScriptError::ValidationFailure(COMPACT_REGISTRY_TYPE_ARGS_NOT_EQUAL_LOCK_HASH)
+        ScriptError::ValidationFailure(COMPACT_TYPE_ARGS_NOT_EQUAL_LOCK_HASH)
             .output_type_script(script_cell_index)
     );
 }
