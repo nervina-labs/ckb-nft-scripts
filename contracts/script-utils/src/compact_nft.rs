@@ -9,8 +9,8 @@ type Byte32Opt = Option<[u8; 32]>;
 /// 2) nft_smt_root: [u8; 32]
 #[derive(Debug, Clone)]
 pub struct CompactNft {
-    pub version:        u8,
-    pub nft_smt_root:   Byte32Opt,
+    pub version:      u8,
+    pub nft_smt_root: Byte32Opt,
 }
 
 impl CompactNft {

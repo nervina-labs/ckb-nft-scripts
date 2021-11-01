@@ -21,6 +21,8 @@ const CLASS_TYPE_CODE_HASH: [u8; 32] = [
     148, 231, 175, 39, 187, 56, 149, 135, 144, 227, 252,
 ];
 
+pub const ALL_ZEROS: [u8; 32] = [0u8; 32];
+
 pub enum Action {
     Create,
     Update,

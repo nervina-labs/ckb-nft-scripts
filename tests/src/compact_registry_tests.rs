@@ -45,7 +45,7 @@ enum RegistryError {
     SMTProofVerifyFailed,
 }
 
-fn generate_smt_data() -> ([u8; 32], Vec<u8>) {
+fn generate_smt_data() -> ([u8; 32], [u8; 32], Vec<u8>) {
     let leaves_count = 100;
     let update_leaves_count = 100;
     let mut smt = SMT::default();
@@ -55,6 +55,10 @@ fn generate_smt_data() -> ([u8; 32], Vec<u8>) {
         let value: H256 = H256::from([255u8; 32]);
         smt.update(key, value).expect("SMT update leave error");
     }
+
+    let old_smt_root = smt.root().clone();
+    let mut old_root_hash_bytes = [0u8; 32];
+    old_root_hash_bytes.copy_from_slice(old_smt_root.as_slice());
 
     let mut update_leaves: Vec<(H256, H256)> = Vec::with_capacity(update_leaves_count);
     for _ in 0..update_leaves_count {
@@ -104,7 +108,11 @@ fn generate_smt_data() -> ([u8; 32], Vec<u8>) {
         .kv_proof(merkel_proof_bytes)
         .build();
 
-    (root_hash_bytes, Vec::from(witness_data.as_slice()))
+    (
+        old_root_hash_bytes,
+        root_hash_bytes,
+        Vec::from(witness_data.as_slice()),
+    )
 }
 
 fn create_test_context(
@@ -157,6 +165,8 @@ fn create_test_context(
         _ => Bytes::copy_from_slice(lock_hash_160),
     };
 
+    let (old_root_hash, root_hash, witness_data) = generate_smt_data();
+
     let registry_type_script = context
         .build_script(&registry_out_point, registry_type_args)
         .expect("script");
@@ -166,7 +176,7 @@ fn create_test_context(
             .lock(lock_script.clone())
             .type_(Some(registry_type_script.clone()).pack())
             .build(),
-        Bytes::new(),
+        Bytes::from(Vec::from(&old_root_hash[..])),
     );
     let registry_input = CellInput::new_builder()
         .previous_output(registry_input_out_point.clone())
@@ -193,8 +203,6 @@ fn create_test_context(
             .type_(Some(registry_type_script.clone()).pack())
             .build()],
     };
-
-    let (root_hash, witness_data) = generate_smt_data();
 
     let outputs_data: Vec<Bytes> = match registry_error {
         RegistryError::LengthNotEnough => vec![Bytes::from(hex::decode("00000000000000").unwrap())],

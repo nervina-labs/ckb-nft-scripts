@@ -6,7 +6,12 @@ use ckb_std::{
 };
 use core::result::Result;
 use nft_smt::{mint::CompactNFTMintEntries, smt::blake2b_256};
-use script_utils::{class::Class, error::Error, helper::u32_from_slice, smt::LibCKBSmt};
+use script_utils::{
+    class::Class,
+    error::Error,
+    helper::{u32_from_slice, ALL_ZEROS},
+    smt::LibCKBSmt,
+};
 
 const RESERVED: [u8; 4] = [0u8; 4];
 
@@ -50,8 +55,6 @@ pub fn check_compact_nft_mint(
         for token_id in input_class.issued..output_class.issued {
             class_cell_token_ids.push(token_id);
         }
-        debug!("token_ids: {:?}", token_ids);
-        debug!("class_cell_token_ids: {:?}", token_ids);
         if token_ids != class_cell_token_ids {
             return Err(Error::NFTTokenIdIncreaseError);
         }
@@ -72,6 +75,21 @@ pub fn check_compact_nft_mint(
         if let Some(mint_smt_root) = output_class.nft_smt_root {
             lib_ckb_smt
                 .smt_verify(&mint_smt_root[..], &keys[..], &values[..], &proof[..])
+                .map_err(|_| Error::SMTProofVerifyFailed)?;
+        }
+
+        if let Some(input_class_smt_root) = input_class.nft_smt_root {
+            values.clear();
+            for _ in mint_entries.nft_infos() {
+                values.extend(&ALL_ZEROS);
+            }
+            lib_ckb_smt
+                .smt_verify(
+                    &input_class_smt_root[..],
+                    &keys[..],
+                    &values[..],
+                    &proof[..],
+                )
                 .map_err(|_| Error::SMTProofVerifyFailed)?;
         }
     }

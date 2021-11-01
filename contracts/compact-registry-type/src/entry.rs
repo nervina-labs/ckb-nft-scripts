@@ -10,46 +10,31 @@ use ckb_std::{
 };
 use core::result::Result;
 use nft_smt::registry::CompactNFTRegistryEntries;
-use script_utils::{error::Error, smt::LibCKBSmt};
+use script_utils::{error::Error, helper::ALL_ZEROS, smt::LibCKBSmt};
 
 const TYPE_ARGS_LEN: usize = 20;
 const REGISTRY_SMT_ROOT_HASH: usize = 32;
 
-fn check_type_args_not_equal_lock_hash(type_: &Script, source: Source) -> bool {
+fn check_type_args_not_equal_lock_hash(type_: &Script, source: Source) -> Result<bool, Error> {
     let lock_hash = load_cell_lock_hash(0, source)?;
     let type_args: Bytes = type_.args().unpack();
-    type_args[..] != lock_hash[0..TYPE_ARGS_LEN]
+    Ok(type_args[..] != lock_hash[0..TYPE_ARGS_LEN])
 }
 
-fn check_type_args_equal_lock_hash(registry_type: &Script) -> Result<(), Error> {
+fn validate_type_and_verify_smt(registry_type: &Script) -> Result<(), Error> {
     // Outputs[0] must be compact_registry_cell whose type_args must be equal the lock_hash[0..20]
     match load_cell_type(0, Source::Output)? {
         Some(type_) => {
             if registry_type.as_slice() != type_.as_slice() {
                 return Err(Error::CompactCellPositionError);
             }
-            if check_type_args_not_equal_lock_hash(&type_, Source::Output) {
+            if check_type_args_not_equal_lock_hash(&type_, Source::Output)? {
                 return Err(Error::CompactTypeArgsNotEqualLockHash);
             }
         }
         None => return Err(Error::CompactCellPositionError),
     }
 
-    // If the inputs[0] is compact_registry_cell, then its type_args must be equal to
-    // lock_hash[0..20] and its lock script must be equal to outputs.compact_registry_cell.
-    if let Some(type_) = load_cell_type(0, Source::Input)? {
-        if registry_type.as_slice() != type_.as_slice() {
-            return Ok(());
-        }
-        if check_type_args_not_equal_lock_hash(&type_, Source::Input) {
-            return Err(Error::CompactTypeArgsNotEqualLockHash);
-        }
-    };
-
-    Ok(())
-}
-
-fn verify_smt_proof() -> Result<(), Error> {
     // Parse cell data to get registry smt root hash
     let registry_smt_root = load_cell_data(0, Source::Output).or(Err(Error::Encoding))?;
     if registry_smt_root.len() != REGISTRY_SMT_ROOT_HASH {
@@ -57,8 +42,6 @@ fn verify_smt_proof() -> Result<(), Error> {
     }
     let mut registry_smt_root_hash = [0u8; 32];
     registry_smt_root_hash.copy_from_slice(&registry_smt_root);
-
-    debug!("root hash: {:?}", registry_smt_root_hash);
 
     // Parse witness_args.input_type to get smt leaves and proof to verify smt proof
     let registry_witness_type = load_witness_args(0, Source::Input)?.input_type();
@@ -93,6 +76,39 @@ fn verify_smt_proof() -> Result<(), Error> {
         )
         .map_err(|_| Error::SMTProofVerifyFailed)?;
 
+    // If the inputs[0] is compact_registry_cell, then its type_args must be equal to
+    // lock_hash[0..20] and its lock script must be equal to outputs.compact_registry_cell.
+    if let Some(type_) = load_cell_type(0, Source::Input)? {
+        if registry_type.as_slice() != type_.as_slice() {
+            return Ok(());
+        }
+        if check_type_args_not_equal_lock_hash(&type_, Source::Input)? {
+            return Err(Error::CompactTypeArgsNotEqualLockHash);
+        }
+
+        let input_registry_smt_root = load_cell_data(0, Source::Input).or(Err(Error::Encoding))?;
+        if input_registry_smt_root.len() != REGISTRY_SMT_ROOT_HASH {
+            return Err(Error::LengthNotEnough);
+        }
+        let mut input_registry_smt_root_hash = [0u8; 32];
+        input_registry_smt_root_hash.copy_from_slice(&input_registry_smt_root);
+
+        debug!("input root hash: {:?}", input_registry_smt_root_hash);
+
+        values.clear();
+        for _ in registry_entries.kv_state() {
+            values.extend(&ALL_ZEROS);
+        }
+        lib_ckb_smt
+            .smt_verify(
+                &input_registry_smt_root_hash[..],
+                &keys[..],
+                &values[..],
+                &proof[..],
+            )
+            .map_err(|_| Error::SMTProofVerifyFailed)?;
+    };
+
     Ok(())
 }
 
@@ -103,8 +119,7 @@ pub fn main() -> Result<(), Error> {
         return Err(Error::TypeArgsInvalid);
     }
 
-    check_type_args_equal_lock_hash(&script)?;
-    verify_smt_proof()?;
+    validate_type_and_verify_smt(&script)?;
 
     Ok(())
 }

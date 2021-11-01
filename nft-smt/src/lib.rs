@@ -5,8 +5,8 @@
 
 pub mod mint;
 pub mod registry;
-pub mod transfer;
 pub mod smt;
+pub mod transfer;
 
 cfg_if::cfg_if! {
     if #[cfg(feature = "std")] {

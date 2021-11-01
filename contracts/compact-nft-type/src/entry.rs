@@ -1,14 +1,17 @@
 use alloc::vec::Vec;
+use ckb_std::high_level::load_cell_data;
 use ckb_std::{
     ckb_constants::Source,
     ckb_types::{bytes::Bytes, packed::*, prelude::*},
-    high_level::{load_script, load_cell_type, load_cell_lock_hash, load_cell},
+    high_level::{load_cell, load_cell_lock_hash, load_cell_type, load_script},
 };
 use core::result::Result;
-use ckb_std::high_level::load_cell_data;
 use nft_smt::transfer::{ClaimCompactNFTEntries, ClaimCompactNFTEntriesBuilder};
-use script_utils::{error::Error, helper::{load_group_input_witness_args_with_type, load_class_type}};
 use script_utils::compact_nft::CompactNft;
+use script_utils::{
+    error::Error,
+    helper::{load_class_type, load_group_input_witness_args_with_type},
+};
 
 const TYPE_ARGS_LEN: usize = 20;
 const MINT_CLAIM: u8 = 1;
@@ -66,7 +69,8 @@ pub fn main() -> Result<(), Error> {
         }
         match u8::from(witness_args_type[0]) {
             MINT_CLAIM => {
-                let _claim_entries = ClaimCompactNFTEntries::from_slice(witness_args_type[1..]).map_err(|_e| Error::WitnessTypeParseError)?;
+                let _claim_entries = ClaimCompactNFTEntries::from_slice(witness_args_type[1..])
+                    .map_err(|_e| Error::WitnessTypeParseError)?;
                 Ok(())
             }
             _ => {}

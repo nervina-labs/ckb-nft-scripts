@@ -74,16 +74,12 @@ enum ClassError {
 const RESERVED: [u8; 4] = [0u8; 4];
 
 fn generate_smt_data(
-    action: &Action,
     class_error: &ClassError,
     class_type_args: Vec<u8>,
     receiver_lock_script: Script,
-) -> Option<([u8; 32], Vec<u8>)> {
-    if action != &Action::Update(UpdateCase::Compact) {
-        return None;
-    }
-    if class_type_args.len() != 24 {
-        panic!("class type args length is error");
+) -> ([u8; 32], [u8; 32], Vec<u8>) {
+    if class_error == &ClassError::ClassTypeArgsInvalid {
+        return ([0u8; 32], [0u8; 32], vec![0, 0, 0, 0]);
     }
     let class_type_args_bytes = if class_error == &ClassError::CompactIssuerIdOrClassIdInvalid {
         Vec::from([Byte::from(0u8); 24])
@@ -102,6 +98,10 @@ fn generate_smt_data(
         let value: H256 = H256::from([255u8; 32]);
         smt.update(key, value).expect("SMT update leave error");
     }
+
+    let old_smt_root = smt.root().clone();
+    let mut old_root_hash_bytes = [0u8; 32];
+    old_root_hash_bytes.copy_from_slice(old_smt_root.as_slice());
 
     let mut nft_ids: Vec<CompactNFTId> = Vec::new();
     let mut nft_infos: Vec<CompactNFTInfo> = Vec::new();
@@ -187,7 +187,11 @@ fn generate_smt_data(
         .proof(merkel_proof_bytes)
         .build();
 
-    Some((root_hash_bytes, Vec::from(mint_entries.as_slice())))
+    (
+        old_root_hash_bytes,
+        root_hash_bytes,
+        Vec::from(mint_entries.as_slice()),
+    )
 }
 
 fn create_test_context(action: Action, class_error: ClassError) -> (Context, TransactionView) {
@@ -251,19 +255,6 @@ fn create_test_context(action: Action, class_error: ClassError) -> (Context, Tra
         .previous_output(issuer_input_out_point.clone())
         .build();
 
-    let class_input_data = match action {
-        Action::Update(_) => {
-            Bytes::from(hex::decode("01000000ff0000000500000155000266660003898989").unwrap())
-        }
-        Action::Destroy => match class_error {
-            ClassError::ClassCellCannotDestroyed => {
-                Bytes::from(hex::decode("010000000f0000000500000155000266660003898989").unwrap())
-            }
-            _ => Bytes::from(hex::decode("010000000f0000000000000155000266660003898989").unwrap()),
-        },
-        Action::Create => Bytes::new(),
-    };
-
     let issuer_type_hash: [u8; 32] = issuer_type_script.clone().calc_script_hash().unpack();
     let mut class_type_args = issuer_type_hash[0..20].to_vec();
     let mut args_class_id = match class_error {
@@ -282,6 +273,24 @@ fn create_test_context(action: Action, class_error: ClassError) -> (Context, Tra
             Bytes::copy_from_slice(&class_type_args[..]),
         )
         .expect("script");
+
+    let (old_smt_root, smt_root, witness_data) =
+        generate_smt_data(&class_error, class_type_args, receiver_lock_script);
+
+    let class_input_data = match action {
+        Action::Update(_) => {
+            let mut data = hex::decode("01000000ff0000000500000155000266660003898989").unwrap();
+            data.extend(&old_smt_root[..]);
+            Bytes::from(data)
+        }
+        Action::Destroy => match class_error {
+            ClassError::ClassCellCannotDestroyed => {
+                Bytes::from(hex::decode("010000000f0000000500000155000266660003898989").unwrap())
+            }
+            _ => Bytes::from(hex::decode("010000000f0000000000000155000266660003898989").unwrap()),
+        },
+        Action::Create => Bytes::new(),
+    };
 
     let class_input_out_point = context.create_cell(
         CellOutput::new_builder()
@@ -416,7 +425,6 @@ fn create_test_context(action: Action, class_error: ClassError) -> (Context, Tra
         _ => (),
     }
 
-    let smt_data = generate_smt_data(&action, &class_error, class_type_args, receiver_lock_script);
     let outputs_data: Vec<_> = match action {
         Action::Create => match class_error {
             ClassError::ClassIssuedInvalid => vec![
@@ -473,9 +481,9 @@ fn create_test_context(action: Action, class_error: ClassError) -> (Context, Tra
                         hex::decode("01000000ff000000690000015500026666000489898949").unwrap()
                     };
                     if class_error == ClassError::ClassCompactSmtRootError {
-                        data.extend(&smt_data.clone().unwrap().0[..30]);
+                        data.extend(&smt_root[..30]);
                     } else {
-                        data.extend(&smt_data.clone().unwrap().0[..]);
+                        data.extend(&smt_root[..]);
                     }
                     vec![Bytes::from(data)]
                 }
@@ -489,7 +497,6 @@ fn create_test_context(action: Action, class_error: ClassError) -> (Context, Tra
         Action::Update(case ) => {
             if case == UpdateCase::Compact {
                 let lock = Some(Bytes::from(hex::decode("12345678").unwrap())).pack();
-                let witness_data = smt_data.unwrap().1;
                 let witness_args = WitnessArgsBuilder::default()
                     .lock(lock)
                     .input_type(Some(Bytes::from(witness_data)).pack())
