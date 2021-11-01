@@ -19,3 +19,7 @@ template_type = "Rust"
 [[contracts]]
 name = "compact-registry-type"
 template_type = "Rust"
+
+[[contracts]]
+name = "compact-nft-type"
+template_type = "Rust"
