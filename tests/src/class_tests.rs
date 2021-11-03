@@ -16,6 +16,7 @@ use nft_smt::{
     smt::{Blake2bHasher, H256, SMT},
 };
 use rand::{thread_rng, Rng};
+use crate::constants::BYTE4_ZEROS;
 
 const MAX_CYCLES: u64 = 70_000_000;
 
