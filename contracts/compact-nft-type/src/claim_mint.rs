@@ -14,14 +14,11 @@ use nft_smt::{
     transfer::{ClaimMintCompactNFTEntries, CompactNFTKey},
 };
 use script_utils::{
-    class::Class, compact_nft::CompactNft, constants::BYTE32_ZEROS, error::Error,
+    class::Class, compact_nft::CompactNft, constants::{BYTE32_ZEROS, BYTE4_ZEROS, BYTE3_ZEROS}, error::Error,
     helper::load_class_type_with_args, smt::LibCKBSmt,
 };
 
 const COMPACT_NFT_ID_LEN: usize = 29;
-
-const MINT_RESERVED: [u8; 4] = [0u8; 4];
-const ID_RESERVED: [u8; 3] = [0u8; 3];
 
 fn load_smt_root_from_class_cell_dep(nft_key: &CompactNFTKey) -> Result<[u8; 32], Error> {
     if nft_key.as_slice().len() != COMPACT_NFT_ID_LEN {
@@ -81,7 +78,7 @@ pub fn verify_claim_mint_smt(witness_args_input_type: Bytes) -> Result<(), Error
             return Err(Error::CompactNFTOutPointInvalid);
         }
 
-        transfer_keys.extend(&ID_RESERVED);
+        transfer_keys.extend(&BYTE3_ZEROS);
         transfer_keys.extend(owned_nft_key.as_slice());
         transfer_keys.extend(&blake2b_256(claimed_nft_key.as_slice()));
 
@@ -99,7 +96,7 @@ pub fn verify_claim_mint_smt(witness_args_input_type: Bytes) -> Result<(), Error
         transfer_values.extend(claimed_nft_value.as_slice());
 
         // Generate mint smt kv pairs
-        mint_nft_keys.extend(&MINT_RESERVED);
+        mint_nft_keys.extend(&BYTE4_ZEROS);
         mint_nft_keys.extend(&owned_nft_key.as_slice()[1..]);
 
         let lock = common::BytesBuilder::default()

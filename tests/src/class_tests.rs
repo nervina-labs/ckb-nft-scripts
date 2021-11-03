@@ -15,6 +15,7 @@ use nft_smt::{
     smt::{Blake2bHasher, H256, SMT},
 };
 use rand::{thread_rng, Rng};
+use crate::constants::BYTE4_ZEROS;
 
 const MAX_CYCLES: u64 = 70_000_000;
 
@@ -67,8 +68,6 @@ enum ClassError {
     ClassCompactSmtRootError,
     NFTAndClassConfigureNotSame,
 }
-
-const RESERVED: [u8; 4] = [0u8; 4];
 
 fn generate_smt_data(
     class_error: &ClassError,
@@ -127,7 +126,7 @@ fn generate_smt_data(
             .build();
         nft_keys.push(nft_id.clone());
         let mut nft_id_vec = Vec::new();
-        nft_id_vec.extend(&RESERVED);
+        nft_id_vec.extend(&BYTE4_ZEROS);
         nft_id_vec.extend(&nft_id.as_slice().to_vec());
         let mut nft_id_bytes = [0u8; 32];
         nft_id_bytes.copy_from_slice(&nft_id_vec);
