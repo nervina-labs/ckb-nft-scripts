@@ -1,11 +1,10 @@
 use alloc::vec::Vec;
 use ckb_std::{
     ckb_types::{bytes::Bytes, packed::*, prelude::*},
-    debug,
     dynamic_loading_c_impl::CKBDLContext,
 };
 use core::result::Result;
-use nft_smt::{mint::CompactNFTMintEntries, smt::blake2b_256};
+use nft_smt::{mint::MintCompactNFTEntries, smt::blake2b_256};
 use script_utils::{
     class::Class,
     error::Error,
@@ -27,16 +26,16 @@ pub fn check_compact_nft_mint(
             return Err(Error::ClassCompactSmtRootError);
         }
         let witness_type_bytes: Bytes = mint_witness_type.unpack();
-        let mint_entries = CompactNFTMintEntries::from_slice(&witness_type_bytes[..])
+        let mint_entries = MintCompactNFTEntries::from_slice(&witness_type_bytes[..])
             .map_err(|_e| Error::WitnessTypeParseError)?;
 
-        if output_class.issued != input_class.issued + mint_entries.nft_ids().len() as u32 {
+        if output_class.issued != input_class.issued + mint_entries.nft_keys().len() as u32 {
             return Err(Error::ClassIssuedInvalid);
         }
 
         let mut keys: Vec<u8> = Vec::new();
         let mut token_ids: Vec<u32> = Vec::new();
-        for nft_id in mint_entries.nft_ids() {
+        for nft_id in mint_entries.nft_keys() {
             if nft_id.issuer_id().as_slice() != &class_args.to_vec()[0..20]
                 || nft_id.class_id().as_slice() != &class_args.to_vec()[20..]
             {
@@ -60,11 +59,11 @@ pub fn check_compact_nft_mint(
         }
 
         let mut values: Vec<u8> = Vec::new();
-        for nft_info in mint_entries.nft_infos() {
-            if nft_info.configure().as_slice()[0] != input_class.configure {
+        for nft_value in mint_entries.nft_values() {
+            if nft_value.nft_info().configure().as_slice()[0] != input_class.configure {
                 return Err(Error::NFTAndClassConfigureNotSame);
             }
-            values.extend(Vec::from(blake2b_256(nft_info.as_slice())));
+            values.extend(Vec::from(blake2b_256(nft_value.as_slice())));
         }
 
         let proof: Vec<u8> = mint_entries.proof().raw_data().to_vec();
@@ -80,7 +79,7 @@ pub fn check_compact_nft_mint(
 
         if let Some(input_class_smt_root) = input_class.nft_smt_root {
             values.clear();
-            for _ in mint_entries.nft_infos() {
+            for _ in mint_entries.nft_values() {
                 values.extend(&ALL_ZEROS);
             }
             lib_ckb_smt

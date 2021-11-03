@@ -10,10 +10,8 @@ use ckb_tool::ckb_types::{
 };
 use nft_smt::smt::blake2b_256;
 use nft_smt::{
-    registry::{
-        Byte32, BytesBuilder, CompactNFTRegistryEntriesBuilder, KVPair, KVPairBuilder,
-        KVPairVecBuilder,
-    },
+    common::{Byte32, Byte32Builder, BytesBuilder, *},
+    registry::*,
     smt::{Blake2bHasher, H256, SMT},
 };
 use rand::{thread_rng, Rng};

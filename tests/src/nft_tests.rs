@@ -1,4 +1,5 @@
 use super::*;
+use crate::constants::{CLASS_TYPE_CODE_HASH, TYPE};
 use ckb_testtool::{builtin::ALWAYS_SUCCESS, context::Context};
 use ckb_tool::ckb_error::assert_error_eq;
 use ckb_tool::ckb_script::ScriptError;
@@ -10,12 +11,6 @@ use ckb_tool::ckb_types::{
 };
 
 const MAX_CYCLES: u64 = 70_000_000;
-
-const TYPE: u8 = 1;
-const CLASS_TYPE_CODE_HASH: [u8; 32] = [
-    9, 91, 140, 11, 78, 81, 164, 95, 149, 58, 205, 31, 205, 30, 57, 72, 159, 38, 117, 180, 188,
-    148, 231, 175, 39, 187, 56, 149, 135, 144, 227, 252,
-];
 
 // error numbers
 const TYPE_ARGS_INVALID: i8 = 7;

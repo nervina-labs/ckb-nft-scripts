@@ -4,17 +4,22 @@ use std::fs;
 use std::path::PathBuf;
 use std::str::FromStr;
 
-#[cfg(test)]
-mod issuer_tests;
+mod constants;
+
+// #[cfg(test)]
+// mod issuer_tests;
+//
+// #[cfg(test)]
+// mod class_tests;
+//
+// #[cfg(test)]
+// mod nft_tests;
+//
+// #[cfg(test)]
+// mod compact_registry_tests;
 
 #[cfg(test)]
-mod class_tests;
-
-#[cfg(test)]
-mod nft_tests;
-
-#[cfg(test)]
-mod compact_registry_tests;
+mod compact_nft_tests;
 
 const TEST_ENV_VAR: &str = "CAPSULE_TEST_ENV";
 

@@ -8,13 +8,10 @@ use ckb_tool::ckb_types::{
     packed::*,
     prelude::*,
 };
-use nft_smt::mint::{
-    CharacteristicBuilder, CompactNFTId, CompactNFTIdBuilder, CompactNFTIdVecBuilder,
-    CompactNFTInfo, CompactNFTInfoBuilder, CompactNFTInfoVecBuilder, IssuerIdBuilder,
-};
 use nft_smt::smt::blake2b_256;
 use nft_smt::{
-    mint::{BytesBuilder, CompactNFTMintEntriesBuilder, Uint32Builder},
+    common::{BytesBuilder, Uint32Builder, *},
+    mint::*,
     smt::{Blake2bHasher, H256, SMT},
 };
 use rand::{thread_rng, Rng};
@@ -103,8 +100,8 @@ fn generate_smt_data(
     let mut old_root_hash_bytes = [0u8; 32];
     old_root_hash_bytes.copy_from_slice(old_smt_root.as_slice());
 
-    let mut nft_ids: Vec<CompactNFTId> = Vec::new();
-    let mut nft_infos: Vec<CompactNFTInfo> = Vec::new();
+    let mut nft_keys: Vec<CompactNFTId> = Vec::new();
+    let mut nft_values: Vec<MintCompactNFTValue> = Vec::new();
     let mut update_leaves: Vec<(H256, H256)> = Vec::with_capacity(update_leaves_count);
     for index in 0..update_leaves_count {
         let mut issuer_id_bytes = [Byte::from(0); 20];
@@ -128,7 +125,7 @@ fn generate_smt_data(
             .class_id(class_id)
             .token_id(token_id)
             .build();
-        nft_ids.push(nft_id.clone());
+        nft_keys.push(nft_id.clone());
         let mut nft_id_vec = Vec::new();
         nft_id_vec.extend(&RESERVED);
         nft_id_vec.extend(&nft_id.as_slice().to_vec());
@@ -153,11 +150,15 @@ fn generate_smt_data(
             .characteristic(characteristic)
             .configure(Byte::from(configure))
             .state(Byte::from(0u8))
+            .build();
+        let nft_value = MintCompactNFTValueBuilder::default()
+            .nft_info(nft_info.clone())
             .receiver_lock(BytesBuilder::default().set(receiver_lock).build())
             .build();
-        nft_infos.push(nft_info.clone());
 
-        let value: H256 = H256::from(blake2b_256(nft_info.as_slice()));
+        nft_values.push(nft_value.clone());
+
+        let value: H256 = H256::from(blake2b_256(nft_value.as_slice()));
         update_leaves.push((key, value));
         smt.update(key, value).expect("SMT update leave error");
     }
@@ -181,9 +182,13 @@ fn generate_smt_data(
         .extend(merkel_proof_vec.iter().map(|v| Byte::from(*v)))
         .build();
 
-    let mint_entries = CompactNFTMintEntriesBuilder::default()
-        .nft_ids(CompactNFTIdVecBuilder::default().set(nft_ids).build())
-        .nft_infos(CompactNFTInfoVecBuilder::default().set(nft_infos).build())
+    let mint_entries = MintCompactNFTEntriesBuilder::default()
+        .nft_keys(MintCompactNFTKeyVecBuilder::default().set(nft_keys).build())
+        .nft_values(
+            MintCompactNFTValueVecBuilder::default()
+                .set(nft_values)
+                .build(),
+        )
         .proof(merkel_proof_bytes)
         .build();
 

@@ -50,6 +50,7 @@ pub enum Error {
     CompactClassCellDepInvalid = 45,
     CompactNFTSmtRootError,
     CompactNFTClassDepError,
+    CompactNFTOutPointInvalid,
 }
 
 impl From<SysError> for Error {

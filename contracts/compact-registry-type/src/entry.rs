@@ -2,7 +2,6 @@ use alloc::vec::Vec;
 use ckb_std::{
     ckb_constants::Source,
     ckb_types::{bytes::Bytes, packed::*, prelude::*},
-    debug,
     dynamic_loading_c_impl::CKBDLContext,
     high_level::{
         load_cell_data, load_cell_lock_hash, load_cell_type, load_script, load_witness_args,
