@@ -1,5 +1,5 @@
 use super::*;
-use crate::constants::{CLASS_TYPE_CODE_HASH, TYPE};
+use crate::constants::{BYTE3_ZEROS, BYTE4_ZEROS, CLASS_TYPE_CODE_HASH, TYPE};
 use ckb_testtool::context::random_out_point;
 use ckb_testtool::{builtin::ALWAYS_SUCCESS, context::Context};
 use ckb_tool::ckb_error::assert_error_eq;
@@ -45,9 +45,6 @@ enum CompactError {
     CompactIssuerIdOrClassIdInvalid,
     SMTProofVerifyFailed,
 }
-
-const MINT_RESERVED: [u8; 4] = [0u8; 4];
-const ID_RESERVED: [u8; 3] = [0u8; 3];
 
 const CLAIM_MINT: u8 = 1;
 const WITHDRAW_TRANSFER: u8 = 2;
@@ -96,7 +93,7 @@ fn generate_class_mint_smt_data(
             .build();
 
         let mut nft_id_vec = Vec::new();
-        nft_id_vec.extend(&MINT_RESERVED);
+        nft_id_vec.extend(&BYTE4_ZEROS);
         nft_id_vec.extend(&nft_id.as_slice().to_vec());
         let mut nft_id_bytes = [0u8; 32];
         nft_id_bytes.copy_from_slice(&nft_id_vec);
@@ -184,7 +181,7 @@ fn generate_compact_nft_smt_data(
         // Generate owned_nft smt proof
         let mint_nft_key = mint_nft_keys.get(index).unwrap().clone();
         let mut nft_id_vec = Vec::new();
-        nft_id_vec.extend(&ID_RESERVED);
+        nft_id_vec.extend(&BYTE3_ZEROS);
         nft_id_vec.extend(&[1u8]);
         nft_id_vec.extend(&mint_nft_key.as_slice().to_vec());
         let mut nft_id_bytes = [0u8; 32];

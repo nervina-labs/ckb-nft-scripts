@@ -5,3 +5,7 @@ pub const CLASS_TYPE_CODE_HASH: [u8; 32] = [
 ];
 
 pub const BYTE32_ZEROS: [u8; 32] = [0u8; 32];
+pub const BYTE4_ZEROS: [u8; 4] = [0u8; 4];
+pub const BYTE3_ZEROS: [u8; 3] = [0u8; 3];
+
+pub const SMT_ROOT_LEN: usize = 32;

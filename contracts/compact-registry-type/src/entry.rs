@@ -9,10 +9,13 @@ use ckb_std::{
 };
 use core::result::Result;
 use nft_smt::registry::CompactNFTRegistryEntries;
-use script_utils::{constants::BYTE32_ZEROS, error::Error, smt::LibCKBSmt};
+use script_utils::{
+    constants::{BYTE32_ZEROS, SMT_ROOT_LEN},
+    error::Error,
+    smt::LibCKBSmt,
+};
 
 const TYPE_ARGS_LEN: usize = 20;
-const REGISTRY_SMT_ROOT_HASH: usize = 32;
 
 fn check_type_args_not_equal_lock_hash(type_: &Script, source: Source) -> Result<bool, Error> {
     let lock_hash = load_cell_lock_hash(0, source)?;
@@ -20,7 +23,7 @@ fn check_type_args_not_equal_lock_hash(type_: &Script, source: Source) -> Result
     Ok(type_args[..] != lock_hash[0..TYPE_ARGS_LEN])
 }
 
-fn validate_type_and_verify_smt(registry_type: &Script) -> Result<(), Error> {
+fn check_registry_output_type(registry_type: &Script) -> Result<(), Error> {
     // Outputs[0] must be compact_registry_cell whose type_args must be equal the lock_hash[0..20]
     match load_cell_type(0, Source::Output)? {
         Some(type_) => {
@@ -30,13 +33,16 @@ fn validate_type_and_verify_smt(registry_type: &Script) -> Result<(), Error> {
             if check_type_args_not_equal_lock_hash(&type_, Source::Output)? {
                 return Err(Error::CompactTypeArgsNotEqualLockHash);
             }
+            Ok(())
         }
         None => return Err(Error::CompactCellPositionError),
     }
+}
 
+fn validate_type_and_verify_smt(registry_type: &Script) -> Result<(), Error> {
     // Parse cell data to get registry smt root hash
-    let registry_smt_root = load_cell_data(0, Source::Output).or(Err(Error::Encoding))?;
-    if registry_smt_root.len() != REGISTRY_SMT_ROOT_HASH {
+    let registry_smt_root = load_cell_data(0, Source::Output)?;
+    if registry_smt_root.len() != SMT_ROOT_LEN {
         return Err(Error::LengthNotEnough);
     }
     let mut registry_smt_root_hash = [0u8; 32];
@@ -86,7 +92,7 @@ fn validate_type_and_verify_smt(registry_type: &Script) -> Result<(), Error> {
         }
 
         let input_registry_smt_root = load_cell_data(0, Source::Input).or(Err(Error::Encoding))?;
-        if input_registry_smt_root.len() != REGISTRY_SMT_ROOT_HASH {
+        if input_registry_smt_root.len() != SMT_ROOT_LEN {
             return Err(Error::LengthNotEnough);
         }
         let mut input_registry_smt_root_hash = [0u8; 32];
@@ -116,6 +122,7 @@ pub fn main() -> Result<(), Error> {
         return Err(Error::TypeArgsInvalid);
     }
 
+    check_registry_output_type(&script)?;
     validate_type_and_verify_smt(&script)?;
 
     Ok(())
