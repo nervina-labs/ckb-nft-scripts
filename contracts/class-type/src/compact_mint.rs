@@ -6,7 +6,11 @@ use ckb_std::{
 use core::result::Result;
 use nft_smt::{mint::MintCompactNFTEntries, smt::blake2b_256};
 use script_utils::{
-    class::Class, constants::{BYTE32_ZEROS, BYTE4_ZEROS}, error::Error, helper::u32_from_slice, smt::LibCKBSmt,
+    class::Class,
+    constants::{BYTE32_ZEROS, BYTE4_ZEROS},
+    error::Error,
+    helper::u32_from_slice,
+    smt::LibCKBSmt,
 };
 
 pub fn check_compact_nft_mint(

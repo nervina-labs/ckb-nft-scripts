@@ -14,8 +14,12 @@ use nft_smt::{
     transfer::{ClaimMintCompactNFTEntries, CompactNFTKey},
 };
 use script_utils::{
-    class::Class, compact_nft::CompactNft, constants::{BYTE32_ZEROS, BYTE4_ZEROS, BYTE3_ZEROS}, error::Error,
-    helper::load_class_type_with_args, smt::LibCKBSmt,
+    class::Class,
+    compact_nft::CompactNft,
+    constants::{BYTE32_ZEROS, BYTE3_ZEROS, BYTE4_ZEROS},
+    error::Error,
+    helper::load_class_type_with_args,
+    smt::LibCKBSmt,
 };
 
 const COMPACT_NFT_ID_LEN: usize = 29;

@@ -9,7 +9,11 @@ use ckb_std::{
 };
 use core::result::Result;
 use nft_smt::registry::CompactNFTRegistryEntries;
-use script_utils::{constants::{BYTE32_ZEROS, SMT_ROOT_LEN}, error::Error, smt::LibCKBSmt};
+use script_utils::{
+    constants::{BYTE32_ZEROS, SMT_ROOT_LEN},
+    error::Error,
+    smt::LibCKBSmt,
+};
 
 const TYPE_ARGS_LEN: usize = 20;
 
@@ -88,7 +92,7 @@ fn validate_type_and_verify_smt(registry_type: &Script) -> Result<(), Error> {
         }
 
         let input_registry_smt_root = load_cell_data(0, Source::Input).or(Err(Error::Encoding))?;
-        if input_registry_smt_root.len() != REGISTRY_SMT_ROOT_HASH {
+        if input_registry_smt_root.len() != SMT_ROOT_LEN {
             return Err(Error::LengthNotEnough);
         }
         let mut input_registry_smt_root_hash = [0u8; 32];
