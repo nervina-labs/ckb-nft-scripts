@@ -6,17 +6,17 @@ use std::str::FromStr;
 
 mod constants;
 
-// #[cfg(test)]
-// mod issuer_tests;
-//
-// #[cfg(test)]
-// mod class_tests;
-//
-// #[cfg(test)]
-// mod nft_tests;
-//
-// #[cfg(test)]
-// mod compact_registry_tests;
+#[cfg(test)]
+mod issuer_tests;
+
+#[cfg(test)]
+mod class_tests;
+
+#[cfg(test)]
+mod nft_tests;
+
+#[cfg(test)]
+mod compact_registry_tests;
 
 #[cfg(test)]
 mod compact_nft_tests;

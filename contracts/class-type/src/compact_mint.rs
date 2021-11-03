@@ -6,10 +6,7 @@ use ckb_std::{
 use core::result::Result;
 use nft_smt::{mint::MintCompactNFTEntries, smt::blake2b_256};
 use script_utils::{
-    class::Class,
-    error::Error,
-    helper::{u32_from_slice, ALL_ZEROS},
-    smt::LibCKBSmt,
+    class::Class, constants::BYTE32_ZEROS, error::Error, helper::u32_from_slice, smt::LibCKBSmt,
 };
 
 const RESERVED: [u8; 4] = [0u8; 4];
@@ -80,7 +77,7 @@ pub fn check_compact_nft_mint(
         if let Some(input_class_smt_root) = input_class.nft_smt_root {
             values.clear();
             for _ in mint_entries.nft_values() {
-                values.extend(&ALL_ZEROS);
+                values.extend(&BYTE32_ZEROS);
             }
             lib_ckb_smt
                 .smt_verify(

@@ -313,9 +313,6 @@ fn create_test_context(action: Action, compact_error: CompactError) -> (Context,
         .out_point(issuer_out_point.clone())
         .build();
 
-    let class_bin: Bytes = Loader::default().load_binary("class-type");
-    let class_out_point = context.deploy_cell(class_bin);
-
     let smt_bin: Bytes = Loader::default().load_binary("ckb_smt");
     let smt_out_point = context.deploy_cell(smt_bin);
     let smt_dep = CellDepBuilder::default().out_point(smt_out_point).build();

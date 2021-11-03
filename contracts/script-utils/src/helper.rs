@@ -1,4 +1,5 @@
 use crate::class::CLASS_TYPE_ARGS_LEN;
+use crate::constants::{CLASS_TYPE_CODE_HASH, TYPE};
 use crate::error::Error;
 use crate::issuer::ISSUER_TYPE_ARGS_LEN;
 use alloc::vec::Vec;
@@ -14,14 +15,6 @@ use core::result::Result;
 
 const ID_LEN: usize = 4;
 pub const DYN_MIN_LEN: usize = 2; // the length of dynamic data size(u16)
-
-const TYPE: u8 = 1;
-const CLASS_TYPE_CODE_HASH: [u8; 32] = [
-    9, 91, 140, 11, 78, 81, 164, 95, 149, 58, 205, 31, 205, 30, 57, 72, 159, 38, 117, 180, 188,
-    148, 231, 175, 39, 187, 56, 149, 135, 144, 227, 252,
-];
-
-pub const ALL_ZEROS: [u8; 32] = [0u8; 32];
 
 pub enum Action {
     Create,

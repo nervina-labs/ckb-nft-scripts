@@ -9,7 +9,7 @@ use ckb_std::{
 };
 use core::result::Result;
 use nft_smt::registry::CompactNFTRegistryEntries;
-use script_utils::{error::Error, helper::ALL_ZEROS, smt::LibCKBSmt};
+use script_utils::{constants::BYTE32_ZEROS, error::Error, smt::LibCKBSmt};
 
 const TYPE_ARGS_LEN: usize = 20;
 const REGISTRY_SMT_ROOT_HASH: usize = 32;
@@ -94,7 +94,7 @@ fn validate_type_and_verify_smt(registry_type: &Script) -> Result<(), Error> {
 
         values.clear();
         for _ in registry_entries.kv_state() {
-            values.extend(&ALL_ZEROS);
+            values.extend(&BYTE32_ZEROS);
         }
         lib_ckb_smt
             .smt_verify(

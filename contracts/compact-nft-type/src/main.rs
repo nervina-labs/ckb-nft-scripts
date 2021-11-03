@@ -6,6 +6,7 @@
 
 use ckb_std::default_alloc;
 
+mod claim_mint;
 mod entry;
 
 ckb_std::entry!(program_entry);
