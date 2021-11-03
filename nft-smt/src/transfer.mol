@@ -1,60 +1,51 @@
-array Uint32 [byte; 4];
-array Byte32 [byte; 32];
-vector Bytes <byte>;
+import common;
 
-array OutPoint [byte; 24];
-array IssuerId [byte; 20];
-array LockHash [byte; 20];
-array Characteristic [byte; 8];
-
-struct CompactNFTId {
+struct CompactNFTKey {
     smt_type: byte,
-    issuer_id: IssuerId,
-    class_id: Uint32,
-    token_id: Uint32,
+    nft_id: CompactNFTId,
 }
 
-vector CompactNFTIdVec <CompactNFTId>;
+vector CompactNFTKeyVec <CompactNFTKey>;
 
-struct OwnedCompactNFTValue {
-	characteristic: Characteristic,
-	configure: byte,
-	state: byte,
+struct TransferCompactNFTKey {
+	nft_key: CompactNFTKey,
+    out_point: OutPointBytes,
 }
 
-vector OwnedCompactNFTValueVec <OwnedCompactNFTValue>;
+vector TransferCompactNFTKeyVec <TransferCompactNFTKey>;
 
-struct ClaimedCompactNFTKey {
-	smt_type: byte,
-    out_point: OutPoint,
-}
-
-vector ClaimedCompactNFTKeyVec <ClaimedCompactNFTKey>;
+vector OwnedCompactNFTValueVec <CompactNFTInfo>;
 
 vector ClaimedCommpactNFTValueVec <Byte32>;
 
 struct WithdrawCompactNFTValue {
-	characteristic: Characteristic,
-	configure: byte,
-	state: byte,
+	nft_info: CompactNFTInfo,
 	to: LockHash,
-	out_point: OutPoint,
 }
 
 vector WithdrawCompactNFTValueVec <WithdrawCompactNFTValue>;
 
-table ClaimCompactNFTEntries {
-    owned_nft_ids: CompactNFTIdVec,
+table ClaimMintCompactNFTEntries {
+    owned_nft_keys: CompactNFTKeyVec,
     owned_nft_values: OwnedCompactNFTValueVec,
-	claimed_nft_keys: ClaimedCompactNFTKeyVec,
+	claimed_nft_keys: TransferCompactNFTKeyVec,
+    claimed_nft_values: ClaimedCommpactNFTValueVec,
+    proof: Bytes,
+    mint_proof: Bytes,
+}
+
+table ClaimCompactNFTEntries {
+    owned_nft_keys: CompactNFTKeyVec,
+    owned_nft_values: OwnedCompactNFTValueVec,
+	claimed_nft_keys: TransferCompactNFTKeyVec,
     claimed_nft_values: ClaimedCommpactNFTValueVec,
     proof: Bytes,
 }
 
 table WithdrawCompactNFTEntries {
-    owned_nft_ids: CompactNFTIdVec,
+    owned_nft_keys: CompactNFTKeyVec,
     owned_nft_values: OwnedCompactNFTValueVec,
-	withdrawal_nft_ids: CompactNFTIdVec,
+	withdrawal_nft_keys: TransferCompactNFTKeyVec,
 	withdrawal_nft_values: WithdrawCompactNFTValueVec,
     proof: Bytes,
 }

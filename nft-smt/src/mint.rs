@@ -11,10 +11,11 @@ pub use alloc::vec::*;
 // these lines above are manually added
 // replace "::molecule" to "molecule" in below code
 
+use super::common::*;
 use molecule::prelude::*;
 #[derive(Clone)]
-pub struct Uint32(molecule::bytes::Bytes);
-impl ::core::fmt::LowerHex for Uint32 {
+pub struct MintCompactNFTKeyVec(molecule::bytes::Bytes);
+impl ::core::fmt::LowerHex for MintCompactNFTKeyVec {
     fn fmt(&self, f: &mut ::core::fmt::Formatter) -> ::core::fmt::Result {
         use molecule::hex_string;
         if f.alternate() {
@@ -23,1528 +24,12 @@ impl ::core::fmt::LowerHex for Uint32 {
         write!(f, "{}", hex_string(self.as_slice()))
     }
 }
-impl ::core::fmt::Debug for Uint32 {
+impl ::core::fmt::Debug for MintCompactNFTKeyVec {
     fn fmt(&self, f: &mut ::core::fmt::Formatter) -> ::core::fmt::Result {
         write!(f, "{}({:#x})", Self::NAME, self)
     }
 }
-impl ::core::fmt::Display for Uint32 {
-    fn fmt(&self, f: &mut ::core::fmt::Formatter) -> ::core::fmt::Result {
-        use molecule::hex_string;
-        let raw_data = hex_string(&self.raw_data());
-        write!(f, "{}(0x{})", Self::NAME, raw_data)
-    }
-}
-impl ::core::default::Default for Uint32 {
-    fn default() -> Self {
-        let v: Vec<u8> = vec![0, 0, 0, 0];
-        Uint32::new_unchecked(v.into())
-    }
-}
-impl Uint32 {
-    pub const ITEM_COUNT: usize = 4;
-    pub const ITEM_SIZE: usize = 1;
-    pub const TOTAL_SIZE: usize = 4;
-
-    pub fn nth0(&self) -> Byte {
-        Byte::new_unchecked(self.0.slice(0..1))
-    }
-
-    pub fn nth1(&self) -> Byte {
-        Byte::new_unchecked(self.0.slice(1..2))
-    }
-
-    pub fn nth2(&self) -> Byte {
-        Byte::new_unchecked(self.0.slice(2..3))
-    }
-
-    pub fn nth3(&self) -> Byte {
-        Byte::new_unchecked(self.0.slice(3..4))
-    }
-
-    pub fn raw_data(&self) -> molecule::bytes::Bytes {
-        self.as_bytes()
-    }
-
-    pub fn as_reader<'r>(&'r self) -> Uint32Reader<'r> {
-        Uint32Reader::new_unchecked(self.as_slice())
-    }
-}
-impl molecule::prelude::Entity for Uint32 {
-    type Builder = Uint32Builder;
-
-    const NAME: &'static str = "Uint32";
-
-    fn new_unchecked(data: molecule::bytes::Bytes) -> Self {
-        Uint32(data)
-    }
-
-    fn as_bytes(&self) -> molecule::bytes::Bytes {
-        self.0.clone()
-    }
-
-    fn as_slice(&self) -> &[u8] {
-        &self.0[..]
-    }
-
-    fn from_slice(slice: &[u8]) -> molecule::error::VerificationResult<Self> {
-        Uint32Reader::from_slice(slice).map(|reader| reader.to_entity())
-    }
-
-    fn from_compatible_slice(slice: &[u8]) -> molecule::error::VerificationResult<Self> {
-        Uint32Reader::from_compatible_slice(slice).map(|reader| reader.to_entity())
-    }
-
-    fn new_builder() -> Self::Builder {
-        ::core::default::Default::default()
-    }
-
-    fn as_builder(self) -> Self::Builder {
-        Self::new_builder().set([self.nth0(), self.nth1(), self.nth2(), self.nth3()])
-    }
-}
-#[derive(Clone, Copy)]
-pub struct Uint32Reader<'r>(&'r [u8]);
-impl<'r> ::core::fmt::LowerHex for Uint32Reader<'r> {
-    fn fmt(&self, f: &mut ::core::fmt::Formatter) -> ::core::fmt::Result {
-        use molecule::hex_string;
-        if f.alternate() {
-            write!(f, "0x")?;
-        }
-        write!(f, "{}", hex_string(self.as_slice()))
-    }
-}
-impl<'r> ::core::fmt::Debug for Uint32Reader<'r> {
-    fn fmt(&self, f: &mut ::core::fmt::Formatter) -> ::core::fmt::Result {
-        write!(f, "{}({:#x})", Self::NAME, self)
-    }
-}
-impl<'r> ::core::fmt::Display for Uint32Reader<'r> {
-    fn fmt(&self, f: &mut ::core::fmt::Formatter) -> ::core::fmt::Result {
-        use molecule::hex_string;
-        let raw_data = hex_string(&self.raw_data());
-        write!(f, "{}(0x{})", Self::NAME, raw_data)
-    }
-}
-impl<'r> Uint32Reader<'r> {
-    pub const ITEM_COUNT: usize = 4;
-    pub const ITEM_SIZE: usize = 1;
-    pub const TOTAL_SIZE: usize = 4;
-
-    pub fn nth0(&self) -> ByteReader<'r> {
-        ByteReader::new_unchecked(&self.as_slice()[0..1])
-    }
-
-    pub fn nth1(&self) -> ByteReader<'r> {
-        ByteReader::new_unchecked(&self.as_slice()[1..2])
-    }
-
-    pub fn nth2(&self) -> ByteReader<'r> {
-        ByteReader::new_unchecked(&self.as_slice()[2..3])
-    }
-
-    pub fn nth3(&self) -> ByteReader<'r> {
-        ByteReader::new_unchecked(&self.as_slice()[3..4])
-    }
-
-    pub fn raw_data(&self) -> &'r [u8] {
-        self.as_slice()
-    }
-}
-impl<'r> molecule::prelude::Reader<'r> for Uint32Reader<'r> {
-    type Entity = Uint32;
-
-    const NAME: &'static str = "Uint32Reader";
-
-    fn to_entity(&self) -> Self::Entity {
-        Self::Entity::new_unchecked(self.as_slice().to_owned().into())
-    }
-
-    fn new_unchecked(slice: &'r [u8]) -> Self {
-        Uint32Reader(slice)
-    }
-
-    fn as_slice(&self) -> &'r [u8] {
-        self.0
-    }
-
-    fn verify(slice: &[u8], _compatible: bool) -> molecule::error::VerificationResult<()> {
-        use molecule::verification_error as ve;
-        let slice_len = slice.len();
-        if slice_len != Self::TOTAL_SIZE {
-            return ve!(Self, TotalSizeNotMatch, Self::TOTAL_SIZE, slice_len);
-        }
-        Ok(())
-    }
-}
-pub struct Uint32Builder(pub(crate) [Byte; 4]);
-impl ::core::fmt::Debug for Uint32Builder {
-    fn fmt(&self, f: &mut ::core::fmt::Formatter) -> ::core::fmt::Result {
-        write!(f, "{}({:?})", Self::NAME, &self.0[..])
-    }
-}
-impl ::core::default::Default for Uint32Builder {
-    fn default() -> Self {
-        Uint32Builder([
-            Byte::default(),
-            Byte::default(),
-            Byte::default(),
-            Byte::default(),
-        ])
-    }
-}
-impl Uint32Builder {
-    pub const ITEM_COUNT: usize = 4;
-    pub const ITEM_SIZE: usize = 1;
-    pub const TOTAL_SIZE: usize = 4;
-
-    pub fn set(mut self, v: [Byte; 4]) -> Self {
-        self.0 = v;
-        self
-    }
-
-    pub fn nth0(mut self, v: Byte) -> Self {
-        self.0[0] = v;
-        self
-    }
-
-    pub fn nth1(mut self, v: Byte) -> Self {
-        self.0[1] = v;
-        self
-    }
-
-    pub fn nth2(mut self, v: Byte) -> Self {
-        self.0[2] = v;
-        self
-    }
-
-    pub fn nth3(mut self, v: Byte) -> Self {
-        self.0[3] = v;
-        self
-    }
-}
-impl molecule::prelude::Builder for Uint32Builder {
-    type Entity = Uint32;
-
-    const NAME: &'static str = "Uint32Builder";
-
-    fn expected_length(&self) -> usize {
-        Self::TOTAL_SIZE
-    }
-
-    fn write<W: molecule::io::Write>(&self, writer: &mut W) -> molecule::io::Result<()> {
-        writer.write_all(self.0[0].as_slice())?;
-        writer.write_all(self.0[1].as_slice())?;
-        writer.write_all(self.0[2].as_slice())?;
-        writer.write_all(self.0[3].as_slice())?;
-        Ok(())
-    }
-
-    fn build(&self) -> Self::Entity {
-        let mut inner = Vec::with_capacity(self.expected_length());
-        self.write(&mut inner)
-            .unwrap_or_else(|_| panic!("{} build should be ok", Self::NAME));
-        Uint32::new_unchecked(inner.into())
-    }
-}
-#[derive(Clone)]
-pub struct IssuerId(molecule::bytes::Bytes);
-impl ::core::fmt::LowerHex for IssuerId {
-    fn fmt(&self, f: &mut ::core::fmt::Formatter) -> ::core::fmt::Result {
-        use molecule::hex_string;
-        if f.alternate() {
-            write!(f, "0x")?;
-        }
-        write!(f, "{}", hex_string(self.as_slice()))
-    }
-}
-impl ::core::fmt::Debug for IssuerId {
-    fn fmt(&self, f: &mut ::core::fmt::Formatter) -> ::core::fmt::Result {
-        write!(f, "{}({:#x})", Self::NAME, self)
-    }
-}
-impl ::core::fmt::Display for IssuerId {
-    fn fmt(&self, f: &mut ::core::fmt::Formatter) -> ::core::fmt::Result {
-        use molecule::hex_string;
-        let raw_data = hex_string(&self.raw_data());
-        write!(f, "{}(0x{})", Self::NAME, raw_data)
-    }
-}
-impl ::core::default::Default for IssuerId {
-    fn default() -> Self {
-        let v: Vec<u8> = vec![0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
-        IssuerId::new_unchecked(v.into())
-    }
-}
-impl IssuerId {
-    pub const ITEM_COUNT: usize = 20;
-    pub const ITEM_SIZE: usize = 1;
-    pub const TOTAL_SIZE: usize = 20;
-
-    pub fn nth0(&self) -> Byte {
-        Byte::new_unchecked(self.0.slice(0..1))
-    }
-
-    pub fn nth1(&self) -> Byte {
-        Byte::new_unchecked(self.0.slice(1..2))
-    }
-
-    pub fn nth2(&self) -> Byte {
-        Byte::new_unchecked(self.0.slice(2..3))
-    }
-
-    pub fn nth3(&self) -> Byte {
-        Byte::new_unchecked(self.0.slice(3..4))
-    }
-
-    pub fn nth4(&self) -> Byte {
-        Byte::new_unchecked(self.0.slice(4..5))
-    }
-
-    pub fn nth5(&self) -> Byte {
-        Byte::new_unchecked(self.0.slice(5..6))
-    }
-
-    pub fn nth6(&self) -> Byte {
-        Byte::new_unchecked(self.0.slice(6..7))
-    }
-
-    pub fn nth7(&self) -> Byte {
-        Byte::new_unchecked(self.0.slice(7..8))
-    }
-
-    pub fn nth8(&self) -> Byte {
-        Byte::new_unchecked(self.0.slice(8..9))
-    }
-
-    pub fn nth9(&self) -> Byte {
-        Byte::new_unchecked(self.0.slice(9..10))
-    }
-
-    pub fn nth10(&self) -> Byte {
-        Byte::new_unchecked(self.0.slice(10..11))
-    }
-
-    pub fn nth11(&self) -> Byte {
-        Byte::new_unchecked(self.0.slice(11..12))
-    }
-
-    pub fn nth12(&self) -> Byte {
-        Byte::new_unchecked(self.0.slice(12..13))
-    }
-
-    pub fn nth13(&self) -> Byte {
-        Byte::new_unchecked(self.0.slice(13..14))
-    }
-
-    pub fn nth14(&self) -> Byte {
-        Byte::new_unchecked(self.0.slice(14..15))
-    }
-
-    pub fn nth15(&self) -> Byte {
-        Byte::new_unchecked(self.0.slice(15..16))
-    }
-
-    pub fn nth16(&self) -> Byte {
-        Byte::new_unchecked(self.0.slice(16..17))
-    }
-
-    pub fn nth17(&self) -> Byte {
-        Byte::new_unchecked(self.0.slice(17..18))
-    }
-
-    pub fn nth18(&self) -> Byte {
-        Byte::new_unchecked(self.0.slice(18..19))
-    }
-
-    pub fn nth19(&self) -> Byte {
-        Byte::new_unchecked(self.0.slice(19..20))
-    }
-
-    pub fn raw_data(&self) -> molecule::bytes::Bytes {
-        self.as_bytes()
-    }
-
-    pub fn as_reader<'r>(&'r self) -> IssuerIdReader<'r> {
-        IssuerIdReader::new_unchecked(self.as_slice())
-    }
-}
-impl molecule::prelude::Entity for IssuerId {
-    type Builder = IssuerIdBuilder;
-
-    const NAME: &'static str = "IssuerId";
-
-    fn new_unchecked(data: molecule::bytes::Bytes) -> Self {
-        IssuerId(data)
-    }
-
-    fn as_bytes(&self) -> molecule::bytes::Bytes {
-        self.0.clone()
-    }
-
-    fn as_slice(&self) -> &[u8] {
-        &self.0[..]
-    }
-
-    fn from_slice(slice: &[u8]) -> molecule::error::VerificationResult<Self> {
-        IssuerIdReader::from_slice(slice).map(|reader| reader.to_entity())
-    }
-
-    fn from_compatible_slice(slice: &[u8]) -> molecule::error::VerificationResult<Self> {
-        IssuerIdReader::from_compatible_slice(slice).map(|reader| reader.to_entity())
-    }
-
-    fn new_builder() -> Self::Builder {
-        ::core::default::Default::default()
-    }
-
-    fn as_builder(self) -> Self::Builder {
-        Self::new_builder().set([
-            self.nth0(),
-            self.nth1(),
-            self.nth2(),
-            self.nth3(),
-            self.nth4(),
-            self.nth5(),
-            self.nth6(),
-            self.nth7(),
-            self.nth8(),
-            self.nth9(),
-            self.nth10(),
-            self.nth11(),
-            self.nth12(),
-            self.nth13(),
-            self.nth14(),
-            self.nth15(),
-            self.nth16(),
-            self.nth17(),
-            self.nth18(),
-            self.nth19(),
-        ])
-    }
-}
-#[derive(Clone, Copy)]
-pub struct IssuerIdReader<'r>(&'r [u8]);
-impl<'r> ::core::fmt::LowerHex for IssuerIdReader<'r> {
-    fn fmt(&self, f: &mut ::core::fmt::Formatter) -> ::core::fmt::Result {
-        use molecule::hex_string;
-        if f.alternate() {
-            write!(f, "0x")?;
-        }
-        write!(f, "{}", hex_string(self.as_slice()))
-    }
-}
-impl<'r> ::core::fmt::Debug for IssuerIdReader<'r> {
-    fn fmt(&self, f: &mut ::core::fmt::Formatter) -> ::core::fmt::Result {
-        write!(f, "{}({:#x})", Self::NAME, self)
-    }
-}
-impl<'r> ::core::fmt::Display for IssuerIdReader<'r> {
-    fn fmt(&self, f: &mut ::core::fmt::Formatter) -> ::core::fmt::Result {
-        use molecule::hex_string;
-        let raw_data = hex_string(&self.raw_data());
-        write!(f, "{}(0x{})", Self::NAME, raw_data)
-    }
-}
-impl<'r> IssuerIdReader<'r> {
-    pub const ITEM_COUNT: usize = 20;
-    pub const ITEM_SIZE: usize = 1;
-    pub const TOTAL_SIZE: usize = 20;
-
-    pub fn nth0(&self) -> ByteReader<'r> {
-        ByteReader::new_unchecked(&self.as_slice()[0..1])
-    }
-
-    pub fn nth1(&self) -> ByteReader<'r> {
-        ByteReader::new_unchecked(&self.as_slice()[1..2])
-    }
-
-    pub fn nth2(&self) -> ByteReader<'r> {
-        ByteReader::new_unchecked(&self.as_slice()[2..3])
-    }
-
-    pub fn nth3(&self) -> ByteReader<'r> {
-        ByteReader::new_unchecked(&self.as_slice()[3..4])
-    }
-
-    pub fn nth4(&self) -> ByteReader<'r> {
-        ByteReader::new_unchecked(&self.as_slice()[4..5])
-    }
-
-    pub fn nth5(&self) -> ByteReader<'r> {
-        ByteReader::new_unchecked(&self.as_slice()[5..6])
-    }
-
-    pub fn nth6(&self) -> ByteReader<'r> {
-        ByteReader::new_unchecked(&self.as_slice()[6..7])
-    }
-
-    pub fn nth7(&self) -> ByteReader<'r> {
-        ByteReader::new_unchecked(&self.as_slice()[7..8])
-    }
-
-    pub fn nth8(&self) -> ByteReader<'r> {
-        ByteReader::new_unchecked(&self.as_slice()[8..9])
-    }
-
-    pub fn nth9(&self) -> ByteReader<'r> {
-        ByteReader::new_unchecked(&self.as_slice()[9..10])
-    }
-
-    pub fn nth10(&self) -> ByteReader<'r> {
-        ByteReader::new_unchecked(&self.as_slice()[10..11])
-    }
-
-    pub fn nth11(&self) -> ByteReader<'r> {
-        ByteReader::new_unchecked(&self.as_slice()[11..12])
-    }
-
-    pub fn nth12(&self) -> ByteReader<'r> {
-        ByteReader::new_unchecked(&self.as_slice()[12..13])
-    }
-
-    pub fn nth13(&self) -> ByteReader<'r> {
-        ByteReader::new_unchecked(&self.as_slice()[13..14])
-    }
-
-    pub fn nth14(&self) -> ByteReader<'r> {
-        ByteReader::new_unchecked(&self.as_slice()[14..15])
-    }
-
-    pub fn nth15(&self) -> ByteReader<'r> {
-        ByteReader::new_unchecked(&self.as_slice()[15..16])
-    }
-
-    pub fn nth16(&self) -> ByteReader<'r> {
-        ByteReader::new_unchecked(&self.as_slice()[16..17])
-    }
-
-    pub fn nth17(&self) -> ByteReader<'r> {
-        ByteReader::new_unchecked(&self.as_slice()[17..18])
-    }
-
-    pub fn nth18(&self) -> ByteReader<'r> {
-        ByteReader::new_unchecked(&self.as_slice()[18..19])
-    }
-
-    pub fn nth19(&self) -> ByteReader<'r> {
-        ByteReader::new_unchecked(&self.as_slice()[19..20])
-    }
-
-    pub fn raw_data(&self) -> &'r [u8] {
-        self.as_slice()
-    }
-}
-impl<'r> molecule::prelude::Reader<'r> for IssuerIdReader<'r> {
-    type Entity = IssuerId;
-
-    const NAME: &'static str = "IssuerIdReader";
-
-    fn to_entity(&self) -> Self::Entity {
-        Self::Entity::new_unchecked(self.as_slice().to_owned().into())
-    }
-
-    fn new_unchecked(slice: &'r [u8]) -> Self {
-        IssuerIdReader(slice)
-    }
-
-    fn as_slice(&self) -> &'r [u8] {
-        self.0
-    }
-
-    fn verify(slice: &[u8], _compatible: bool) -> molecule::error::VerificationResult<()> {
-        use molecule::verification_error as ve;
-        let slice_len = slice.len();
-        if slice_len != Self::TOTAL_SIZE {
-            return ve!(Self, TotalSizeNotMatch, Self::TOTAL_SIZE, slice_len);
-        }
-        Ok(())
-    }
-}
-pub struct IssuerIdBuilder(pub(crate) [Byte; 20]);
-impl ::core::fmt::Debug for IssuerIdBuilder {
-    fn fmt(&self, f: &mut ::core::fmt::Formatter) -> ::core::fmt::Result {
-        write!(f, "{}({:?})", Self::NAME, &self.0[..])
-    }
-}
-impl ::core::default::Default for IssuerIdBuilder {
-    fn default() -> Self {
-        IssuerIdBuilder([
-            Byte::default(),
-            Byte::default(),
-            Byte::default(),
-            Byte::default(),
-            Byte::default(),
-            Byte::default(),
-            Byte::default(),
-            Byte::default(),
-            Byte::default(),
-            Byte::default(),
-            Byte::default(),
-            Byte::default(),
-            Byte::default(),
-            Byte::default(),
-            Byte::default(),
-            Byte::default(),
-            Byte::default(),
-            Byte::default(),
-            Byte::default(),
-            Byte::default(),
-        ])
-    }
-}
-impl IssuerIdBuilder {
-    pub const ITEM_COUNT: usize = 20;
-    pub const ITEM_SIZE: usize = 1;
-    pub const TOTAL_SIZE: usize = 20;
-
-    pub fn set(mut self, v: [Byte; 20]) -> Self {
-        self.0 = v;
-        self
-    }
-
-    pub fn nth0(mut self, v: Byte) -> Self {
-        self.0[0] = v;
-        self
-    }
-
-    pub fn nth1(mut self, v: Byte) -> Self {
-        self.0[1] = v;
-        self
-    }
-
-    pub fn nth2(mut self, v: Byte) -> Self {
-        self.0[2] = v;
-        self
-    }
-
-    pub fn nth3(mut self, v: Byte) -> Self {
-        self.0[3] = v;
-        self
-    }
-
-    pub fn nth4(mut self, v: Byte) -> Self {
-        self.0[4] = v;
-        self
-    }
-
-    pub fn nth5(mut self, v: Byte) -> Self {
-        self.0[5] = v;
-        self
-    }
-
-    pub fn nth6(mut self, v: Byte) -> Self {
-        self.0[6] = v;
-        self
-    }
-
-    pub fn nth7(mut self, v: Byte) -> Self {
-        self.0[7] = v;
-        self
-    }
-
-    pub fn nth8(mut self, v: Byte) -> Self {
-        self.0[8] = v;
-        self
-    }
-
-    pub fn nth9(mut self, v: Byte) -> Self {
-        self.0[9] = v;
-        self
-    }
-
-    pub fn nth10(mut self, v: Byte) -> Self {
-        self.0[10] = v;
-        self
-    }
-
-    pub fn nth11(mut self, v: Byte) -> Self {
-        self.0[11] = v;
-        self
-    }
-
-    pub fn nth12(mut self, v: Byte) -> Self {
-        self.0[12] = v;
-        self
-    }
-
-    pub fn nth13(mut self, v: Byte) -> Self {
-        self.0[13] = v;
-        self
-    }
-
-    pub fn nth14(mut self, v: Byte) -> Self {
-        self.0[14] = v;
-        self
-    }
-
-    pub fn nth15(mut self, v: Byte) -> Self {
-        self.0[15] = v;
-        self
-    }
-
-    pub fn nth16(mut self, v: Byte) -> Self {
-        self.0[16] = v;
-        self
-    }
-
-    pub fn nth17(mut self, v: Byte) -> Self {
-        self.0[17] = v;
-        self
-    }
-
-    pub fn nth18(mut self, v: Byte) -> Self {
-        self.0[18] = v;
-        self
-    }
-
-    pub fn nth19(mut self, v: Byte) -> Self {
-        self.0[19] = v;
-        self
-    }
-}
-impl molecule::prelude::Builder for IssuerIdBuilder {
-    type Entity = IssuerId;
-
-    const NAME: &'static str = "IssuerIdBuilder";
-
-    fn expected_length(&self) -> usize {
-        Self::TOTAL_SIZE
-    }
-
-    fn write<W: molecule::io::Write>(&self, writer: &mut W) -> molecule::io::Result<()> {
-        writer.write_all(self.0[0].as_slice())?;
-        writer.write_all(self.0[1].as_slice())?;
-        writer.write_all(self.0[2].as_slice())?;
-        writer.write_all(self.0[3].as_slice())?;
-        writer.write_all(self.0[4].as_slice())?;
-        writer.write_all(self.0[5].as_slice())?;
-        writer.write_all(self.0[6].as_slice())?;
-        writer.write_all(self.0[7].as_slice())?;
-        writer.write_all(self.0[8].as_slice())?;
-        writer.write_all(self.0[9].as_slice())?;
-        writer.write_all(self.0[10].as_slice())?;
-        writer.write_all(self.0[11].as_slice())?;
-        writer.write_all(self.0[12].as_slice())?;
-        writer.write_all(self.0[13].as_slice())?;
-        writer.write_all(self.0[14].as_slice())?;
-        writer.write_all(self.0[15].as_slice())?;
-        writer.write_all(self.0[16].as_slice())?;
-        writer.write_all(self.0[17].as_slice())?;
-        writer.write_all(self.0[18].as_slice())?;
-        writer.write_all(self.0[19].as_slice())?;
-        Ok(())
-    }
-
-    fn build(&self) -> Self::Entity {
-        let mut inner = Vec::with_capacity(self.expected_length());
-        self.write(&mut inner)
-            .unwrap_or_else(|_| panic!("{} build should be ok", Self::NAME));
-        IssuerId::new_unchecked(inner.into())
-    }
-}
-#[derive(Clone)]
-pub struct Characteristic(molecule::bytes::Bytes);
-impl ::core::fmt::LowerHex for Characteristic {
-    fn fmt(&self, f: &mut ::core::fmt::Formatter) -> ::core::fmt::Result {
-        use molecule::hex_string;
-        if f.alternate() {
-            write!(f, "0x")?;
-        }
-        write!(f, "{}", hex_string(self.as_slice()))
-    }
-}
-impl ::core::fmt::Debug for Characteristic {
-    fn fmt(&self, f: &mut ::core::fmt::Formatter) -> ::core::fmt::Result {
-        write!(f, "{}({:#x})", Self::NAME, self)
-    }
-}
-impl ::core::fmt::Display for Characteristic {
-    fn fmt(&self, f: &mut ::core::fmt::Formatter) -> ::core::fmt::Result {
-        use molecule::hex_string;
-        let raw_data = hex_string(&self.raw_data());
-        write!(f, "{}(0x{})", Self::NAME, raw_data)
-    }
-}
-impl ::core::default::Default for Characteristic {
-    fn default() -> Self {
-        let v: Vec<u8> = vec![0, 0, 0, 0, 0, 0, 0, 0];
-        Characteristic::new_unchecked(v.into())
-    }
-}
-impl Characteristic {
-    pub const ITEM_COUNT: usize = 8;
-    pub const ITEM_SIZE: usize = 1;
-    pub const TOTAL_SIZE: usize = 8;
-
-    pub fn nth0(&self) -> Byte {
-        Byte::new_unchecked(self.0.slice(0..1))
-    }
-
-    pub fn nth1(&self) -> Byte {
-        Byte::new_unchecked(self.0.slice(1..2))
-    }
-
-    pub fn nth2(&self) -> Byte {
-        Byte::new_unchecked(self.0.slice(2..3))
-    }
-
-    pub fn nth3(&self) -> Byte {
-        Byte::new_unchecked(self.0.slice(3..4))
-    }
-
-    pub fn nth4(&self) -> Byte {
-        Byte::new_unchecked(self.0.slice(4..5))
-    }
-
-    pub fn nth5(&self) -> Byte {
-        Byte::new_unchecked(self.0.slice(5..6))
-    }
-
-    pub fn nth6(&self) -> Byte {
-        Byte::new_unchecked(self.0.slice(6..7))
-    }
-
-    pub fn nth7(&self) -> Byte {
-        Byte::new_unchecked(self.0.slice(7..8))
-    }
-
-    pub fn raw_data(&self) -> molecule::bytes::Bytes {
-        self.as_bytes()
-    }
-
-    pub fn as_reader<'r>(&'r self) -> CharacteristicReader<'r> {
-        CharacteristicReader::new_unchecked(self.as_slice())
-    }
-}
-impl molecule::prelude::Entity for Characteristic {
-    type Builder = CharacteristicBuilder;
-
-    const NAME: &'static str = "Characteristic";
-
-    fn new_unchecked(data: molecule::bytes::Bytes) -> Self {
-        Characteristic(data)
-    }
-
-    fn as_bytes(&self) -> molecule::bytes::Bytes {
-        self.0.clone()
-    }
-
-    fn as_slice(&self) -> &[u8] {
-        &self.0[..]
-    }
-
-    fn from_slice(slice: &[u8]) -> molecule::error::VerificationResult<Self> {
-        CharacteristicReader::from_slice(slice).map(|reader| reader.to_entity())
-    }
-
-    fn from_compatible_slice(slice: &[u8]) -> molecule::error::VerificationResult<Self> {
-        CharacteristicReader::from_compatible_slice(slice).map(|reader| reader.to_entity())
-    }
-
-    fn new_builder() -> Self::Builder {
-        ::core::default::Default::default()
-    }
-
-    fn as_builder(self) -> Self::Builder {
-        Self::new_builder().set([
-            self.nth0(),
-            self.nth1(),
-            self.nth2(),
-            self.nth3(),
-            self.nth4(),
-            self.nth5(),
-            self.nth6(),
-            self.nth7(),
-        ])
-    }
-}
-#[derive(Clone, Copy)]
-pub struct CharacteristicReader<'r>(&'r [u8]);
-impl<'r> ::core::fmt::LowerHex for CharacteristicReader<'r> {
-    fn fmt(&self, f: &mut ::core::fmt::Formatter) -> ::core::fmt::Result {
-        use molecule::hex_string;
-        if f.alternate() {
-            write!(f, "0x")?;
-        }
-        write!(f, "{}", hex_string(self.as_slice()))
-    }
-}
-impl<'r> ::core::fmt::Debug for CharacteristicReader<'r> {
-    fn fmt(&self, f: &mut ::core::fmt::Formatter) -> ::core::fmt::Result {
-        write!(f, "{}({:#x})", Self::NAME, self)
-    }
-}
-impl<'r> ::core::fmt::Display for CharacteristicReader<'r> {
-    fn fmt(&self, f: &mut ::core::fmt::Formatter) -> ::core::fmt::Result {
-        use molecule::hex_string;
-        let raw_data = hex_string(&self.raw_data());
-        write!(f, "{}(0x{})", Self::NAME, raw_data)
-    }
-}
-impl<'r> CharacteristicReader<'r> {
-    pub const ITEM_COUNT: usize = 8;
-    pub const ITEM_SIZE: usize = 1;
-    pub const TOTAL_SIZE: usize = 8;
-
-    pub fn nth0(&self) -> ByteReader<'r> {
-        ByteReader::new_unchecked(&self.as_slice()[0..1])
-    }
-
-    pub fn nth1(&self) -> ByteReader<'r> {
-        ByteReader::new_unchecked(&self.as_slice()[1..2])
-    }
-
-    pub fn nth2(&self) -> ByteReader<'r> {
-        ByteReader::new_unchecked(&self.as_slice()[2..3])
-    }
-
-    pub fn nth3(&self) -> ByteReader<'r> {
-        ByteReader::new_unchecked(&self.as_slice()[3..4])
-    }
-
-    pub fn nth4(&self) -> ByteReader<'r> {
-        ByteReader::new_unchecked(&self.as_slice()[4..5])
-    }
-
-    pub fn nth5(&self) -> ByteReader<'r> {
-        ByteReader::new_unchecked(&self.as_slice()[5..6])
-    }
-
-    pub fn nth6(&self) -> ByteReader<'r> {
-        ByteReader::new_unchecked(&self.as_slice()[6..7])
-    }
-
-    pub fn nth7(&self) -> ByteReader<'r> {
-        ByteReader::new_unchecked(&self.as_slice()[7..8])
-    }
-
-    pub fn raw_data(&self) -> &'r [u8] {
-        self.as_slice()
-    }
-}
-impl<'r> molecule::prelude::Reader<'r> for CharacteristicReader<'r> {
-    type Entity = Characteristic;
-
-    const NAME: &'static str = "CharacteristicReader";
-
-    fn to_entity(&self) -> Self::Entity {
-        Self::Entity::new_unchecked(self.as_slice().to_owned().into())
-    }
-
-    fn new_unchecked(slice: &'r [u8]) -> Self {
-        CharacteristicReader(slice)
-    }
-
-    fn as_slice(&self) -> &'r [u8] {
-        self.0
-    }
-
-    fn verify(slice: &[u8], _compatible: bool) -> molecule::error::VerificationResult<()> {
-        use molecule::verification_error as ve;
-        let slice_len = slice.len();
-        if slice_len != Self::TOTAL_SIZE {
-            return ve!(Self, TotalSizeNotMatch, Self::TOTAL_SIZE, slice_len);
-        }
-        Ok(())
-    }
-}
-pub struct CharacteristicBuilder(pub(crate) [Byte; 8]);
-impl ::core::fmt::Debug for CharacteristicBuilder {
-    fn fmt(&self, f: &mut ::core::fmt::Formatter) -> ::core::fmt::Result {
-        write!(f, "{}({:?})", Self::NAME, &self.0[..])
-    }
-}
-impl ::core::default::Default for CharacteristicBuilder {
-    fn default() -> Self {
-        CharacteristicBuilder([
-            Byte::default(),
-            Byte::default(),
-            Byte::default(),
-            Byte::default(),
-            Byte::default(),
-            Byte::default(),
-            Byte::default(),
-            Byte::default(),
-        ])
-    }
-}
-impl CharacteristicBuilder {
-    pub const ITEM_COUNT: usize = 8;
-    pub const ITEM_SIZE: usize = 1;
-    pub const TOTAL_SIZE: usize = 8;
-
-    pub fn set(mut self, v: [Byte; 8]) -> Self {
-        self.0 = v;
-        self
-    }
-
-    pub fn nth0(mut self, v: Byte) -> Self {
-        self.0[0] = v;
-        self
-    }
-
-    pub fn nth1(mut self, v: Byte) -> Self {
-        self.0[1] = v;
-        self
-    }
-
-    pub fn nth2(mut self, v: Byte) -> Self {
-        self.0[2] = v;
-        self
-    }
-
-    pub fn nth3(mut self, v: Byte) -> Self {
-        self.0[3] = v;
-        self
-    }
-
-    pub fn nth4(mut self, v: Byte) -> Self {
-        self.0[4] = v;
-        self
-    }
-
-    pub fn nth5(mut self, v: Byte) -> Self {
-        self.0[5] = v;
-        self
-    }
-
-    pub fn nth6(mut self, v: Byte) -> Self {
-        self.0[6] = v;
-        self
-    }
-
-    pub fn nth7(mut self, v: Byte) -> Self {
-        self.0[7] = v;
-        self
-    }
-}
-impl molecule::prelude::Builder for CharacteristicBuilder {
-    type Entity = Characteristic;
-
-    const NAME: &'static str = "CharacteristicBuilder";
-
-    fn expected_length(&self) -> usize {
-        Self::TOTAL_SIZE
-    }
-
-    fn write<W: molecule::io::Write>(&self, writer: &mut W) -> molecule::io::Result<()> {
-        writer.write_all(self.0[0].as_slice())?;
-        writer.write_all(self.0[1].as_slice())?;
-        writer.write_all(self.0[2].as_slice())?;
-        writer.write_all(self.0[3].as_slice())?;
-        writer.write_all(self.0[4].as_slice())?;
-        writer.write_all(self.0[5].as_slice())?;
-        writer.write_all(self.0[6].as_slice())?;
-        writer.write_all(self.0[7].as_slice())?;
-        Ok(())
-    }
-
-    fn build(&self) -> Self::Entity {
-        let mut inner = Vec::with_capacity(self.expected_length());
-        self.write(&mut inner)
-            .unwrap_or_else(|_| panic!("{} build should be ok", Self::NAME));
-        Characteristic::new_unchecked(inner.into())
-    }
-}
-#[derive(Clone)]
-pub struct Bytes(molecule::bytes::Bytes);
-impl ::core::fmt::LowerHex for Bytes {
-    fn fmt(&self, f: &mut ::core::fmt::Formatter) -> ::core::fmt::Result {
-        use molecule::hex_string;
-        if f.alternate() {
-            write!(f, "0x")?;
-        }
-        write!(f, "{}", hex_string(self.as_slice()))
-    }
-}
-impl ::core::fmt::Debug for Bytes {
-    fn fmt(&self, f: &mut ::core::fmt::Formatter) -> ::core::fmt::Result {
-        write!(f, "{}({:#x})", Self::NAME, self)
-    }
-}
-impl ::core::fmt::Display for Bytes {
-    fn fmt(&self, f: &mut ::core::fmt::Formatter) -> ::core::fmt::Result {
-        use molecule::hex_string;
-        let raw_data = hex_string(&self.raw_data());
-        write!(f, "{}(0x{})", Self::NAME, raw_data)
-    }
-}
-impl ::core::default::Default for Bytes {
-    fn default() -> Self {
-        let v: Vec<u8> = vec![0, 0, 0, 0];
-        Bytes::new_unchecked(v.into())
-    }
-}
-impl Bytes {
-    pub const ITEM_SIZE: usize = 1;
-
-    pub fn total_size(&self) -> usize {
-        molecule::NUMBER_SIZE * (self.item_count() + 1)
-    }
-
-    pub fn item_count(&self) -> usize {
-        molecule::unpack_number(self.as_slice()) as usize
-    }
-
-    pub fn len(&self) -> usize {
-        self.item_count()
-    }
-
-    pub fn is_empty(&self) -> bool {
-        self.len() == 0
-    }
-
-    pub fn get(&self, idx: usize) -> Option<Byte> {
-        if idx >= self.len() {
-            None
-        } else {
-            Some(self.get_unchecked(idx))
-        }
-    }
-
-    pub fn get_unchecked(&self, idx: usize) -> Byte {
-        let start = molecule::NUMBER_SIZE + Self::ITEM_SIZE * idx;
-        let end = start + Self::ITEM_SIZE;
-        Byte::new_unchecked(self.0.slice(start..end))
-    }
-
-    pub fn raw_data(&self) -> molecule::bytes::Bytes {
-        self.0.slice(molecule::NUMBER_SIZE..)
-    }
-
-    pub fn as_reader<'r>(&'r self) -> BytesReader<'r> {
-        BytesReader::new_unchecked(self.as_slice())
-    }
-}
-impl molecule::prelude::Entity for Bytes {
-    type Builder = BytesBuilder;
-
-    const NAME: &'static str = "Bytes";
-
-    fn new_unchecked(data: molecule::bytes::Bytes) -> Self {
-        Bytes(data)
-    }
-
-    fn as_bytes(&self) -> molecule::bytes::Bytes {
-        self.0.clone()
-    }
-
-    fn as_slice(&self) -> &[u8] {
-        &self.0[..]
-    }
-
-    fn from_slice(slice: &[u8]) -> molecule::error::VerificationResult<Self> {
-        BytesReader::from_slice(slice).map(|reader| reader.to_entity())
-    }
-
-    fn from_compatible_slice(slice: &[u8]) -> molecule::error::VerificationResult<Self> {
-        BytesReader::from_compatible_slice(slice).map(|reader| reader.to_entity())
-    }
-
-    fn new_builder() -> Self::Builder {
-        ::core::default::Default::default()
-    }
-
-    fn as_builder(self) -> Self::Builder {
-        Self::new_builder().extend(self.into_iter())
-    }
-}
-#[derive(Clone, Copy)]
-pub struct BytesReader<'r>(&'r [u8]);
-impl<'r> ::core::fmt::LowerHex for BytesReader<'r> {
-    fn fmt(&self, f: &mut ::core::fmt::Formatter) -> ::core::fmt::Result {
-        use molecule::hex_string;
-        if f.alternate() {
-            write!(f, "0x")?;
-        }
-        write!(f, "{}", hex_string(self.as_slice()))
-    }
-}
-impl<'r> ::core::fmt::Debug for BytesReader<'r> {
-    fn fmt(&self, f: &mut ::core::fmt::Formatter) -> ::core::fmt::Result {
-        write!(f, "{}({:#x})", Self::NAME, self)
-    }
-}
-impl<'r> ::core::fmt::Display for BytesReader<'r> {
-    fn fmt(&self, f: &mut ::core::fmt::Formatter) -> ::core::fmt::Result {
-        use molecule::hex_string;
-        let raw_data = hex_string(&self.raw_data());
-        write!(f, "{}(0x{})", Self::NAME, raw_data)
-    }
-}
-impl<'r> BytesReader<'r> {
-    pub const ITEM_SIZE: usize = 1;
-
-    pub fn total_size(&self) -> usize {
-        molecule::NUMBER_SIZE * (self.item_count() + 1)
-    }
-
-    pub fn item_count(&self) -> usize {
-        molecule::unpack_number(self.as_slice()) as usize
-    }
-
-    pub fn len(&self) -> usize {
-        self.item_count()
-    }
-
-    pub fn is_empty(&self) -> bool {
-        self.len() == 0
-    }
-
-    pub fn get(&self, idx: usize) -> Option<ByteReader<'r>> {
-        if idx >= self.len() {
-            None
-        } else {
-            Some(self.get_unchecked(idx))
-        }
-    }
-
-    pub fn get_unchecked(&self, idx: usize) -> ByteReader<'r> {
-        let start = molecule::NUMBER_SIZE + Self::ITEM_SIZE * idx;
-        let end = start + Self::ITEM_SIZE;
-        ByteReader::new_unchecked(&self.as_slice()[start..end])
-    }
-
-    pub fn raw_data(&self) -> &'r [u8] {
-        &self.as_slice()[molecule::NUMBER_SIZE..]
-    }
-}
-impl<'r> molecule::prelude::Reader<'r> for BytesReader<'r> {
-    type Entity = Bytes;
-
-    const NAME: &'static str = "BytesReader";
-
-    fn to_entity(&self) -> Self::Entity {
-        Self::Entity::new_unchecked(self.as_slice().to_owned().into())
-    }
-
-    fn new_unchecked(slice: &'r [u8]) -> Self {
-        BytesReader(slice)
-    }
-
-    fn as_slice(&self) -> &'r [u8] {
-        self.0
-    }
-
-    fn verify(slice: &[u8], _compatible: bool) -> molecule::error::VerificationResult<()> {
-        use molecule::verification_error as ve;
-        let slice_len = slice.len();
-        if slice_len < molecule::NUMBER_SIZE {
-            return ve!(Self, HeaderIsBroken, molecule::NUMBER_SIZE, slice_len);
-        }
-        let item_count = molecule::unpack_number(slice) as usize;
-        if item_count == 0 {
-            if slice_len != molecule::NUMBER_SIZE {
-                return ve!(Self, TotalSizeNotMatch, molecule::NUMBER_SIZE, slice_len);
-            }
-            return Ok(());
-        }
-        let total_size = molecule::NUMBER_SIZE + Self::ITEM_SIZE * item_count;
-        if slice_len != total_size {
-            return ve!(Self, TotalSizeNotMatch, total_size, slice_len);
-        }
-        Ok(())
-    }
-}
-#[derive(Debug, Default)]
-pub struct BytesBuilder(pub(crate) Vec<Byte>);
-impl BytesBuilder {
-    pub const ITEM_SIZE: usize = 1;
-
-    pub fn set(mut self, v: Vec<Byte>) -> Self {
-        self.0 = v;
-        self
-    }
-
-    pub fn push(mut self, v: Byte) -> Self {
-        self.0.push(v);
-        self
-    }
-
-    pub fn extend<T: ::core::iter::IntoIterator<Item = Byte>>(mut self, iter: T) -> Self {
-        for elem in iter {
-            self.0.push(elem);
-        }
-        self
-    }
-}
-impl molecule::prelude::Builder for BytesBuilder {
-    type Entity = Bytes;
-
-    const NAME: &'static str = "BytesBuilder";
-
-    fn expected_length(&self) -> usize {
-        molecule::NUMBER_SIZE + Self::ITEM_SIZE * self.0.len()
-    }
-
-    fn write<W: molecule::io::Write>(&self, writer: &mut W) -> molecule::io::Result<()> {
-        writer.write_all(&molecule::pack_number(self.0.len() as molecule::Number))?;
-        for inner in &self.0[..] {
-            writer.write_all(inner.as_slice())?;
-        }
-        Ok(())
-    }
-
-    fn build(&self) -> Self::Entity {
-        let mut inner = Vec::with_capacity(self.expected_length());
-        self.write(&mut inner)
-            .unwrap_or_else(|_| panic!("{} build should be ok", Self::NAME));
-        Bytes::new_unchecked(inner.into())
-    }
-}
-pub struct BytesIterator(Bytes, usize, usize);
-impl ::core::iter::Iterator for BytesIterator {
-    type Item = Byte;
-
-    fn next(&mut self) -> Option<Self::Item> {
-        if self.1 >= self.2 {
-            None
-        } else {
-            let ret = self.0.get_unchecked(self.1);
-            self.1 += 1;
-            Some(ret)
-        }
-    }
-}
-impl ::core::iter::ExactSizeIterator for BytesIterator {
-    fn len(&self) -> usize {
-        self.2 - self.1
-    }
-}
-impl ::core::iter::IntoIterator for Bytes {
-    type IntoIter = BytesIterator;
-    type Item = Byte;
-
-    fn into_iter(self) -> Self::IntoIter {
-        let len = self.len();
-        BytesIterator(self, 0, len)
-    }
-}
-#[derive(Clone)]
-pub struct CompactNFTId(molecule::bytes::Bytes);
-impl ::core::fmt::LowerHex for CompactNFTId {
-    fn fmt(&self, f: &mut ::core::fmt::Formatter) -> ::core::fmt::Result {
-        use molecule::hex_string;
-        if f.alternate() {
-            write!(f, "0x")?;
-        }
-        write!(f, "{}", hex_string(self.as_slice()))
-    }
-}
-impl ::core::fmt::Debug for CompactNFTId {
-    fn fmt(&self, f: &mut ::core::fmt::Formatter) -> ::core::fmt::Result {
-        write!(f, "{}({:#x})", Self::NAME, self)
-    }
-}
-impl ::core::fmt::Display for CompactNFTId {
-    fn fmt(&self, f: &mut ::core::fmt::Formatter) -> ::core::fmt::Result {
-        write!(f, "{} {{ ", Self::NAME)?;
-        write!(f, "{}: {}", "issuer_id", self.issuer_id())?;
-        write!(f, ", {}: {}", "class_id", self.class_id())?;
-        write!(f, ", {}: {}", "token_id", self.token_id())?;
-        write!(f, " }}")
-    }
-}
-impl ::core::default::Default for CompactNFTId {
-    fn default() -> Self {
-        let v: Vec<u8> = vec![
-            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-        ];
-        CompactNFTId::new_unchecked(v.into())
-    }
-}
-impl CompactNFTId {
-    pub const FIELD_COUNT: usize = 3;
-    pub const FIELD_SIZES: [usize; 3] = [20, 4, 4];
-    pub const TOTAL_SIZE: usize = 28;
-
-    pub fn issuer_id(&self) -> IssuerId {
-        IssuerId::new_unchecked(self.0.slice(0..20))
-    }
-
-    pub fn class_id(&self) -> Uint32 {
-        Uint32::new_unchecked(self.0.slice(20..24))
-    }
-
-    pub fn token_id(&self) -> Uint32 {
-        Uint32::new_unchecked(self.0.slice(24..28))
-    }
-
-    pub fn as_reader<'r>(&'r self) -> CompactNFTIdReader<'r> {
-        CompactNFTIdReader::new_unchecked(self.as_slice())
-    }
-}
-impl molecule::prelude::Entity for CompactNFTId {
-    type Builder = CompactNFTIdBuilder;
-
-    const NAME: &'static str = "CompactNFTId";
-
-    fn new_unchecked(data: molecule::bytes::Bytes) -> Self {
-        CompactNFTId(data)
-    }
-
-    fn as_bytes(&self) -> molecule::bytes::Bytes {
-        self.0.clone()
-    }
-
-    fn as_slice(&self) -> &[u8] {
-        &self.0[..]
-    }
-
-    fn from_slice(slice: &[u8]) -> molecule::error::VerificationResult<Self> {
-        CompactNFTIdReader::from_slice(slice).map(|reader| reader.to_entity())
-    }
-
-    fn from_compatible_slice(slice: &[u8]) -> molecule::error::VerificationResult<Self> {
-        CompactNFTIdReader::from_compatible_slice(slice).map(|reader| reader.to_entity())
-    }
-
-    fn new_builder() -> Self::Builder {
-        ::core::default::Default::default()
-    }
-
-    fn as_builder(self) -> Self::Builder {
-        Self::new_builder()
-            .issuer_id(self.issuer_id())
-            .class_id(self.class_id())
-            .token_id(self.token_id())
-    }
-}
-#[derive(Clone, Copy)]
-pub struct CompactNFTIdReader<'r>(&'r [u8]);
-impl<'r> ::core::fmt::LowerHex for CompactNFTIdReader<'r> {
-    fn fmt(&self, f: &mut ::core::fmt::Formatter) -> ::core::fmt::Result {
-        use molecule::hex_string;
-        if f.alternate() {
-            write!(f, "0x")?;
-        }
-        write!(f, "{}", hex_string(self.as_slice()))
-    }
-}
-impl<'r> ::core::fmt::Debug for CompactNFTIdReader<'r> {
-    fn fmt(&self, f: &mut ::core::fmt::Formatter) -> ::core::fmt::Result {
-        write!(f, "{}({:#x})", Self::NAME, self)
-    }
-}
-impl<'r> ::core::fmt::Display for CompactNFTIdReader<'r> {
-    fn fmt(&self, f: &mut ::core::fmt::Formatter) -> ::core::fmt::Result {
-        write!(f, "{} {{ ", Self::NAME)?;
-        write!(f, "{}: {}", "issuer_id", self.issuer_id())?;
-        write!(f, ", {}: {}", "class_id", self.class_id())?;
-        write!(f, ", {}: {}", "token_id", self.token_id())?;
-        write!(f, " }}")
-    }
-}
-impl<'r> CompactNFTIdReader<'r> {
-    pub const FIELD_COUNT: usize = 3;
-    pub const FIELD_SIZES: [usize; 3] = [20, 4, 4];
-    pub const TOTAL_SIZE: usize = 28;
-
-    pub fn issuer_id(&self) -> IssuerIdReader<'r> {
-        IssuerIdReader::new_unchecked(&self.as_slice()[0..20])
-    }
-
-    pub fn class_id(&self) -> Uint32Reader<'r> {
-        Uint32Reader::new_unchecked(&self.as_slice()[20..24])
-    }
-
-    pub fn token_id(&self) -> Uint32Reader<'r> {
-        Uint32Reader::new_unchecked(&self.as_slice()[24..28])
-    }
-}
-impl<'r> molecule::prelude::Reader<'r> for CompactNFTIdReader<'r> {
-    type Entity = CompactNFTId;
-
-    const NAME: &'static str = "CompactNFTIdReader";
-
-    fn to_entity(&self) -> Self::Entity {
-        Self::Entity::new_unchecked(self.as_slice().to_owned().into())
-    }
-
-    fn new_unchecked(slice: &'r [u8]) -> Self {
-        CompactNFTIdReader(slice)
-    }
-
-    fn as_slice(&self) -> &'r [u8] {
-        self.0
-    }
-
-    fn verify(slice: &[u8], _compatible: bool) -> molecule::error::VerificationResult<()> {
-        use molecule::verification_error as ve;
-        let slice_len = slice.len();
-        if slice_len != Self::TOTAL_SIZE {
-            return ve!(Self, TotalSizeNotMatch, Self::TOTAL_SIZE, slice_len);
-        }
-        Ok(())
-    }
-}
-#[derive(Debug, Default)]
-pub struct CompactNFTIdBuilder {
-    pub(crate) issuer_id: IssuerId,
-    pub(crate) class_id:  Uint32,
-    pub(crate) token_id:  Uint32,
-}
-impl CompactNFTIdBuilder {
-    pub const FIELD_COUNT: usize = 3;
-    pub const FIELD_SIZES: [usize; 3] = [20, 4, 4];
-    pub const TOTAL_SIZE: usize = 28;
-
-    pub fn issuer_id(mut self, v: IssuerId) -> Self {
-        self.issuer_id = v;
-        self
-    }
-
-    pub fn class_id(mut self, v: Uint32) -> Self {
-        self.class_id = v;
-        self
-    }
-
-    pub fn token_id(mut self, v: Uint32) -> Self {
-        self.token_id = v;
-        self
-    }
-}
-impl molecule::prelude::Builder for CompactNFTIdBuilder {
-    type Entity = CompactNFTId;
-
-    const NAME: &'static str = "CompactNFTIdBuilder";
-
-    fn expected_length(&self) -> usize {
-        Self::TOTAL_SIZE
-    }
-
-    fn write<W: molecule::io::Write>(&self, writer: &mut W) -> molecule::io::Result<()> {
-        writer.write_all(self.issuer_id.as_slice())?;
-        writer.write_all(self.class_id.as_slice())?;
-        writer.write_all(self.token_id.as_slice())?;
-        Ok(())
-    }
-
-    fn build(&self) -> Self::Entity {
-        let mut inner = Vec::with_capacity(self.expected_length());
-        self.write(&mut inner)
-            .unwrap_or_else(|_| panic!("{} build should be ok", Self::NAME));
-        CompactNFTId::new_unchecked(inner.into())
-    }
-}
-#[derive(Clone)]
-pub struct CompactNFTIdVec(molecule::bytes::Bytes);
-impl ::core::fmt::LowerHex for CompactNFTIdVec {
-    fn fmt(&self, f: &mut ::core::fmt::Formatter) -> ::core::fmt::Result {
-        use molecule::hex_string;
-        if f.alternate() {
-            write!(f, "0x")?;
-        }
-        write!(f, "{}", hex_string(self.as_slice()))
-    }
-}
-impl ::core::fmt::Debug for CompactNFTIdVec {
-    fn fmt(&self, f: &mut ::core::fmt::Formatter) -> ::core::fmt::Result {
-        write!(f, "{}({:#x})", Self::NAME, self)
-    }
-}
-impl ::core::fmt::Display for CompactNFTIdVec {
+impl ::core::fmt::Display for MintCompactNFTKeyVec {
     fn fmt(&self, f: &mut ::core::fmt::Formatter) -> ::core::fmt::Result {
         write!(f, "{} [", Self::NAME)?;
         for i in 0..self.len() {
@@ -1557,13 +42,13 @@ impl ::core::fmt::Display for CompactNFTIdVec {
         write!(f, "]")
     }
 }
-impl ::core::default::Default for CompactNFTIdVec {
+impl ::core::default::Default for MintCompactNFTKeyVec {
     fn default() -> Self {
         let v: Vec<u8> = vec![0, 0, 0, 0];
-        CompactNFTIdVec::new_unchecked(v.into())
+        MintCompactNFTKeyVec::new_unchecked(v.into())
     }
 }
-impl CompactNFTIdVec {
+impl MintCompactNFTKeyVec {
     pub const ITEM_SIZE: usize = 28;
 
     pub fn total_size(&self) -> usize {
@@ -1596,17 +81,17 @@ impl CompactNFTIdVec {
         CompactNFTId::new_unchecked(self.0.slice(start..end))
     }
 
-    pub fn as_reader<'r>(&'r self) -> CompactNFTIdVecReader<'r> {
-        CompactNFTIdVecReader::new_unchecked(self.as_slice())
+    pub fn as_reader<'r>(&'r self) -> MintCompactNFTKeyVecReader<'r> {
+        MintCompactNFTKeyVecReader::new_unchecked(self.as_slice())
     }
 }
-impl molecule::prelude::Entity for CompactNFTIdVec {
-    type Builder = CompactNFTIdVecBuilder;
+impl molecule::prelude::Entity for MintCompactNFTKeyVec {
+    type Builder = MintCompactNFTKeyVecBuilder;
 
-    const NAME: &'static str = "CompactNFTIdVec";
+    const NAME: &'static str = "MintCompactNFTKeyVec";
 
     fn new_unchecked(data: molecule::bytes::Bytes) -> Self {
-        CompactNFTIdVec(data)
+        MintCompactNFTKeyVec(data)
     }
 
     fn as_bytes(&self) -> molecule::bytes::Bytes {
@@ -1618,11 +103,11 @@ impl molecule::prelude::Entity for CompactNFTIdVec {
     }
 
     fn from_slice(slice: &[u8]) -> molecule::error::VerificationResult<Self> {
-        CompactNFTIdVecReader::from_slice(slice).map(|reader| reader.to_entity())
+        MintCompactNFTKeyVecReader::from_slice(slice).map(|reader| reader.to_entity())
     }
 
     fn from_compatible_slice(slice: &[u8]) -> molecule::error::VerificationResult<Self> {
-        CompactNFTIdVecReader::from_compatible_slice(slice).map(|reader| reader.to_entity())
+        MintCompactNFTKeyVecReader::from_compatible_slice(slice).map(|reader| reader.to_entity())
     }
 
     fn new_builder() -> Self::Builder {
@@ -1634,8 +119,8 @@ impl molecule::prelude::Entity for CompactNFTIdVec {
     }
 }
 #[derive(Clone, Copy)]
-pub struct CompactNFTIdVecReader<'r>(&'r [u8]);
-impl<'r> ::core::fmt::LowerHex for CompactNFTIdVecReader<'r> {
+pub struct MintCompactNFTKeyVecReader<'r>(&'r [u8]);
+impl<'r> ::core::fmt::LowerHex for MintCompactNFTKeyVecReader<'r> {
     fn fmt(&self, f: &mut ::core::fmt::Formatter) -> ::core::fmt::Result {
         use molecule::hex_string;
         if f.alternate() {
@@ -1644,12 +129,12 @@ impl<'r> ::core::fmt::LowerHex for CompactNFTIdVecReader<'r> {
         write!(f, "{}", hex_string(self.as_slice()))
     }
 }
-impl<'r> ::core::fmt::Debug for CompactNFTIdVecReader<'r> {
+impl<'r> ::core::fmt::Debug for MintCompactNFTKeyVecReader<'r> {
     fn fmt(&self, f: &mut ::core::fmt::Formatter) -> ::core::fmt::Result {
         write!(f, "{}({:#x})", Self::NAME, self)
     }
 }
-impl<'r> ::core::fmt::Display for CompactNFTIdVecReader<'r> {
+impl<'r> ::core::fmt::Display for MintCompactNFTKeyVecReader<'r> {
     fn fmt(&self, f: &mut ::core::fmt::Formatter) -> ::core::fmt::Result {
         write!(f, "{} [", Self::NAME)?;
         for i in 0..self.len() {
@@ -1662,7 +147,7 @@ impl<'r> ::core::fmt::Display for CompactNFTIdVecReader<'r> {
         write!(f, "]")
     }
 }
-impl<'r> CompactNFTIdVecReader<'r> {
+impl<'r> MintCompactNFTKeyVecReader<'r> {
     pub const ITEM_SIZE: usize = 28;
 
     pub fn total_size(&self) -> usize {
@@ -1695,17 +180,17 @@ impl<'r> CompactNFTIdVecReader<'r> {
         CompactNFTIdReader::new_unchecked(&self.as_slice()[start..end])
     }
 }
-impl<'r> molecule::prelude::Reader<'r> for CompactNFTIdVecReader<'r> {
-    type Entity = CompactNFTIdVec;
+impl<'r> molecule::prelude::Reader<'r> for MintCompactNFTKeyVecReader<'r> {
+    type Entity = MintCompactNFTKeyVec;
 
-    const NAME: &'static str = "CompactNFTIdVecReader";
+    const NAME: &'static str = "MintCompactNFTKeyVecReader";
 
     fn to_entity(&self) -> Self::Entity {
         Self::Entity::new_unchecked(self.as_slice().to_owned().into())
     }
 
     fn new_unchecked(slice: &'r [u8]) -> Self {
-        CompactNFTIdVecReader(slice)
+        MintCompactNFTKeyVecReader(slice)
     }
 
     fn as_slice(&self) -> &'r [u8] {
@@ -1733,8 +218,8 @@ impl<'r> molecule::prelude::Reader<'r> for CompactNFTIdVecReader<'r> {
     }
 }
 #[derive(Debug, Default)]
-pub struct CompactNFTIdVecBuilder(pub(crate) Vec<CompactNFTId>);
-impl CompactNFTIdVecBuilder {
+pub struct MintCompactNFTKeyVecBuilder(pub(crate) Vec<CompactNFTId>);
+impl MintCompactNFTKeyVecBuilder {
     pub const ITEM_SIZE: usize = 28;
 
     pub fn set(mut self, v: Vec<CompactNFTId>) -> Self {
@@ -1754,10 +239,10 @@ impl CompactNFTIdVecBuilder {
         self
     }
 }
-impl molecule::prelude::Builder for CompactNFTIdVecBuilder {
-    type Entity = CompactNFTIdVec;
+impl molecule::prelude::Builder for MintCompactNFTKeyVecBuilder {
+    type Entity = MintCompactNFTKeyVec;
 
-    const NAME: &'static str = "CompactNFTIdVecBuilder";
+    const NAME: &'static str = "MintCompactNFTKeyVecBuilder";
 
     fn expected_length(&self) -> usize {
         molecule::NUMBER_SIZE + Self::ITEM_SIZE * self.0.len()
@@ -1775,11 +260,11 @@ impl molecule::prelude::Builder for CompactNFTIdVecBuilder {
         let mut inner = Vec::with_capacity(self.expected_length());
         self.write(&mut inner)
             .unwrap_or_else(|_| panic!("{} build should be ok", Self::NAME));
-        CompactNFTIdVec::new_unchecked(inner.into())
+        MintCompactNFTKeyVec::new_unchecked(inner.into())
     }
 }
-pub struct CompactNFTIdVecIterator(CompactNFTIdVec, usize, usize);
-impl ::core::iter::Iterator for CompactNFTIdVecIterator {
+pub struct MintCompactNFTKeyVecIterator(MintCompactNFTKeyVec, usize, usize);
+impl ::core::iter::Iterator for MintCompactNFTKeyVecIterator {
     type Item = CompactNFTId;
 
     fn next(&mut self) -> Option<Self::Item> {
@@ -1792,27 +277,31 @@ impl ::core::iter::Iterator for CompactNFTIdVecIterator {
         }
     }
 }
-impl ::core::iter::ExactSizeIterator for CompactNFTIdVecIterator {
+impl ::core::iter::ExactSizeIterator for MintCompactNFTKeyVecIterator {
     fn len(&self) -> usize {
         self.2 - self.1
     }
 }
-impl ::core::iter::IntoIterator for CompactNFTIdVec {
-    type IntoIter = CompactNFTIdVecIterator;
+impl ::core::iter::IntoIterator for MintCompactNFTKeyVec {
+    type IntoIter = MintCompactNFTKeyVecIterator;
     type Item = CompactNFTId;
 
     fn into_iter(self) -> Self::IntoIter {
         let len = self.len();
-        CompactNFTIdVecIterator(self, 0, len)
+        MintCompactNFTKeyVecIterator(self, 0, len)
     }
 }
-impl<'r> CompactNFTIdVecReader<'r> {
-    pub fn iter<'t>(&'t self) -> CompactNFTIdVecReaderIterator<'t, 'r> {
-        CompactNFTIdVecReaderIterator(&self, 0, self.len())
+impl<'r> MintCompactNFTKeyVecReader<'r> {
+    pub fn iter<'t>(&'t self) -> MintCompactNFTKeyVecReaderIterator<'t, 'r> {
+        MintCompactNFTKeyVecReaderIterator(&self, 0, self.len())
     }
 }
-pub struct CompactNFTIdVecReaderIterator<'t, 'r>(&'t CompactNFTIdVecReader<'r>, usize, usize);
-impl<'t: 'r, 'r> ::core::iter::Iterator for CompactNFTIdVecReaderIterator<'t, 'r> {
+pub struct MintCompactNFTKeyVecReaderIterator<'t, 'r>(
+    &'t MintCompactNFTKeyVecReader<'r>,
+    usize,
+    usize,
+);
+impl<'t: 'r, 'r> ::core::iter::Iterator for MintCompactNFTKeyVecReaderIterator<'t, 'r> {
     type Item = CompactNFTIdReader<'t>;
 
     fn next(&mut self) -> Option<Self::Item> {
@@ -1825,14 +314,14 @@ impl<'t: 'r, 'r> ::core::iter::Iterator for CompactNFTIdVecReaderIterator<'t, 'r
         }
     }
 }
-impl<'t: 'r, 'r> ::core::iter::ExactSizeIterator for CompactNFTIdVecReaderIterator<'t, 'r> {
+impl<'t: 'r, 'r> ::core::iter::ExactSizeIterator for MintCompactNFTKeyVecReaderIterator<'t, 'r> {
     fn len(&self) -> usize {
         self.2 - self.1
     }
 }
 #[derive(Clone)]
-pub struct CompactNFTInfo(molecule::bytes::Bytes);
-impl ::core::fmt::LowerHex for CompactNFTInfo {
+pub struct MintCompactNFTValue(molecule::bytes::Bytes);
+impl ::core::fmt::LowerHex for MintCompactNFTValue {
     fn fmt(&self, f: &mut ::core::fmt::Formatter) -> ::core::fmt::Result {
         use molecule::hex_string;
         if f.alternate() {
@@ -1841,17 +330,15 @@ impl ::core::fmt::LowerHex for CompactNFTInfo {
         write!(f, "{}", hex_string(self.as_slice()))
     }
 }
-impl ::core::fmt::Debug for CompactNFTInfo {
+impl ::core::fmt::Debug for MintCompactNFTValue {
     fn fmt(&self, f: &mut ::core::fmt::Formatter) -> ::core::fmt::Result {
         write!(f, "{}({:#x})", Self::NAME, self)
     }
 }
-impl ::core::fmt::Display for CompactNFTInfo {
+impl ::core::fmt::Display for MintCompactNFTValue {
     fn fmt(&self, f: &mut ::core::fmt::Formatter) -> ::core::fmt::Result {
         write!(f, "{} {{ ", Self::NAME)?;
-        write!(f, "{}: {}", "characteristic", self.characteristic())?;
-        write!(f, ", {}: {}", "configure", self.configure())?;
-        write!(f, ", {}: {}", "state", self.state())?;
+        write!(f, "{}: {}", "nft_info", self.nft_info())?;
         write!(f, ", {}: {}", "receiver_lock", self.receiver_lock())?;
         let extra_count = self.count_extra_fields();
         if extra_count != 0 {
@@ -1860,17 +347,16 @@ impl ::core::fmt::Display for CompactNFTInfo {
         write!(f, " }}")
     }
 }
-impl ::core::default::Default for CompactNFTInfo {
+impl ::core::default::Default for MintCompactNFTValue {
     fn default() -> Self {
         let v: Vec<u8> = vec![
-            34, 0, 0, 0, 20, 0, 0, 0, 28, 0, 0, 0, 29, 0, 0, 0, 30, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-            0, 0, 0, 0, 0, 0, 0,
+            26, 0, 0, 0, 12, 0, 0, 0, 22, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
         ];
-        CompactNFTInfo::new_unchecked(v.into())
+        MintCompactNFTValue::new_unchecked(v.into())
     }
 }
-impl CompactNFTInfo {
-    pub const FIELD_COUNT: usize = 4;
+impl MintCompactNFTValue {
+    pub const FIELD_COUNT: usize = 2;
 
     pub fn total_size(&self) -> usize {
         molecule::unpack_number(self.as_slice()) as usize
@@ -1892,49 +378,35 @@ impl CompactNFTInfo {
         Self::FIELD_COUNT != self.field_count()
     }
 
-    pub fn characteristic(&self) -> Characteristic {
+    pub fn nft_info(&self) -> CompactNFTInfo {
         let slice = self.as_slice();
         let start = molecule::unpack_number(&slice[4..]) as usize;
         let end = molecule::unpack_number(&slice[8..]) as usize;
-        Characteristic::new_unchecked(self.0.slice(start..end))
-    }
-
-    pub fn configure(&self) -> Byte {
-        let slice = self.as_slice();
-        let start = molecule::unpack_number(&slice[8..]) as usize;
-        let end = molecule::unpack_number(&slice[12..]) as usize;
-        Byte::new_unchecked(self.0.slice(start..end))
-    }
-
-    pub fn state(&self) -> Byte {
-        let slice = self.as_slice();
-        let start = molecule::unpack_number(&slice[12..]) as usize;
-        let end = molecule::unpack_number(&slice[16..]) as usize;
-        Byte::new_unchecked(self.0.slice(start..end))
+        CompactNFTInfo::new_unchecked(self.0.slice(start..end))
     }
 
     pub fn receiver_lock(&self) -> Bytes {
         let slice = self.as_slice();
-        let start = molecule::unpack_number(&slice[16..]) as usize;
+        let start = molecule::unpack_number(&slice[8..]) as usize;
         if self.has_extra_fields() {
-            let end = molecule::unpack_number(&slice[20..]) as usize;
+            let end = molecule::unpack_number(&slice[12..]) as usize;
             Bytes::new_unchecked(self.0.slice(start..end))
         } else {
             Bytes::new_unchecked(self.0.slice(start..))
         }
     }
 
-    pub fn as_reader<'r>(&'r self) -> CompactNFTInfoReader<'r> {
-        CompactNFTInfoReader::new_unchecked(self.as_slice())
+    pub fn as_reader<'r>(&'r self) -> MintCompactNFTValueReader<'r> {
+        MintCompactNFTValueReader::new_unchecked(self.as_slice())
     }
 }
-impl molecule::prelude::Entity for CompactNFTInfo {
-    type Builder = CompactNFTInfoBuilder;
+impl molecule::prelude::Entity for MintCompactNFTValue {
+    type Builder = MintCompactNFTValueBuilder;
 
-    const NAME: &'static str = "CompactNFTInfo";
+    const NAME: &'static str = "MintCompactNFTValue";
 
     fn new_unchecked(data: molecule::bytes::Bytes) -> Self {
-        CompactNFTInfo(data)
+        MintCompactNFTValue(data)
     }
 
     fn as_bytes(&self) -> molecule::bytes::Bytes {
@@ -1946,11 +418,11 @@ impl molecule::prelude::Entity for CompactNFTInfo {
     }
 
     fn from_slice(slice: &[u8]) -> molecule::error::VerificationResult<Self> {
-        CompactNFTInfoReader::from_slice(slice).map(|reader| reader.to_entity())
+        MintCompactNFTValueReader::from_slice(slice).map(|reader| reader.to_entity())
     }
 
     fn from_compatible_slice(slice: &[u8]) -> molecule::error::VerificationResult<Self> {
-        CompactNFTInfoReader::from_compatible_slice(slice).map(|reader| reader.to_entity())
+        MintCompactNFTValueReader::from_compatible_slice(slice).map(|reader| reader.to_entity())
     }
 
     fn new_builder() -> Self::Builder {
@@ -1959,15 +431,13 @@ impl molecule::prelude::Entity for CompactNFTInfo {
 
     fn as_builder(self) -> Self::Builder {
         Self::new_builder()
-            .characteristic(self.characteristic())
-            .configure(self.configure())
-            .state(self.state())
+            .nft_info(self.nft_info())
             .receiver_lock(self.receiver_lock())
     }
 }
 #[derive(Clone, Copy)]
-pub struct CompactNFTInfoReader<'r>(&'r [u8]);
-impl<'r> ::core::fmt::LowerHex for CompactNFTInfoReader<'r> {
+pub struct MintCompactNFTValueReader<'r>(&'r [u8]);
+impl<'r> ::core::fmt::LowerHex for MintCompactNFTValueReader<'r> {
     fn fmt(&self, f: &mut ::core::fmt::Formatter) -> ::core::fmt::Result {
         use molecule::hex_string;
         if f.alternate() {
@@ -1976,17 +446,15 @@ impl<'r> ::core::fmt::LowerHex for CompactNFTInfoReader<'r> {
         write!(f, "{}", hex_string(self.as_slice()))
     }
 }
-impl<'r> ::core::fmt::Debug for CompactNFTInfoReader<'r> {
+impl<'r> ::core::fmt::Debug for MintCompactNFTValueReader<'r> {
     fn fmt(&self, f: &mut ::core::fmt::Formatter) -> ::core::fmt::Result {
         write!(f, "{}({:#x})", Self::NAME, self)
     }
 }
-impl<'r> ::core::fmt::Display for CompactNFTInfoReader<'r> {
+impl<'r> ::core::fmt::Display for MintCompactNFTValueReader<'r> {
     fn fmt(&self, f: &mut ::core::fmt::Formatter) -> ::core::fmt::Result {
         write!(f, "{} {{ ", Self::NAME)?;
-        write!(f, "{}: {}", "characteristic", self.characteristic())?;
-        write!(f, ", {}: {}", "configure", self.configure())?;
-        write!(f, ", {}: {}", "state", self.state())?;
+        write!(f, "{}: {}", "nft_info", self.nft_info())?;
         write!(f, ", {}: {}", "receiver_lock", self.receiver_lock())?;
         let extra_count = self.count_extra_fields();
         if extra_count != 0 {
@@ -1995,8 +463,8 @@ impl<'r> ::core::fmt::Display for CompactNFTInfoReader<'r> {
         write!(f, " }}")
     }
 }
-impl<'r> CompactNFTInfoReader<'r> {
-    pub const FIELD_COUNT: usize = 4;
+impl<'r> MintCompactNFTValueReader<'r> {
+    pub const FIELD_COUNT: usize = 2;
 
     pub fn total_size(&self) -> usize {
         molecule::unpack_number(self.as_slice()) as usize
@@ -2018,49 +486,35 @@ impl<'r> CompactNFTInfoReader<'r> {
         Self::FIELD_COUNT != self.field_count()
     }
 
-    pub fn characteristic(&self) -> CharacteristicReader<'r> {
+    pub fn nft_info(&self) -> CompactNFTInfoReader<'r> {
         let slice = self.as_slice();
         let start = molecule::unpack_number(&slice[4..]) as usize;
         let end = molecule::unpack_number(&slice[8..]) as usize;
-        CharacteristicReader::new_unchecked(&self.as_slice()[start..end])
-    }
-
-    pub fn configure(&self) -> ByteReader<'r> {
-        let slice = self.as_slice();
-        let start = molecule::unpack_number(&slice[8..]) as usize;
-        let end = molecule::unpack_number(&slice[12..]) as usize;
-        ByteReader::new_unchecked(&self.as_slice()[start..end])
-    }
-
-    pub fn state(&self) -> ByteReader<'r> {
-        let slice = self.as_slice();
-        let start = molecule::unpack_number(&slice[12..]) as usize;
-        let end = molecule::unpack_number(&slice[16..]) as usize;
-        ByteReader::new_unchecked(&self.as_slice()[start..end])
+        CompactNFTInfoReader::new_unchecked(&self.as_slice()[start..end])
     }
 
     pub fn receiver_lock(&self) -> BytesReader<'r> {
         let slice = self.as_slice();
-        let start = molecule::unpack_number(&slice[16..]) as usize;
+        let start = molecule::unpack_number(&slice[8..]) as usize;
         if self.has_extra_fields() {
-            let end = molecule::unpack_number(&slice[20..]) as usize;
+            let end = molecule::unpack_number(&slice[12..]) as usize;
             BytesReader::new_unchecked(&self.as_slice()[start..end])
         } else {
             BytesReader::new_unchecked(&self.as_slice()[start..])
         }
     }
 }
-impl<'r> molecule::prelude::Reader<'r> for CompactNFTInfoReader<'r> {
-    type Entity = CompactNFTInfo;
+impl<'r> molecule::prelude::Reader<'r> for MintCompactNFTValueReader<'r> {
+    type Entity = MintCompactNFTValue;
 
-    const NAME: &'static str = "CompactNFTInfoReader";
+    const NAME: &'static str = "MintCompactNFTValueReader";
 
     fn to_entity(&self) -> Self::Entity {
         Self::Entity::new_unchecked(self.as_slice().to_owned().into())
     }
 
     fn new_unchecked(slice: &'r [u8]) -> Self {
-        CompactNFTInfoReader(slice)
+        MintCompactNFTValueReader(slice)
     }
 
     fn as_slice(&self) -> &'r [u8] {
@@ -2104,35 +558,21 @@ impl<'r> molecule::prelude::Reader<'r> for CompactNFTInfoReader<'r> {
         if offsets.windows(2).any(|i| i[0] > i[1]) {
             return ve!(Self, OffsetsNotMatch);
         }
-        CharacteristicReader::verify(&slice[offsets[0]..offsets[1]], compatible)?;
-        ByteReader::verify(&slice[offsets[1]..offsets[2]], compatible)?;
-        ByteReader::verify(&slice[offsets[2]..offsets[3]], compatible)?;
-        BytesReader::verify(&slice[offsets[3]..offsets[4]], compatible)?;
+        CompactNFTInfoReader::verify(&slice[offsets[0]..offsets[1]], compatible)?;
+        BytesReader::verify(&slice[offsets[1]..offsets[2]], compatible)?;
         Ok(())
     }
 }
 #[derive(Debug, Default)]
-pub struct CompactNFTInfoBuilder {
-    pub(crate) characteristic: Characteristic,
-    pub(crate) configure:      Byte,
-    pub(crate) state:          Byte,
-    pub(crate) receiver_lock:  Bytes,
+pub struct MintCompactNFTValueBuilder {
+    pub(crate) nft_info:      CompactNFTInfo,
+    pub(crate) receiver_lock: Bytes,
 }
-impl CompactNFTInfoBuilder {
-    pub const FIELD_COUNT: usize = 4;
+impl MintCompactNFTValueBuilder {
+    pub const FIELD_COUNT: usize = 2;
 
-    pub fn characteristic(mut self, v: Characteristic) -> Self {
-        self.characteristic = v;
-        self
-    }
-
-    pub fn configure(mut self, v: Byte) -> Self {
-        self.configure = v;
-        self
-    }
-
-    pub fn state(mut self, v: Byte) -> Self {
-        self.state = v;
+    pub fn nft_info(mut self, v: CompactNFTInfo) -> Self {
+        self.nft_info = v;
         self
     }
 
@@ -2141,16 +581,14 @@ impl CompactNFTInfoBuilder {
         self
     }
 }
-impl molecule::prelude::Builder for CompactNFTInfoBuilder {
-    type Entity = CompactNFTInfo;
+impl molecule::prelude::Builder for MintCompactNFTValueBuilder {
+    type Entity = MintCompactNFTValue;
 
-    const NAME: &'static str = "CompactNFTInfoBuilder";
+    const NAME: &'static str = "MintCompactNFTValueBuilder";
 
     fn expected_length(&self) -> usize {
         molecule::NUMBER_SIZE * (Self::FIELD_COUNT + 1)
-            + self.characteristic.as_slice().len()
-            + self.configure.as_slice().len()
-            + self.state.as_slice().len()
+            + self.nft_info.as_slice().len()
             + self.receiver_lock.as_slice().len()
     }
 
@@ -2158,20 +596,14 @@ impl molecule::prelude::Builder for CompactNFTInfoBuilder {
         let mut total_size = molecule::NUMBER_SIZE * (Self::FIELD_COUNT + 1);
         let mut offsets = Vec::with_capacity(Self::FIELD_COUNT);
         offsets.push(total_size);
-        total_size += self.characteristic.as_slice().len();
-        offsets.push(total_size);
-        total_size += self.configure.as_slice().len();
-        offsets.push(total_size);
-        total_size += self.state.as_slice().len();
+        total_size += self.nft_info.as_slice().len();
         offsets.push(total_size);
         total_size += self.receiver_lock.as_slice().len();
         writer.write_all(&molecule::pack_number(total_size as molecule::Number))?;
         for offset in offsets.into_iter() {
             writer.write_all(&molecule::pack_number(offset as molecule::Number))?;
         }
-        writer.write_all(self.characteristic.as_slice())?;
-        writer.write_all(self.configure.as_slice())?;
-        writer.write_all(self.state.as_slice())?;
+        writer.write_all(self.nft_info.as_slice())?;
         writer.write_all(self.receiver_lock.as_slice())?;
         Ok(())
     }
@@ -2180,12 +612,12 @@ impl molecule::prelude::Builder for CompactNFTInfoBuilder {
         let mut inner = Vec::with_capacity(self.expected_length());
         self.write(&mut inner)
             .unwrap_or_else(|_| panic!("{} build should be ok", Self::NAME));
-        CompactNFTInfo::new_unchecked(inner.into())
+        MintCompactNFTValue::new_unchecked(inner.into())
     }
 }
 #[derive(Clone)]
-pub struct CompactNFTInfoVec(molecule::bytes::Bytes);
-impl ::core::fmt::LowerHex for CompactNFTInfoVec {
+pub struct MintCompactNFTValueVec(molecule::bytes::Bytes);
+impl ::core::fmt::LowerHex for MintCompactNFTValueVec {
     fn fmt(&self, f: &mut ::core::fmt::Formatter) -> ::core::fmt::Result {
         use molecule::hex_string;
         if f.alternate() {
@@ -2194,12 +626,12 @@ impl ::core::fmt::LowerHex for CompactNFTInfoVec {
         write!(f, "{}", hex_string(self.as_slice()))
     }
 }
-impl ::core::fmt::Debug for CompactNFTInfoVec {
+impl ::core::fmt::Debug for MintCompactNFTValueVec {
     fn fmt(&self, f: &mut ::core::fmt::Formatter) -> ::core::fmt::Result {
         write!(f, "{}({:#x})", Self::NAME, self)
     }
 }
-impl ::core::fmt::Display for CompactNFTInfoVec {
+impl ::core::fmt::Display for MintCompactNFTValueVec {
     fn fmt(&self, f: &mut ::core::fmt::Formatter) -> ::core::fmt::Result {
         write!(f, "{} [", Self::NAME)?;
         for i in 0..self.len() {
@@ -2212,13 +644,13 @@ impl ::core::fmt::Display for CompactNFTInfoVec {
         write!(f, "]")
     }
 }
-impl ::core::default::Default for CompactNFTInfoVec {
+impl ::core::default::Default for MintCompactNFTValueVec {
     fn default() -> Self {
         let v: Vec<u8> = vec![4, 0, 0, 0];
-        CompactNFTInfoVec::new_unchecked(v.into())
+        MintCompactNFTValueVec::new_unchecked(v.into())
     }
 }
-impl CompactNFTInfoVec {
+impl MintCompactNFTValueVec {
     pub fn total_size(&self) -> usize {
         molecule::unpack_number(self.as_slice()) as usize
     }
@@ -2239,7 +671,7 @@ impl CompactNFTInfoVec {
         self.len() == 0
     }
 
-    pub fn get(&self, idx: usize) -> Option<CompactNFTInfo> {
+    pub fn get(&self, idx: usize) -> Option<MintCompactNFTValue> {
         if idx >= self.len() {
             None
         } else {
@@ -2247,30 +679,30 @@ impl CompactNFTInfoVec {
         }
     }
 
-    pub fn get_unchecked(&self, idx: usize) -> CompactNFTInfo {
+    pub fn get_unchecked(&self, idx: usize) -> MintCompactNFTValue {
         let slice = self.as_slice();
         let start_idx = molecule::NUMBER_SIZE * (1 + idx);
         let start = molecule::unpack_number(&slice[start_idx..]) as usize;
         if idx == self.len() - 1 {
-            CompactNFTInfo::new_unchecked(self.0.slice(start..))
+            MintCompactNFTValue::new_unchecked(self.0.slice(start..))
         } else {
             let end_idx = start_idx + molecule::NUMBER_SIZE;
             let end = molecule::unpack_number(&slice[end_idx..]) as usize;
-            CompactNFTInfo::new_unchecked(self.0.slice(start..end))
+            MintCompactNFTValue::new_unchecked(self.0.slice(start..end))
         }
     }
 
-    pub fn as_reader<'r>(&'r self) -> CompactNFTInfoVecReader<'r> {
-        CompactNFTInfoVecReader::new_unchecked(self.as_slice())
+    pub fn as_reader<'r>(&'r self) -> MintCompactNFTValueVecReader<'r> {
+        MintCompactNFTValueVecReader::new_unchecked(self.as_slice())
     }
 }
-impl molecule::prelude::Entity for CompactNFTInfoVec {
-    type Builder = CompactNFTInfoVecBuilder;
+impl molecule::prelude::Entity for MintCompactNFTValueVec {
+    type Builder = MintCompactNFTValueVecBuilder;
 
-    const NAME: &'static str = "CompactNFTInfoVec";
+    const NAME: &'static str = "MintCompactNFTValueVec";
 
     fn new_unchecked(data: molecule::bytes::Bytes) -> Self {
-        CompactNFTInfoVec(data)
+        MintCompactNFTValueVec(data)
     }
 
     fn as_bytes(&self) -> molecule::bytes::Bytes {
@@ -2282,11 +714,11 @@ impl molecule::prelude::Entity for CompactNFTInfoVec {
     }
 
     fn from_slice(slice: &[u8]) -> molecule::error::VerificationResult<Self> {
-        CompactNFTInfoVecReader::from_slice(slice).map(|reader| reader.to_entity())
+        MintCompactNFTValueVecReader::from_slice(slice).map(|reader| reader.to_entity())
     }
 
     fn from_compatible_slice(slice: &[u8]) -> molecule::error::VerificationResult<Self> {
-        CompactNFTInfoVecReader::from_compatible_slice(slice).map(|reader| reader.to_entity())
+        MintCompactNFTValueVecReader::from_compatible_slice(slice).map(|reader| reader.to_entity())
     }
 
     fn new_builder() -> Self::Builder {
@@ -2298,8 +730,8 @@ impl molecule::prelude::Entity for CompactNFTInfoVec {
     }
 }
 #[derive(Clone, Copy)]
-pub struct CompactNFTInfoVecReader<'r>(&'r [u8]);
-impl<'r> ::core::fmt::LowerHex for CompactNFTInfoVecReader<'r> {
+pub struct MintCompactNFTValueVecReader<'r>(&'r [u8]);
+impl<'r> ::core::fmt::LowerHex for MintCompactNFTValueVecReader<'r> {
     fn fmt(&self, f: &mut ::core::fmt::Formatter) -> ::core::fmt::Result {
         use molecule::hex_string;
         if f.alternate() {
@@ -2308,12 +740,12 @@ impl<'r> ::core::fmt::LowerHex for CompactNFTInfoVecReader<'r> {
         write!(f, "{}", hex_string(self.as_slice()))
     }
 }
-impl<'r> ::core::fmt::Debug for CompactNFTInfoVecReader<'r> {
+impl<'r> ::core::fmt::Debug for MintCompactNFTValueVecReader<'r> {
     fn fmt(&self, f: &mut ::core::fmt::Formatter) -> ::core::fmt::Result {
         write!(f, "{}({:#x})", Self::NAME, self)
     }
 }
-impl<'r> ::core::fmt::Display for CompactNFTInfoVecReader<'r> {
+impl<'r> ::core::fmt::Display for MintCompactNFTValueVecReader<'r> {
     fn fmt(&self, f: &mut ::core::fmt::Formatter) -> ::core::fmt::Result {
         write!(f, "{} [", Self::NAME)?;
         for i in 0..self.len() {
@@ -2326,7 +758,7 @@ impl<'r> ::core::fmt::Display for CompactNFTInfoVecReader<'r> {
         write!(f, "]")
     }
 }
-impl<'r> CompactNFTInfoVecReader<'r> {
+impl<'r> MintCompactNFTValueVecReader<'r> {
     pub fn total_size(&self) -> usize {
         molecule::unpack_number(self.as_slice()) as usize
     }
@@ -2347,7 +779,7 @@ impl<'r> CompactNFTInfoVecReader<'r> {
         self.len() == 0
     }
 
-    pub fn get(&self, idx: usize) -> Option<CompactNFTInfoReader<'r>> {
+    pub fn get(&self, idx: usize) -> Option<MintCompactNFTValueReader<'r>> {
         if idx >= self.len() {
             None
         } else {
@@ -2355,30 +787,30 @@ impl<'r> CompactNFTInfoVecReader<'r> {
         }
     }
 
-    pub fn get_unchecked(&self, idx: usize) -> CompactNFTInfoReader<'r> {
+    pub fn get_unchecked(&self, idx: usize) -> MintCompactNFTValueReader<'r> {
         let slice = self.as_slice();
         let start_idx = molecule::NUMBER_SIZE * (1 + idx);
         let start = molecule::unpack_number(&slice[start_idx..]) as usize;
         if idx == self.len() - 1 {
-            CompactNFTInfoReader::new_unchecked(&self.as_slice()[start..])
+            MintCompactNFTValueReader::new_unchecked(&self.as_slice()[start..])
         } else {
             let end_idx = start_idx + molecule::NUMBER_SIZE;
             let end = molecule::unpack_number(&slice[end_idx..]) as usize;
-            CompactNFTInfoReader::new_unchecked(&self.as_slice()[start..end])
+            MintCompactNFTValueReader::new_unchecked(&self.as_slice()[start..end])
         }
     }
 }
-impl<'r> molecule::prelude::Reader<'r> for CompactNFTInfoVecReader<'r> {
-    type Entity = CompactNFTInfoVec;
+impl<'r> molecule::prelude::Reader<'r> for MintCompactNFTValueVecReader<'r> {
+    type Entity = MintCompactNFTValueVec;
 
-    const NAME: &'static str = "CompactNFTInfoVecReader";
+    const NAME: &'static str = "MintCompactNFTValueVecReader";
 
     fn to_entity(&self) -> Self::Entity {
         Self::Entity::new_unchecked(self.as_slice().to_owned().into())
     }
 
     fn new_unchecked(slice: &'r [u8]) -> Self {
-        CompactNFTInfoVecReader(slice)
+        MintCompactNFTValueVecReader(slice)
     }
 
     fn as_slice(&self) -> &'r [u8] {
@@ -2424,35 +856,38 @@ impl<'r> molecule::prelude::Reader<'r> for CompactNFTInfoVecReader<'r> {
         for pair in offsets.windows(2) {
             let start = pair[0];
             let end = pair[1];
-            CompactNFTInfoReader::verify(&slice[start..end], compatible)?;
+            MintCompactNFTValueReader::verify(&slice[start..end], compatible)?;
         }
         Ok(())
     }
 }
 #[derive(Debug, Default)]
-pub struct CompactNFTInfoVecBuilder(pub(crate) Vec<CompactNFTInfo>);
-impl CompactNFTInfoVecBuilder {
-    pub fn set(mut self, v: Vec<CompactNFTInfo>) -> Self {
+pub struct MintCompactNFTValueVecBuilder(pub(crate) Vec<MintCompactNFTValue>);
+impl MintCompactNFTValueVecBuilder {
+    pub fn set(mut self, v: Vec<MintCompactNFTValue>) -> Self {
         self.0 = v;
         self
     }
 
-    pub fn push(mut self, v: CompactNFTInfo) -> Self {
+    pub fn push(mut self, v: MintCompactNFTValue) -> Self {
         self.0.push(v);
         self
     }
 
-    pub fn extend<T: ::core::iter::IntoIterator<Item = CompactNFTInfo>>(mut self, iter: T) -> Self {
+    pub fn extend<T: ::core::iter::IntoIterator<Item = MintCompactNFTValue>>(
+        mut self,
+        iter: T,
+    ) -> Self {
         for elem in iter {
             self.0.push(elem);
         }
         self
     }
 }
-impl molecule::prelude::Builder for CompactNFTInfoVecBuilder {
-    type Entity = CompactNFTInfoVec;
+impl molecule::prelude::Builder for MintCompactNFTValueVecBuilder {
+    type Entity = MintCompactNFTValueVec;
 
-    const NAME: &'static str = "CompactNFTInfoVecBuilder";
+    const NAME: &'static str = "MintCompactNFTValueVecBuilder";
 
     fn expected_length(&self) -> usize {
         molecule::NUMBER_SIZE * (self.0.len() + 1)
@@ -2495,12 +930,12 @@ impl molecule::prelude::Builder for CompactNFTInfoVecBuilder {
         let mut inner = Vec::with_capacity(self.expected_length());
         self.write(&mut inner)
             .unwrap_or_else(|_| panic!("{} build should be ok", Self::NAME));
-        CompactNFTInfoVec::new_unchecked(inner.into())
+        MintCompactNFTValueVec::new_unchecked(inner.into())
     }
 }
-pub struct CompactNFTInfoVecIterator(CompactNFTInfoVec, usize, usize);
-impl ::core::iter::Iterator for CompactNFTInfoVecIterator {
-    type Item = CompactNFTInfo;
+pub struct MintCompactNFTValueVecIterator(MintCompactNFTValueVec, usize, usize);
+impl ::core::iter::Iterator for MintCompactNFTValueVecIterator {
+    type Item = MintCompactNFTValue;
 
     fn next(&mut self) -> Option<Self::Item> {
         if self.1 >= self.2 {
@@ -2512,28 +947,32 @@ impl ::core::iter::Iterator for CompactNFTInfoVecIterator {
         }
     }
 }
-impl ::core::iter::ExactSizeIterator for CompactNFTInfoVecIterator {
+impl ::core::iter::ExactSizeIterator for MintCompactNFTValueVecIterator {
     fn len(&self) -> usize {
         self.2 - self.1
     }
 }
-impl ::core::iter::IntoIterator for CompactNFTInfoVec {
-    type IntoIter = CompactNFTInfoVecIterator;
-    type Item = CompactNFTInfo;
+impl ::core::iter::IntoIterator for MintCompactNFTValueVec {
+    type IntoIter = MintCompactNFTValueVecIterator;
+    type Item = MintCompactNFTValue;
 
     fn into_iter(self) -> Self::IntoIter {
         let len = self.len();
-        CompactNFTInfoVecIterator(self, 0, len)
+        MintCompactNFTValueVecIterator(self, 0, len)
     }
 }
-impl<'r> CompactNFTInfoVecReader<'r> {
-    pub fn iter<'t>(&'t self) -> CompactNFTInfoVecReaderIterator<'t, 'r> {
-        CompactNFTInfoVecReaderIterator(&self, 0, self.len())
+impl<'r> MintCompactNFTValueVecReader<'r> {
+    pub fn iter<'t>(&'t self) -> MintCompactNFTValueVecReaderIterator<'t, 'r> {
+        MintCompactNFTValueVecReaderIterator(&self, 0, self.len())
     }
 }
-pub struct CompactNFTInfoVecReaderIterator<'t, 'r>(&'t CompactNFTInfoVecReader<'r>, usize, usize);
-impl<'t: 'r, 'r> ::core::iter::Iterator for CompactNFTInfoVecReaderIterator<'t, 'r> {
-    type Item = CompactNFTInfoReader<'t>;
+pub struct MintCompactNFTValueVecReaderIterator<'t, 'r>(
+    &'t MintCompactNFTValueVecReader<'r>,
+    usize,
+    usize,
+);
+impl<'t: 'r, 'r> ::core::iter::Iterator for MintCompactNFTValueVecReaderIterator<'t, 'r> {
+    type Item = MintCompactNFTValueReader<'t>;
 
     fn next(&mut self) -> Option<Self::Item> {
         if self.1 >= self.2 {
@@ -2545,14 +984,14 @@ impl<'t: 'r, 'r> ::core::iter::Iterator for CompactNFTInfoVecReaderIterator<'t, 
         }
     }
 }
-impl<'t: 'r, 'r> ::core::iter::ExactSizeIterator for CompactNFTInfoVecReaderIterator<'t, 'r> {
+impl<'t: 'r, 'r> ::core::iter::ExactSizeIterator for MintCompactNFTValueVecReaderIterator<'t, 'r> {
     fn len(&self) -> usize {
         self.2 - self.1
     }
 }
 #[derive(Clone)]
-pub struct CompactNFTMintEntries(molecule::bytes::Bytes);
-impl ::core::fmt::LowerHex for CompactNFTMintEntries {
+pub struct MintCompactNFTEntries(molecule::bytes::Bytes);
+impl ::core::fmt::LowerHex for MintCompactNFTEntries {
     fn fmt(&self, f: &mut ::core::fmt::Formatter) -> ::core::fmt::Result {
         use molecule::hex_string;
         if f.alternate() {
@@ -2561,16 +1000,16 @@ impl ::core::fmt::LowerHex for CompactNFTMintEntries {
         write!(f, "{}", hex_string(self.as_slice()))
     }
 }
-impl ::core::fmt::Debug for CompactNFTMintEntries {
+impl ::core::fmt::Debug for MintCompactNFTEntries {
     fn fmt(&self, f: &mut ::core::fmt::Formatter) -> ::core::fmt::Result {
         write!(f, "{}({:#x})", Self::NAME, self)
     }
 }
-impl ::core::fmt::Display for CompactNFTMintEntries {
+impl ::core::fmt::Display for MintCompactNFTEntries {
     fn fmt(&self, f: &mut ::core::fmt::Formatter) -> ::core::fmt::Result {
         write!(f, "{} {{ ", Self::NAME)?;
-        write!(f, "{}: {}", "nft_ids", self.nft_ids())?;
-        write!(f, ", {}: {}", "nft_infos", self.nft_infos())?;
+        write!(f, "{}: {}", "nft_keys", self.nft_keys())?;
+        write!(f, ", {}: {}", "nft_values", self.nft_values())?;
         write!(f, ", {}: {}", "proof", self.proof())?;
         let extra_count = self.count_extra_fields();
         if extra_count != 0 {
@@ -2579,15 +1018,15 @@ impl ::core::fmt::Display for CompactNFTMintEntries {
         write!(f, " }}")
     }
 }
-impl ::core::default::Default for CompactNFTMintEntries {
+impl ::core::default::Default for MintCompactNFTEntries {
     fn default() -> Self {
         let v: Vec<u8> = vec![
             28, 0, 0, 0, 16, 0, 0, 0, 20, 0, 0, 0, 24, 0, 0, 0, 0, 0, 0, 0, 4, 0, 0, 0, 0, 0, 0, 0,
         ];
-        CompactNFTMintEntries::new_unchecked(v.into())
+        MintCompactNFTEntries::new_unchecked(v.into())
     }
 }
-impl CompactNFTMintEntries {
+impl MintCompactNFTEntries {
     pub const FIELD_COUNT: usize = 3;
 
     pub fn total_size(&self) -> usize {
@@ -2610,18 +1049,18 @@ impl CompactNFTMintEntries {
         Self::FIELD_COUNT != self.field_count()
     }
 
-    pub fn nft_ids(&self) -> CompactNFTIdVec {
+    pub fn nft_keys(&self) -> MintCompactNFTKeyVec {
         let slice = self.as_slice();
         let start = molecule::unpack_number(&slice[4..]) as usize;
         let end = molecule::unpack_number(&slice[8..]) as usize;
-        CompactNFTIdVec::new_unchecked(self.0.slice(start..end))
+        MintCompactNFTKeyVec::new_unchecked(self.0.slice(start..end))
     }
 
-    pub fn nft_infos(&self) -> CompactNFTInfoVec {
+    pub fn nft_values(&self) -> MintCompactNFTValueVec {
         let slice = self.as_slice();
         let start = molecule::unpack_number(&slice[8..]) as usize;
         let end = molecule::unpack_number(&slice[12..]) as usize;
-        CompactNFTInfoVec::new_unchecked(self.0.slice(start..end))
+        MintCompactNFTValueVec::new_unchecked(self.0.slice(start..end))
     }
 
     pub fn proof(&self) -> Bytes {
@@ -2635,17 +1074,17 @@ impl CompactNFTMintEntries {
         }
     }
 
-    pub fn as_reader<'r>(&'r self) -> CompactNFTMintEntriesReader<'r> {
-        CompactNFTMintEntriesReader::new_unchecked(self.as_slice())
+    pub fn as_reader<'r>(&'r self) -> MintCompactNFTEntriesReader<'r> {
+        MintCompactNFTEntriesReader::new_unchecked(self.as_slice())
     }
 }
-impl molecule::prelude::Entity for CompactNFTMintEntries {
-    type Builder = CompactNFTMintEntriesBuilder;
+impl molecule::prelude::Entity for MintCompactNFTEntries {
+    type Builder = MintCompactNFTEntriesBuilder;
 
-    const NAME: &'static str = "CompactNFTMintEntries";
+    const NAME: &'static str = "MintCompactNFTEntries";
 
     fn new_unchecked(data: molecule::bytes::Bytes) -> Self {
-        CompactNFTMintEntries(data)
+        MintCompactNFTEntries(data)
     }
 
     fn as_bytes(&self) -> molecule::bytes::Bytes {
@@ -2657,11 +1096,11 @@ impl molecule::prelude::Entity for CompactNFTMintEntries {
     }
 
     fn from_slice(slice: &[u8]) -> molecule::error::VerificationResult<Self> {
-        CompactNFTMintEntriesReader::from_slice(slice).map(|reader| reader.to_entity())
+        MintCompactNFTEntriesReader::from_slice(slice).map(|reader| reader.to_entity())
     }
 
     fn from_compatible_slice(slice: &[u8]) -> molecule::error::VerificationResult<Self> {
-        CompactNFTMintEntriesReader::from_compatible_slice(slice).map(|reader| reader.to_entity())
+        MintCompactNFTEntriesReader::from_compatible_slice(slice).map(|reader| reader.to_entity())
     }
 
     fn new_builder() -> Self::Builder {
@@ -2670,14 +1109,14 @@ impl molecule::prelude::Entity for CompactNFTMintEntries {
 
     fn as_builder(self) -> Self::Builder {
         Self::new_builder()
-            .nft_ids(self.nft_ids())
-            .nft_infos(self.nft_infos())
+            .nft_keys(self.nft_keys())
+            .nft_values(self.nft_values())
             .proof(self.proof())
     }
 }
 #[derive(Clone, Copy)]
-pub struct CompactNFTMintEntriesReader<'r>(&'r [u8]);
-impl<'r> ::core::fmt::LowerHex for CompactNFTMintEntriesReader<'r> {
+pub struct MintCompactNFTEntriesReader<'r>(&'r [u8]);
+impl<'r> ::core::fmt::LowerHex for MintCompactNFTEntriesReader<'r> {
     fn fmt(&self, f: &mut ::core::fmt::Formatter) -> ::core::fmt::Result {
         use molecule::hex_string;
         if f.alternate() {
@@ -2686,16 +1125,16 @@ impl<'r> ::core::fmt::LowerHex for CompactNFTMintEntriesReader<'r> {
         write!(f, "{}", hex_string(self.as_slice()))
     }
 }
-impl<'r> ::core::fmt::Debug for CompactNFTMintEntriesReader<'r> {
+impl<'r> ::core::fmt::Debug for MintCompactNFTEntriesReader<'r> {
     fn fmt(&self, f: &mut ::core::fmt::Formatter) -> ::core::fmt::Result {
         write!(f, "{}({:#x})", Self::NAME, self)
     }
 }
-impl<'r> ::core::fmt::Display for CompactNFTMintEntriesReader<'r> {
+impl<'r> ::core::fmt::Display for MintCompactNFTEntriesReader<'r> {
     fn fmt(&self, f: &mut ::core::fmt::Formatter) -> ::core::fmt::Result {
         write!(f, "{} {{ ", Self::NAME)?;
-        write!(f, "{}: {}", "nft_ids", self.nft_ids())?;
-        write!(f, ", {}: {}", "nft_infos", self.nft_infos())?;
+        write!(f, "{}: {}", "nft_keys", self.nft_keys())?;
+        write!(f, ", {}: {}", "nft_values", self.nft_values())?;
         write!(f, ", {}: {}", "proof", self.proof())?;
         let extra_count = self.count_extra_fields();
         if extra_count != 0 {
@@ -2704,7 +1143,7 @@ impl<'r> ::core::fmt::Display for CompactNFTMintEntriesReader<'r> {
         write!(f, " }}")
     }
 }
-impl<'r> CompactNFTMintEntriesReader<'r> {
+impl<'r> MintCompactNFTEntriesReader<'r> {
     pub const FIELD_COUNT: usize = 3;
 
     pub fn total_size(&self) -> usize {
@@ -2727,18 +1166,18 @@ impl<'r> CompactNFTMintEntriesReader<'r> {
         Self::FIELD_COUNT != self.field_count()
     }
 
-    pub fn nft_ids(&self) -> CompactNFTIdVecReader<'r> {
+    pub fn nft_keys(&self) -> MintCompactNFTKeyVecReader<'r> {
         let slice = self.as_slice();
         let start = molecule::unpack_number(&slice[4..]) as usize;
         let end = molecule::unpack_number(&slice[8..]) as usize;
-        CompactNFTIdVecReader::new_unchecked(&self.as_slice()[start..end])
+        MintCompactNFTKeyVecReader::new_unchecked(&self.as_slice()[start..end])
     }
 
-    pub fn nft_infos(&self) -> CompactNFTInfoVecReader<'r> {
+    pub fn nft_values(&self) -> MintCompactNFTValueVecReader<'r> {
         let slice = self.as_slice();
         let start = molecule::unpack_number(&slice[8..]) as usize;
         let end = molecule::unpack_number(&slice[12..]) as usize;
-        CompactNFTInfoVecReader::new_unchecked(&self.as_slice()[start..end])
+        MintCompactNFTValueVecReader::new_unchecked(&self.as_slice()[start..end])
     }
 
     pub fn proof(&self) -> BytesReader<'r> {
@@ -2752,17 +1191,17 @@ impl<'r> CompactNFTMintEntriesReader<'r> {
         }
     }
 }
-impl<'r> molecule::prelude::Reader<'r> for CompactNFTMintEntriesReader<'r> {
-    type Entity = CompactNFTMintEntries;
+impl<'r> molecule::prelude::Reader<'r> for MintCompactNFTEntriesReader<'r> {
+    type Entity = MintCompactNFTEntries;
 
-    const NAME: &'static str = "CompactNFTMintEntriesReader";
+    const NAME: &'static str = "MintCompactNFTEntriesReader";
 
     fn to_entity(&self) -> Self::Entity {
         Self::Entity::new_unchecked(self.as_slice().to_owned().into())
     }
 
     fn new_unchecked(slice: &'r [u8]) -> Self {
-        CompactNFTMintEntriesReader(slice)
+        MintCompactNFTEntriesReader(slice)
     }
 
     fn as_slice(&self) -> &'r [u8] {
@@ -2806,28 +1245,28 @@ impl<'r> molecule::prelude::Reader<'r> for CompactNFTMintEntriesReader<'r> {
         if offsets.windows(2).any(|i| i[0] > i[1]) {
             return ve!(Self, OffsetsNotMatch);
         }
-        CompactNFTIdVecReader::verify(&slice[offsets[0]..offsets[1]], compatible)?;
-        CompactNFTInfoVecReader::verify(&slice[offsets[1]..offsets[2]], compatible)?;
+        MintCompactNFTKeyVecReader::verify(&slice[offsets[0]..offsets[1]], compatible)?;
+        MintCompactNFTValueVecReader::verify(&slice[offsets[1]..offsets[2]], compatible)?;
         BytesReader::verify(&slice[offsets[2]..offsets[3]], compatible)?;
         Ok(())
     }
 }
 #[derive(Debug, Default)]
-pub struct CompactNFTMintEntriesBuilder {
-    pub(crate) nft_ids:   CompactNFTIdVec,
-    pub(crate) nft_infos: CompactNFTInfoVec,
-    pub(crate) proof:     Bytes,
+pub struct MintCompactNFTEntriesBuilder {
+    pub(crate) nft_keys:   MintCompactNFTKeyVec,
+    pub(crate) nft_values: MintCompactNFTValueVec,
+    pub(crate) proof:      Bytes,
 }
-impl CompactNFTMintEntriesBuilder {
+impl MintCompactNFTEntriesBuilder {
     pub const FIELD_COUNT: usize = 3;
 
-    pub fn nft_ids(mut self, v: CompactNFTIdVec) -> Self {
-        self.nft_ids = v;
+    pub fn nft_keys(mut self, v: MintCompactNFTKeyVec) -> Self {
+        self.nft_keys = v;
         self
     }
 
-    pub fn nft_infos(mut self, v: CompactNFTInfoVec) -> Self {
-        self.nft_infos = v;
+    pub fn nft_values(mut self, v: MintCompactNFTValueVec) -> Self {
+        self.nft_values = v;
         self
     }
 
@@ -2836,15 +1275,15 @@ impl CompactNFTMintEntriesBuilder {
         self
     }
 }
-impl molecule::prelude::Builder for CompactNFTMintEntriesBuilder {
-    type Entity = CompactNFTMintEntries;
+impl molecule::prelude::Builder for MintCompactNFTEntriesBuilder {
+    type Entity = MintCompactNFTEntries;
 
-    const NAME: &'static str = "CompactNFTMintEntriesBuilder";
+    const NAME: &'static str = "MintCompactNFTEntriesBuilder";
 
     fn expected_length(&self) -> usize {
         molecule::NUMBER_SIZE * (Self::FIELD_COUNT + 1)
-            + self.nft_ids.as_slice().len()
-            + self.nft_infos.as_slice().len()
+            + self.nft_keys.as_slice().len()
+            + self.nft_values.as_slice().len()
             + self.proof.as_slice().len()
     }
 
@@ -2852,17 +1291,17 @@ impl molecule::prelude::Builder for CompactNFTMintEntriesBuilder {
         let mut total_size = molecule::NUMBER_SIZE * (Self::FIELD_COUNT + 1);
         let mut offsets = Vec::with_capacity(Self::FIELD_COUNT);
         offsets.push(total_size);
-        total_size += self.nft_ids.as_slice().len();
+        total_size += self.nft_keys.as_slice().len();
         offsets.push(total_size);
-        total_size += self.nft_infos.as_slice().len();
+        total_size += self.nft_values.as_slice().len();
         offsets.push(total_size);
         total_size += self.proof.as_slice().len();
         writer.write_all(&molecule::pack_number(total_size as molecule::Number))?;
         for offset in offsets.into_iter() {
             writer.write_all(&molecule::pack_number(offset as molecule::Number))?;
         }
-        writer.write_all(self.nft_ids.as_slice())?;
-        writer.write_all(self.nft_infos.as_slice())?;
+        writer.write_all(self.nft_keys.as_slice())?;
+        writer.write_all(self.nft_values.as_slice())?;
         writer.write_all(self.proof.as_slice())?;
         Ok(())
     }
@@ -2871,6 +1310,6 @@ impl molecule::prelude::Builder for CompactNFTMintEntriesBuilder {
         let mut inner = Vec::with_capacity(self.expected_length());
         self.write(&mut inner)
             .unwrap_or_else(|_| panic!("{} build should be ok", Self::NAME));
-        CompactNFTMintEntries::new_unchecked(inner.into())
+        MintCompactNFTEntries::new_unchecked(inner.into())
     }
 }

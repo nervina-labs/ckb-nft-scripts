@@ -3,6 +3,7 @@
 #![no_std]
 #![allow(warnings)]
 
+pub mod common;
 pub mod mint;
 pub mod registry;
 pub mod smt;

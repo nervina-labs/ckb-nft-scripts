@@ -1,28 +1,16 @@
-array Uint32 [byte; 4];
-array IssuerId [byte; 20];
-array Characteristic [byte; 8];
+import common;
 
-vector Bytes <byte>;
+vector MintCompactNFTKeyVec <CompactNFTId>;
 
-struct CompactNFTId {
-  issuer_id: IssuerId,
-  class_id: Uint32,
-  token_id: Uint32,
-}
-
-vector CompactNFTIdVec <CompactNFTId>;
-
-table CompactNFTInfo {
-	characteristic: Characteristic,
-	configure: byte,
-	state: byte,
+table MintCompactNFTValue {
+	nft_info: CompactNFTInfo,
 	receiver_lock: Bytes,
 }
 
-vector CompactNFTInfoVec <CompactNFTInfo>;
+vector MintCompactNFTValueVec <MintCompactNFTValue>;
 
-table CompactNFTMintEntries {
-  nft_ids: CompactNFTIdVec,
-  nft_infos: CompactNFTInfoVec,
+table MintCompactNFTEntries {
+  nft_keys: MintCompactNFTKeyVec,
+  nft_values: MintCompactNFTValueVec,
   proof: Bytes,
 }
