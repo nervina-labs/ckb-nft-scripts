@@ -8,7 +8,6 @@ use ckb_tool::ckb_types::packed::*;
 use ckb_tool::ckb_types::{
     bytes::Bytes,
     core::{TransactionBuilder, TransactionView},
-    packed::*,
     prelude::*,
 };
 use nft_smt::smt::blake2b_256;
@@ -19,7 +18,6 @@ use nft_smt::{
     transfer::*,
 };
 use rand::{thread_rng, Rng};
-use std::process::Output;
 
 const MAX_CYCLES: u64 = 70_000_000;
 
@@ -53,8 +51,6 @@ enum CompactError {
 }
 
 const CLAIM_MINT: u8 = 1;
-const WITHDRAW_TRANSFER: u8 = 2;
-const CLAIM_TRANSFER: u8 = 3;
 
 fn generate_class_mint_smt_data(
     class_type_args: Vec<u8>,
@@ -412,7 +408,7 @@ fn create_test_context(action: Action, compact_error: CompactError) -> (Context,
         } else {
             class_mint_proof.to_vec()
         };
-    let mut out_point = if compact_error == CompactError::CompactNFTOutPointInvalid {
+    let out_point = if compact_error == CompactError::CompactNFTOutPointInvalid {
         random_out_point()
     } else {
         compact_nft_input_out_point.clone()

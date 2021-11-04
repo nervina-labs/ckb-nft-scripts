@@ -10,7 +10,7 @@ use ckb_tool::ckb_types::{
 };
 use nft_smt::smt::blake2b_256;
 use nft_smt::{
-    common::{Byte32, Byte32Builder, BytesBuilder, *},
+    common::{Byte32, BytesBuilder, *},
     registry::*,
     smt::{Blake2bHasher, H256, SMT},
 };
