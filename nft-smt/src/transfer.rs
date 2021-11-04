@@ -505,8 +505,8 @@ impl<'t: 'r, 'r> ::core::iter::ExactSizeIterator for CompactNFTKeyVecReaderItera
     }
 }
 #[derive(Clone)]
-pub struct TransferCompactNFTKey(molecule::bytes::Bytes);
-impl ::core::fmt::LowerHex for TransferCompactNFTKey {
+pub struct ClaimedCompactNFTKey(molecule::bytes::Bytes);
+impl ::core::fmt::LowerHex for ClaimedCompactNFTKey {
     fn fmt(&self, f: &mut ::core::fmt::Formatter) -> ::core::fmt::Result {
         use molecule::hex_string;
         if f.alternate() {
@@ -515,12 +515,12 @@ impl ::core::fmt::LowerHex for TransferCompactNFTKey {
         write!(f, "{}", hex_string(self.as_slice()))
     }
 }
-impl ::core::fmt::Debug for TransferCompactNFTKey {
+impl ::core::fmt::Debug for ClaimedCompactNFTKey {
     fn fmt(&self, f: &mut ::core::fmt::Formatter) -> ::core::fmt::Result {
         write!(f, "{}({:#x})", Self::NAME, self)
     }
 }
-impl ::core::fmt::Display for TransferCompactNFTKey {
+impl ::core::fmt::Display for ClaimedCompactNFTKey {
     fn fmt(&self, f: &mut ::core::fmt::Formatter) -> ::core::fmt::Result {
         write!(f, "{} {{ ", Self::NAME)?;
         write!(f, "{}: {}", "nft_key", self.nft_key())?;
@@ -528,16 +528,16 @@ impl ::core::fmt::Display for TransferCompactNFTKey {
         write!(f, " }}")
     }
 }
-impl ::core::default::Default for TransferCompactNFTKey {
+impl ::core::default::Default for ClaimedCompactNFTKey {
     fn default() -> Self {
         let v: Vec<u8> = vec![
             0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
             0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
         ];
-        TransferCompactNFTKey::new_unchecked(v.into())
+        ClaimedCompactNFTKey::new_unchecked(v.into())
     }
 }
-impl TransferCompactNFTKey {
+impl ClaimedCompactNFTKey {
     pub const FIELD_COUNT: usize = 2;
     pub const FIELD_SIZES: [usize; 2] = [29, 24];
     pub const TOTAL_SIZE: usize = 53;
@@ -550,17 +550,17 @@ impl TransferCompactNFTKey {
         OutPointBytes::new_unchecked(self.0.slice(29..53))
     }
 
-    pub fn as_reader<'r>(&'r self) -> TransferCompactNFTKeyReader<'r> {
-        TransferCompactNFTKeyReader::new_unchecked(self.as_slice())
+    pub fn as_reader<'r>(&'r self) -> ClaimedCompactNFTKeyReader<'r> {
+        ClaimedCompactNFTKeyReader::new_unchecked(self.as_slice())
     }
 }
-impl molecule::prelude::Entity for TransferCompactNFTKey {
-    type Builder = TransferCompactNFTKeyBuilder;
+impl molecule::prelude::Entity for ClaimedCompactNFTKey {
+    type Builder = ClaimedCompactNFTKeyBuilder;
 
-    const NAME: &'static str = "TransferCompactNFTKey";
+    const NAME: &'static str = "ClaimedCompactNFTKey";
 
     fn new_unchecked(data: molecule::bytes::Bytes) -> Self {
-        TransferCompactNFTKey(data)
+        ClaimedCompactNFTKey(data)
     }
 
     fn as_bytes(&self) -> molecule::bytes::Bytes {
@@ -572,11 +572,11 @@ impl molecule::prelude::Entity for TransferCompactNFTKey {
     }
 
     fn from_slice(slice: &[u8]) -> molecule::error::VerificationResult<Self> {
-        TransferCompactNFTKeyReader::from_slice(slice).map(|reader| reader.to_entity())
+        ClaimedCompactNFTKeyReader::from_slice(slice).map(|reader| reader.to_entity())
     }
 
     fn from_compatible_slice(slice: &[u8]) -> molecule::error::VerificationResult<Self> {
-        TransferCompactNFTKeyReader::from_compatible_slice(slice).map(|reader| reader.to_entity())
+        ClaimedCompactNFTKeyReader::from_compatible_slice(slice).map(|reader| reader.to_entity())
     }
 
     fn new_builder() -> Self::Builder {
@@ -590,8 +590,8 @@ impl molecule::prelude::Entity for TransferCompactNFTKey {
     }
 }
 #[derive(Clone, Copy)]
-pub struct TransferCompactNFTKeyReader<'r>(&'r [u8]);
-impl<'r> ::core::fmt::LowerHex for TransferCompactNFTKeyReader<'r> {
+pub struct ClaimedCompactNFTKeyReader<'r>(&'r [u8]);
+impl<'r> ::core::fmt::LowerHex for ClaimedCompactNFTKeyReader<'r> {
     fn fmt(&self, f: &mut ::core::fmt::Formatter) -> ::core::fmt::Result {
         use molecule::hex_string;
         if f.alternate() {
@@ -600,12 +600,12 @@ impl<'r> ::core::fmt::LowerHex for TransferCompactNFTKeyReader<'r> {
         write!(f, "{}", hex_string(self.as_slice()))
     }
 }
-impl<'r> ::core::fmt::Debug for TransferCompactNFTKeyReader<'r> {
+impl<'r> ::core::fmt::Debug for ClaimedCompactNFTKeyReader<'r> {
     fn fmt(&self, f: &mut ::core::fmt::Formatter) -> ::core::fmt::Result {
         write!(f, "{}({:#x})", Self::NAME, self)
     }
 }
-impl<'r> ::core::fmt::Display for TransferCompactNFTKeyReader<'r> {
+impl<'r> ::core::fmt::Display for ClaimedCompactNFTKeyReader<'r> {
     fn fmt(&self, f: &mut ::core::fmt::Formatter) -> ::core::fmt::Result {
         write!(f, "{} {{ ", Self::NAME)?;
         write!(f, "{}: {}", "nft_key", self.nft_key())?;
@@ -613,7 +613,7 @@ impl<'r> ::core::fmt::Display for TransferCompactNFTKeyReader<'r> {
         write!(f, " }}")
     }
 }
-impl<'r> TransferCompactNFTKeyReader<'r> {
+impl<'r> ClaimedCompactNFTKeyReader<'r> {
     pub const FIELD_COUNT: usize = 2;
     pub const FIELD_SIZES: [usize; 2] = [29, 24];
     pub const TOTAL_SIZE: usize = 53;
@@ -626,17 +626,17 @@ impl<'r> TransferCompactNFTKeyReader<'r> {
         OutPointBytesReader::new_unchecked(&self.as_slice()[29..53])
     }
 }
-impl<'r> molecule::prelude::Reader<'r> for TransferCompactNFTKeyReader<'r> {
-    type Entity = TransferCompactNFTKey;
+impl<'r> molecule::prelude::Reader<'r> for ClaimedCompactNFTKeyReader<'r> {
+    type Entity = ClaimedCompactNFTKey;
 
-    const NAME: &'static str = "TransferCompactNFTKeyReader";
+    const NAME: &'static str = "ClaimedCompactNFTKeyReader";
 
     fn to_entity(&self) -> Self::Entity {
         Self::Entity::new_unchecked(self.as_slice().to_owned().into())
     }
 
     fn new_unchecked(slice: &'r [u8]) -> Self {
-        TransferCompactNFTKeyReader(slice)
+        ClaimedCompactNFTKeyReader(slice)
     }
 
     fn as_slice(&self) -> &'r [u8] {
@@ -653,11 +653,11 @@ impl<'r> molecule::prelude::Reader<'r> for TransferCompactNFTKeyReader<'r> {
     }
 }
 #[derive(Debug, Default)]
-pub struct TransferCompactNFTKeyBuilder {
+pub struct ClaimedCompactNFTKeyBuilder {
     pub(crate) nft_key:   CompactNFTKey,
     pub(crate) out_point: OutPointBytes,
 }
-impl TransferCompactNFTKeyBuilder {
+impl ClaimedCompactNFTKeyBuilder {
     pub const FIELD_COUNT: usize = 2;
     pub const FIELD_SIZES: [usize; 2] = [29, 24];
     pub const TOTAL_SIZE: usize = 53;
@@ -672,10 +672,10 @@ impl TransferCompactNFTKeyBuilder {
         self
     }
 }
-impl molecule::prelude::Builder for TransferCompactNFTKeyBuilder {
-    type Entity = TransferCompactNFTKey;
+impl molecule::prelude::Builder for ClaimedCompactNFTKeyBuilder {
+    type Entity = ClaimedCompactNFTKey;
 
-    const NAME: &'static str = "TransferCompactNFTKeyBuilder";
+    const NAME: &'static str = "ClaimedCompactNFTKeyBuilder";
 
     fn expected_length(&self) -> usize {
         Self::TOTAL_SIZE
@@ -691,12 +691,12 @@ impl molecule::prelude::Builder for TransferCompactNFTKeyBuilder {
         let mut inner = Vec::with_capacity(self.expected_length());
         self.write(&mut inner)
             .unwrap_or_else(|_| panic!("{} build should be ok", Self::NAME));
-        TransferCompactNFTKey::new_unchecked(inner.into())
+        ClaimedCompactNFTKey::new_unchecked(inner.into())
     }
 }
 #[derive(Clone)]
-pub struct TransferCompactNFTKeyVec(molecule::bytes::Bytes);
-impl ::core::fmt::LowerHex for TransferCompactNFTKeyVec {
+pub struct ClaimedCompactNFTKeyVec(molecule::bytes::Bytes);
+impl ::core::fmt::LowerHex for ClaimedCompactNFTKeyVec {
     fn fmt(&self, f: &mut ::core::fmt::Formatter) -> ::core::fmt::Result {
         use molecule::hex_string;
         if f.alternate() {
@@ -705,12 +705,12 @@ impl ::core::fmt::LowerHex for TransferCompactNFTKeyVec {
         write!(f, "{}", hex_string(self.as_slice()))
     }
 }
-impl ::core::fmt::Debug for TransferCompactNFTKeyVec {
+impl ::core::fmt::Debug for ClaimedCompactNFTKeyVec {
     fn fmt(&self, f: &mut ::core::fmt::Formatter) -> ::core::fmt::Result {
         write!(f, "{}({:#x})", Self::NAME, self)
     }
 }
-impl ::core::fmt::Display for TransferCompactNFTKeyVec {
+impl ::core::fmt::Display for ClaimedCompactNFTKeyVec {
     fn fmt(&self, f: &mut ::core::fmt::Formatter) -> ::core::fmt::Result {
         write!(f, "{} [", Self::NAME)?;
         for i in 0..self.len() {
@@ -723,13 +723,13 @@ impl ::core::fmt::Display for TransferCompactNFTKeyVec {
         write!(f, "]")
     }
 }
-impl ::core::default::Default for TransferCompactNFTKeyVec {
+impl ::core::default::Default for ClaimedCompactNFTKeyVec {
     fn default() -> Self {
         let v: Vec<u8> = vec![0, 0, 0, 0];
-        TransferCompactNFTKeyVec::new_unchecked(v.into())
+        ClaimedCompactNFTKeyVec::new_unchecked(v.into())
     }
 }
-impl TransferCompactNFTKeyVec {
+impl ClaimedCompactNFTKeyVec {
     pub const ITEM_SIZE: usize = 53;
 
     pub fn total_size(&self) -> usize {
@@ -748,7 +748,7 @@ impl TransferCompactNFTKeyVec {
         self.len() == 0
     }
 
-    pub fn get(&self, idx: usize) -> Option<TransferCompactNFTKey> {
+    pub fn get(&self, idx: usize) -> Option<ClaimedCompactNFTKey> {
         if idx >= self.len() {
             None
         } else {
@@ -756,23 +756,23 @@ impl TransferCompactNFTKeyVec {
         }
     }
 
-    pub fn get_unchecked(&self, idx: usize) -> TransferCompactNFTKey {
+    pub fn get_unchecked(&self, idx: usize) -> ClaimedCompactNFTKey {
         let start = molecule::NUMBER_SIZE + Self::ITEM_SIZE * idx;
         let end = start + Self::ITEM_SIZE;
-        TransferCompactNFTKey::new_unchecked(self.0.slice(start..end))
+        ClaimedCompactNFTKey::new_unchecked(self.0.slice(start..end))
     }
 
-    pub fn as_reader<'r>(&'r self) -> TransferCompactNFTKeyVecReader<'r> {
-        TransferCompactNFTKeyVecReader::new_unchecked(self.as_slice())
+    pub fn as_reader<'r>(&'r self) -> ClaimedCompactNFTKeyVecReader<'r> {
+        ClaimedCompactNFTKeyVecReader::new_unchecked(self.as_slice())
     }
 }
-impl molecule::prelude::Entity for TransferCompactNFTKeyVec {
-    type Builder = TransferCompactNFTKeyVecBuilder;
+impl molecule::prelude::Entity for ClaimedCompactNFTKeyVec {
+    type Builder = ClaimedCompactNFTKeyVecBuilder;
 
-    const NAME: &'static str = "TransferCompactNFTKeyVec";
+    const NAME: &'static str = "ClaimedCompactNFTKeyVec";
 
     fn new_unchecked(data: molecule::bytes::Bytes) -> Self {
-        TransferCompactNFTKeyVec(data)
+        ClaimedCompactNFTKeyVec(data)
     }
 
     fn as_bytes(&self) -> molecule::bytes::Bytes {
@@ -784,12 +784,11 @@ impl molecule::prelude::Entity for TransferCompactNFTKeyVec {
     }
 
     fn from_slice(slice: &[u8]) -> molecule::error::VerificationResult<Self> {
-        TransferCompactNFTKeyVecReader::from_slice(slice).map(|reader| reader.to_entity())
+        ClaimedCompactNFTKeyVecReader::from_slice(slice).map(|reader| reader.to_entity())
     }
 
     fn from_compatible_slice(slice: &[u8]) -> molecule::error::VerificationResult<Self> {
-        TransferCompactNFTKeyVecReader::from_compatible_slice(slice)
-            .map(|reader| reader.to_entity())
+        ClaimedCompactNFTKeyVecReader::from_compatible_slice(slice).map(|reader| reader.to_entity())
     }
 
     fn new_builder() -> Self::Builder {
@@ -801,8 +800,8 @@ impl molecule::prelude::Entity for TransferCompactNFTKeyVec {
     }
 }
 #[derive(Clone, Copy)]
-pub struct TransferCompactNFTKeyVecReader<'r>(&'r [u8]);
-impl<'r> ::core::fmt::LowerHex for TransferCompactNFTKeyVecReader<'r> {
+pub struct ClaimedCompactNFTKeyVecReader<'r>(&'r [u8]);
+impl<'r> ::core::fmt::LowerHex for ClaimedCompactNFTKeyVecReader<'r> {
     fn fmt(&self, f: &mut ::core::fmt::Formatter) -> ::core::fmt::Result {
         use molecule::hex_string;
         if f.alternate() {
@@ -811,12 +810,12 @@ impl<'r> ::core::fmt::LowerHex for TransferCompactNFTKeyVecReader<'r> {
         write!(f, "{}", hex_string(self.as_slice()))
     }
 }
-impl<'r> ::core::fmt::Debug for TransferCompactNFTKeyVecReader<'r> {
+impl<'r> ::core::fmt::Debug for ClaimedCompactNFTKeyVecReader<'r> {
     fn fmt(&self, f: &mut ::core::fmt::Formatter) -> ::core::fmt::Result {
         write!(f, "{}({:#x})", Self::NAME, self)
     }
 }
-impl<'r> ::core::fmt::Display for TransferCompactNFTKeyVecReader<'r> {
+impl<'r> ::core::fmt::Display for ClaimedCompactNFTKeyVecReader<'r> {
     fn fmt(&self, f: &mut ::core::fmt::Formatter) -> ::core::fmt::Result {
         write!(f, "{} [", Self::NAME)?;
         for i in 0..self.len() {
@@ -829,7 +828,7 @@ impl<'r> ::core::fmt::Display for TransferCompactNFTKeyVecReader<'r> {
         write!(f, "]")
     }
 }
-impl<'r> TransferCompactNFTKeyVecReader<'r> {
+impl<'r> ClaimedCompactNFTKeyVecReader<'r> {
     pub const ITEM_SIZE: usize = 53;
 
     pub fn total_size(&self) -> usize {
@@ -848,7 +847,7 @@ impl<'r> TransferCompactNFTKeyVecReader<'r> {
         self.len() == 0
     }
 
-    pub fn get(&self, idx: usize) -> Option<TransferCompactNFTKeyReader<'r>> {
+    pub fn get(&self, idx: usize) -> Option<ClaimedCompactNFTKeyReader<'r>> {
         if idx >= self.len() {
             None
         } else {
@@ -856,23 +855,23 @@ impl<'r> TransferCompactNFTKeyVecReader<'r> {
         }
     }
 
-    pub fn get_unchecked(&self, idx: usize) -> TransferCompactNFTKeyReader<'r> {
+    pub fn get_unchecked(&self, idx: usize) -> ClaimedCompactNFTKeyReader<'r> {
         let start = molecule::NUMBER_SIZE + Self::ITEM_SIZE * idx;
         let end = start + Self::ITEM_SIZE;
-        TransferCompactNFTKeyReader::new_unchecked(&self.as_slice()[start..end])
+        ClaimedCompactNFTKeyReader::new_unchecked(&self.as_slice()[start..end])
     }
 }
-impl<'r> molecule::prelude::Reader<'r> for TransferCompactNFTKeyVecReader<'r> {
-    type Entity = TransferCompactNFTKeyVec;
+impl<'r> molecule::prelude::Reader<'r> for ClaimedCompactNFTKeyVecReader<'r> {
+    type Entity = ClaimedCompactNFTKeyVec;
 
-    const NAME: &'static str = "TransferCompactNFTKeyVecReader";
+    const NAME: &'static str = "ClaimedCompactNFTKeyVecReader";
 
     fn to_entity(&self) -> Self::Entity {
         Self::Entity::new_unchecked(self.as_slice().to_owned().into())
     }
 
     fn new_unchecked(slice: &'r [u8]) -> Self {
-        TransferCompactNFTKeyVecReader(slice)
+        ClaimedCompactNFTKeyVecReader(slice)
     }
 
     fn as_slice(&self) -> &'r [u8] {
@@ -900,21 +899,21 @@ impl<'r> molecule::prelude::Reader<'r> for TransferCompactNFTKeyVecReader<'r> {
     }
 }
 #[derive(Debug, Default)]
-pub struct TransferCompactNFTKeyVecBuilder(pub(crate) Vec<TransferCompactNFTKey>);
-impl TransferCompactNFTKeyVecBuilder {
+pub struct ClaimedCompactNFTKeyVecBuilder(pub(crate) Vec<ClaimedCompactNFTKey>);
+impl ClaimedCompactNFTKeyVecBuilder {
     pub const ITEM_SIZE: usize = 53;
 
-    pub fn set(mut self, v: Vec<TransferCompactNFTKey>) -> Self {
+    pub fn set(mut self, v: Vec<ClaimedCompactNFTKey>) -> Self {
         self.0 = v;
         self
     }
 
-    pub fn push(mut self, v: TransferCompactNFTKey) -> Self {
+    pub fn push(mut self, v: ClaimedCompactNFTKey) -> Self {
         self.0.push(v);
         self
     }
 
-    pub fn extend<T: ::core::iter::IntoIterator<Item = TransferCompactNFTKey>>(
+    pub fn extend<T: ::core::iter::IntoIterator<Item = ClaimedCompactNFTKey>>(
         mut self,
         iter: T,
     ) -> Self {
@@ -924,10 +923,10 @@ impl TransferCompactNFTKeyVecBuilder {
         self
     }
 }
-impl molecule::prelude::Builder for TransferCompactNFTKeyVecBuilder {
-    type Entity = TransferCompactNFTKeyVec;
+impl molecule::prelude::Builder for ClaimedCompactNFTKeyVecBuilder {
+    type Entity = ClaimedCompactNFTKeyVec;
 
-    const NAME: &'static str = "TransferCompactNFTKeyVecBuilder";
+    const NAME: &'static str = "ClaimedCompactNFTKeyVecBuilder";
 
     fn expected_length(&self) -> usize {
         molecule::NUMBER_SIZE + Self::ITEM_SIZE * self.0.len()
@@ -945,12 +944,12 @@ impl molecule::prelude::Builder for TransferCompactNFTKeyVecBuilder {
         let mut inner = Vec::with_capacity(self.expected_length());
         self.write(&mut inner)
             .unwrap_or_else(|_| panic!("{} build should be ok", Self::NAME));
-        TransferCompactNFTKeyVec::new_unchecked(inner.into())
+        ClaimedCompactNFTKeyVec::new_unchecked(inner.into())
     }
 }
-pub struct TransferCompactNFTKeyVecIterator(TransferCompactNFTKeyVec, usize, usize);
-impl ::core::iter::Iterator for TransferCompactNFTKeyVecIterator {
-    type Item = TransferCompactNFTKey;
+pub struct ClaimedCompactNFTKeyVecIterator(ClaimedCompactNFTKeyVec, usize, usize);
+impl ::core::iter::Iterator for ClaimedCompactNFTKeyVecIterator {
+    type Item = ClaimedCompactNFTKey;
 
     fn next(&mut self) -> Option<Self::Item> {
         if self.1 >= self.2 {
@@ -962,32 +961,32 @@ impl ::core::iter::Iterator for TransferCompactNFTKeyVecIterator {
         }
     }
 }
-impl ::core::iter::ExactSizeIterator for TransferCompactNFTKeyVecIterator {
+impl ::core::iter::ExactSizeIterator for ClaimedCompactNFTKeyVecIterator {
     fn len(&self) -> usize {
         self.2 - self.1
     }
 }
-impl ::core::iter::IntoIterator for TransferCompactNFTKeyVec {
-    type IntoIter = TransferCompactNFTKeyVecIterator;
-    type Item = TransferCompactNFTKey;
+impl ::core::iter::IntoIterator for ClaimedCompactNFTKeyVec {
+    type IntoIter = ClaimedCompactNFTKeyVecIterator;
+    type Item = ClaimedCompactNFTKey;
 
     fn into_iter(self) -> Self::IntoIter {
         let len = self.len();
-        TransferCompactNFTKeyVecIterator(self, 0, len)
+        ClaimedCompactNFTKeyVecIterator(self, 0, len)
     }
 }
-impl<'r> TransferCompactNFTKeyVecReader<'r> {
-    pub fn iter<'t>(&'t self) -> TransferCompactNFTKeyVecReaderIterator<'t, 'r> {
-        TransferCompactNFTKeyVecReaderIterator(&self, 0, self.len())
+impl<'r> ClaimedCompactNFTKeyVecReader<'r> {
+    pub fn iter<'t>(&'t self) -> ClaimedCompactNFTKeyVecReaderIterator<'t, 'r> {
+        ClaimedCompactNFTKeyVecReaderIterator(&self, 0, self.len())
     }
 }
-pub struct TransferCompactNFTKeyVecReaderIterator<'t, 'r>(
-    &'t TransferCompactNFTKeyVecReader<'r>,
+pub struct ClaimedCompactNFTKeyVecReaderIterator<'t, 'r>(
+    &'t ClaimedCompactNFTKeyVecReader<'r>,
     usize,
     usize,
 );
-impl<'t: 'r, 'r> ::core::iter::Iterator for TransferCompactNFTKeyVecReaderIterator<'t, 'r> {
-    type Item = TransferCompactNFTKeyReader<'t>;
+impl<'t: 'r, 'r> ::core::iter::Iterator for ClaimedCompactNFTKeyVecReaderIterator<'t, 'r> {
+    type Item = ClaimedCompactNFTKeyReader<'t>;
 
     fn next(&mut self) -> Option<Self::Item> {
         if self.1 >= self.2 {
@@ -999,9 +998,7 @@ impl<'t: 'r, 'r> ::core::iter::Iterator for TransferCompactNFTKeyVecReaderIterat
         }
     }
 }
-impl<'t: 'r, 'r> ::core::iter::ExactSizeIterator
-    for TransferCompactNFTKeyVecReaderIterator<'t, 'r>
-{
+impl<'t: 'r, 'r> ::core::iter::ExactSizeIterator for ClaimedCompactNFTKeyVecReaderIterator<'t, 'r> {
     fn len(&self) -> usize {
         self.2 - self.1
     }
@@ -1642,6 +1639,7 @@ impl ::core::fmt::Display for WithdrawCompactNFTValue {
         write!(f, "{} {{ ", Self::NAME)?;
         write!(f, "{}: {}", "nft_info", self.nft_info())?;
         write!(f, ", {}: {}", "to", self.to())?;
+        write!(f, ", {}: {}", "out_point", self.out_point())?;
         write!(f, " }}")
     }
 }
@@ -1649,15 +1647,15 @@ impl ::core::default::Default for WithdrawCompactNFTValue {
     fn default() -> Self {
         let v: Vec<u8> = vec![
             0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-            0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
         ];
         WithdrawCompactNFTValue::new_unchecked(v.into())
     }
 }
 impl WithdrawCompactNFTValue {
-    pub const FIELD_COUNT: usize = 2;
-    pub const FIELD_SIZES: [usize; 2] = [10, 20];
-    pub const TOTAL_SIZE: usize = 30;
+    pub const FIELD_COUNT: usize = 3;
+    pub const FIELD_SIZES: [usize; 3] = [10, 20, 24];
+    pub const TOTAL_SIZE: usize = 54;
 
     pub fn nft_info(&self) -> CompactNFTInfo {
         CompactNFTInfo::new_unchecked(self.0.slice(0..10))
@@ -1665,6 +1663,10 @@ impl WithdrawCompactNFTValue {
 
     pub fn to(&self) -> LockHash {
         LockHash::new_unchecked(self.0.slice(10..30))
+    }
+
+    pub fn out_point(&self) -> OutPointBytes {
+        OutPointBytes::new_unchecked(self.0.slice(30..54))
     }
 
     pub fn as_reader<'r>(&'r self) -> WithdrawCompactNFTValueReader<'r> {
@@ -1701,7 +1703,10 @@ impl molecule::prelude::Entity for WithdrawCompactNFTValue {
     }
 
     fn as_builder(self) -> Self::Builder {
-        Self::new_builder().nft_info(self.nft_info()).to(self.to())
+        Self::new_builder()
+            .nft_info(self.nft_info())
+            .to(self.to())
+            .out_point(self.out_point())
     }
 }
 #[derive(Clone, Copy)]
@@ -1725,13 +1730,14 @@ impl<'r> ::core::fmt::Display for WithdrawCompactNFTValueReader<'r> {
         write!(f, "{} {{ ", Self::NAME)?;
         write!(f, "{}: {}", "nft_info", self.nft_info())?;
         write!(f, ", {}: {}", "to", self.to())?;
+        write!(f, ", {}: {}", "out_point", self.out_point())?;
         write!(f, " }}")
     }
 }
 impl<'r> WithdrawCompactNFTValueReader<'r> {
-    pub const FIELD_COUNT: usize = 2;
-    pub const FIELD_SIZES: [usize; 2] = [10, 20];
-    pub const TOTAL_SIZE: usize = 30;
+    pub const FIELD_COUNT: usize = 3;
+    pub const FIELD_SIZES: [usize; 3] = [10, 20, 24];
+    pub const TOTAL_SIZE: usize = 54;
 
     pub fn nft_info(&self) -> CompactNFTInfoReader<'r> {
         CompactNFTInfoReader::new_unchecked(&self.as_slice()[0..10])
@@ -1739,6 +1745,10 @@ impl<'r> WithdrawCompactNFTValueReader<'r> {
 
     pub fn to(&self) -> LockHashReader<'r> {
         LockHashReader::new_unchecked(&self.as_slice()[10..30])
+    }
+
+    pub fn out_point(&self) -> OutPointBytesReader<'r> {
+        OutPointBytesReader::new_unchecked(&self.as_slice()[30..54])
     }
 }
 impl<'r> molecule::prelude::Reader<'r> for WithdrawCompactNFTValueReader<'r> {
@@ -1769,13 +1779,14 @@ impl<'r> molecule::prelude::Reader<'r> for WithdrawCompactNFTValueReader<'r> {
 }
 #[derive(Debug, Default)]
 pub struct WithdrawCompactNFTValueBuilder {
-    pub(crate) nft_info: CompactNFTInfo,
-    pub(crate) to:       LockHash,
+    pub(crate) nft_info:  CompactNFTInfo,
+    pub(crate) to:        LockHash,
+    pub(crate) out_point: OutPointBytes,
 }
 impl WithdrawCompactNFTValueBuilder {
-    pub const FIELD_COUNT: usize = 2;
-    pub const FIELD_SIZES: [usize; 2] = [10, 20];
-    pub const TOTAL_SIZE: usize = 30;
+    pub const FIELD_COUNT: usize = 3;
+    pub const FIELD_SIZES: [usize; 3] = [10, 20, 24];
+    pub const TOTAL_SIZE: usize = 54;
 
     pub fn nft_info(mut self, v: CompactNFTInfo) -> Self {
         self.nft_info = v;
@@ -1784,6 +1795,11 @@ impl WithdrawCompactNFTValueBuilder {
 
     pub fn to(mut self, v: LockHash) -> Self {
         self.to = v;
+        self
+    }
+
+    pub fn out_point(mut self, v: OutPointBytes) -> Self {
+        self.out_point = v;
         self
     }
 }
@@ -1799,6 +1815,7 @@ impl molecule::prelude::Builder for WithdrawCompactNFTValueBuilder {
     fn write<W: molecule::io::Write>(&self, writer: &mut W) -> molecule::io::Result<()> {
         writer.write_all(self.nft_info.as_slice())?;
         writer.write_all(self.to.as_slice())?;
+        writer.write_all(self.out_point.as_slice())?;
         Ok(())
     }
 
@@ -1845,7 +1862,7 @@ impl ::core::default::Default for WithdrawCompactNFTValueVec {
     }
 }
 impl WithdrawCompactNFTValueVec {
-    pub const ITEM_SIZE: usize = 30;
+    pub const ITEM_SIZE: usize = 54;
 
     pub fn total_size(&self) -> usize {
         molecule::NUMBER_SIZE * (self.item_count() + 1)
@@ -1945,7 +1962,7 @@ impl<'r> ::core::fmt::Display for WithdrawCompactNFTValueVecReader<'r> {
     }
 }
 impl<'r> WithdrawCompactNFTValueVecReader<'r> {
-    pub const ITEM_SIZE: usize = 30;
+    pub const ITEM_SIZE: usize = 54;
 
     pub fn total_size(&self) -> usize {
         molecule::NUMBER_SIZE * (self.item_count() + 1)
@@ -2017,7 +2034,7 @@ impl<'r> molecule::prelude::Reader<'r> for WithdrawCompactNFTValueVecReader<'r> 
 #[derive(Debug, Default)]
 pub struct WithdrawCompactNFTValueVecBuilder(pub(crate) Vec<WithdrawCompactNFTValue>);
 impl WithdrawCompactNFTValueVecBuilder {
-    pub const ITEM_SIZE: usize = 30;
+    pub const ITEM_SIZE: usize = 54;
 
     pub fn set(mut self, v: Vec<WithdrawCompactNFTValue>) -> Self {
         self.0 = v;
@@ -2204,11 +2221,11 @@ impl ClaimMintCompactNFTEntries {
         OwnedCompactNFTValueVec::new_unchecked(self.0.slice(start..end))
     }
 
-    pub fn claimed_nft_keys(&self) -> TransferCompactNFTKeyVec {
+    pub fn claimed_nft_keys(&self) -> ClaimedCompactNFTKeyVec {
         let slice = self.as_slice();
         let start = molecule::unpack_number(&slice[12..]) as usize;
         let end = molecule::unpack_number(&slice[16..]) as usize;
-        TransferCompactNFTKeyVec::new_unchecked(self.0.slice(start..end))
+        ClaimedCompactNFTKeyVec::new_unchecked(self.0.slice(start..end))
     }
 
     pub fn claimed_nft_values(&self) -> ClaimedCommpactNFTValueVec {
@@ -2354,11 +2371,11 @@ impl<'r> ClaimMintCompactNFTEntriesReader<'r> {
         OwnedCompactNFTValueVecReader::new_unchecked(&self.as_slice()[start..end])
     }
 
-    pub fn claimed_nft_keys(&self) -> TransferCompactNFTKeyVecReader<'r> {
+    pub fn claimed_nft_keys(&self) -> ClaimedCompactNFTKeyVecReader<'r> {
         let slice = self.as_slice();
         let start = molecule::unpack_number(&slice[12..]) as usize;
         let end = molecule::unpack_number(&slice[16..]) as usize;
-        TransferCompactNFTKeyVecReader::new_unchecked(&self.as_slice()[start..end])
+        ClaimedCompactNFTKeyVecReader::new_unchecked(&self.as_slice()[start..end])
     }
 
     pub fn claimed_nft_values(&self) -> ClaimedCommpactNFTValueVecReader<'r> {
@@ -2442,7 +2459,7 @@ impl<'r> molecule::prelude::Reader<'r> for ClaimMintCompactNFTEntriesReader<'r> 
         }
         CompactNFTKeyVecReader::verify(&slice[offsets[0]..offsets[1]], compatible)?;
         OwnedCompactNFTValueVecReader::verify(&slice[offsets[1]..offsets[2]], compatible)?;
-        TransferCompactNFTKeyVecReader::verify(&slice[offsets[2]..offsets[3]], compatible)?;
+        ClaimedCompactNFTKeyVecReader::verify(&slice[offsets[2]..offsets[3]], compatible)?;
         ClaimedCommpactNFTValueVecReader::verify(&slice[offsets[3]..offsets[4]], compatible)?;
         BytesReader::verify(&slice[offsets[4]..offsets[5]], compatible)?;
         BytesReader::verify(&slice[offsets[5]..offsets[6]], compatible)?;
@@ -2453,7 +2470,7 @@ impl<'r> molecule::prelude::Reader<'r> for ClaimMintCompactNFTEntriesReader<'r> 
 pub struct ClaimMintCompactNFTEntriesBuilder {
     pub(crate) owned_nft_keys:     CompactNFTKeyVec,
     pub(crate) owned_nft_values:   OwnedCompactNFTValueVec,
-    pub(crate) claimed_nft_keys:   TransferCompactNFTKeyVec,
+    pub(crate) claimed_nft_keys:   ClaimedCompactNFTKeyVec,
     pub(crate) claimed_nft_values: ClaimedCommpactNFTValueVec,
     pub(crate) proof:              Bytes,
     pub(crate) mint_proof:         Bytes,
@@ -2471,7 +2488,7 @@ impl ClaimMintCompactNFTEntriesBuilder {
         self
     }
 
-    pub fn claimed_nft_keys(mut self, v: TransferCompactNFTKeyVec) -> Self {
+    pub fn claimed_nft_keys(mut self, v: ClaimedCompactNFTKeyVec) -> Self {
         self.claimed_nft_keys = v;
         self
     }
@@ -2623,11 +2640,11 @@ impl ClaimCompactNFTEntries {
         OwnedCompactNFTValueVec::new_unchecked(self.0.slice(start..end))
     }
 
-    pub fn claimed_nft_keys(&self) -> TransferCompactNFTKeyVec {
+    pub fn claimed_nft_keys(&self) -> ClaimedCompactNFTKeyVec {
         let slice = self.as_slice();
         let start = molecule::unpack_number(&slice[12..]) as usize;
         let end = molecule::unpack_number(&slice[16..]) as usize;
-        TransferCompactNFTKeyVec::new_unchecked(self.0.slice(start..end))
+        ClaimedCompactNFTKeyVec::new_unchecked(self.0.slice(start..end))
     }
 
     pub fn claimed_nft_values(&self) -> ClaimedCommpactNFTValueVec {
@@ -2763,11 +2780,11 @@ impl<'r> ClaimCompactNFTEntriesReader<'r> {
         OwnedCompactNFTValueVecReader::new_unchecked(&self.as_slice()[start..end])
     }
 
-    pub fn claimed_nft_keys(&self) -> TransferCompactNFTKeyVecReader<'r> {
+    pub fn claimed_nft_keys(&self) -> ClaimedCompactNFTKeyVecReader<'r> {
         let slice = self.as_slice();
         let start = molecule::unpack_number(&slice[12..]) as usize;
         let end = molecule::unpack_number(&slice[16..]) as usize;
-        TransferCompactNFTKeyVecReader::new_unchecked(&self.as_slice()[start..end])
+        ClaimedCompactNFTKeyVecReader::new_unchecked(&self.as_slice()[start..end])
     }
 
     pub fn claimed_nft_values(&self) -> ClaimedCommpactNFTValueVecReader<'r> {
@@ -2844,7 +2861,7 @@ impl<'r> molecule::prelude::Reader<'r> for ClaimCompactNFTEntriesReader<'r> {
         }
         CompactNFTKeyVecReader::verify(&slice[offsets[0]..offsets[1]], compatible)?;
         OwnedCompactNFTValueVecReader::verify(&slice[offsets[1]..offsets[2]], compatible)?;
-        TransferCompactNFTKeyVecReader::verify(&slice[offsets[2]..offsets[3]], compatible)?;
+        ClaimedCompactNFTKeyVecReader::verify(&slice[offsets[2]..offsets[3]], compatible)?;
         ClaimedCommpactNFTValueVecReader::verify(&slice[offsets[3]..offsets[4]], compatible)?;
         BytesReader::verify(&slice[offsets[4]..offsets[5]], compatible)?;
         Ok(())
@@ -2854,7 +2871,7 @@ impl<'r> molecule::prelude::Reader<'r> for ClaimCompactNFTEntriesReader<'r> {
 pub struct ClaimCompactNFTEntriesBuilder {
     pub(crate) owned_nft_keys:     CompactNFTKeyVec,
     pub(crate) owned_nft_values:   OwnedCompactNFTValueVec,
-    pub(crate) claimed_nft_keys:   TransferCompactNFTKeyVec,
+    pub(crate) claimed_nft_keys:   ClaimedCompactNFTKeyVec,
     pub(crate) claimed_nft_values: ClaimedCommpactNFTValueVec,
     pub(crate) proof:              Bytes,
 }
@@ -2871,7 +2888,7 @@ impl ClaimCompactNFTEntriesBuilder {
         self
     }
 
-    pub fn claimed_nft_keys(mut self, v: TransferCompactNFTKeyVec) -> Self {
+    pub fn claimed_nft_keys(mut self, v: ClaimedCompactNFTKeyVec) -> Self {
         self.claimed_nft_keys = v;
         self
     }
@@ -3019,11 +3036,11 @@ impl WithdrawCompactNFTEntries {
         OwnedCompactNFTValueVec::new_unchecked(self.0.slice(start..end))
     }
 
-    pub fn withdrawal_nft_keys(&self) -> TransferCompactNFTKeyVec {
+    pub fn withdrawal_nft_keys(&self) -> CompactNFTKeyVec {
         let slice = self.as_slice();
         let start = molecule::unpack_number(&slice[12..]) as usize;
         let end = molecule::unpack_number(&slice[16..]) as usize;
-        TransferCompactNFTKeyVec::new_unchecked(self.0.slice(start..end))
+        CompactNFTKeyVec::new_unchecked(self.0.slice(start..end))
     }
 
     pub fn withdrawal_nft_values(&self) -> WithdrawCompactNFTValueVec {
@@ -3165,11 +3182,11 @@ impl<'r> WithdrawCompactNFTEntriesReader<'r> {
         OwnedCompactNFTValueVecReader::new_unchecked(&self.as_slice()[start..end])
     }
 
-    pub fn withdrawal_nft_keys(&self) -> TransferCompactNFTKeyVecReader<'r> {
+    pub fn withdrawal_nft_keys(&self) -> CompactNFTKeyVecReader<'r> {
         let slice = self.as_slice();
         let start = molecule::unpack_number(&slice[12..]) as usize;
         let end = molecule::unpack_number(&slice[16..]) as usize;
-        TransferCompactNFTKeyVecReader::new_unchecked(&self.as_slice()[start..end])
+        CompactNFTKeyVecReader::new_unchecked(&self.as_slice()[start..end])
     }
 
     pub fn withdrawal_nft_values(&self) -> WithdrawCompactNFTValueVecReader<'r> {
@@ -3246,7 +3263,7 @@ impl<'r> molecule::prelude::Reader<'r> for WithdrawCompactNFTEntriesReader<'r> {
         }
         CompactNFTKeyVecReader::verify(&slice[offsets[0]..offsets[1]], compatible)?;
         OwnedCompactNFTValueVecReader::verify(&slice[offsets[1]..offsets[2]], compatible)?;
-        TransferCompactNFTKeyVecReader::verify(&slice[offsets[2]..offsets[3]], compatible)?;
+        CompactNFTKeyVecReader::verify(&slice[offsets[2]..offsets[3]], compatible)?;
         WithdrawCompactNFTValueVecReader::verify(&slice[offsets[3]..offsets[4]], compatible)?;
         BytesReader::verify(&slice[offsets[4]..offsets[5]], compatible)?;
         Ok(())
@@ -3256,7 +3273,7 @@ impl<'r> molecule::prelude::Reader<'r> for WithdrawCompactNFTEntriesReader<'r> {
 pub struct WithdrawCompactNFTEntriesBuilder {
     pub(crate) owned_nft_keys:        CompactNFTKeyVec,
     pub(crate) owned_nft_values:      OwnedCompactNFTValueVec,
-    pub(crate) withdrawal_nft_keys:   TransferCompactNFTKeyVec,
+    pub(crate) withdrawal_nft_keys:   CompactNFTKeyVec,
     pub(crate) withdrawal_nft_values: WithdrawCompactNFTValueVec,
     pub(crate) proof:                 Bytes,
 }
@@ -3273,7 +3290,7 @@ impl WithdrawCompactNFTEntriesBuilder {
         self
     }
 
-    pub fn withdrawal_nft_keys(mut self, v: TransferCompactNFTKeyVec) -> Self {
+    pub fn withdrawal_nft_keys(mut self, v: CompactNFTKeyVec) -> Self {
         self.withdrawal_nft_keys = v;
         self
     }

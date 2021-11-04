@@ -24,7 +24,7 @@ use script_utils::{
 
 const COMPACT_NFT_ID_LEN: usize = 29;
 
-fn load_smt_root_from_class_cell_dep(nft_key: &CompactNFTKey) -> Result<[u8; 32], Error> {
+fn load_mint_smt_root_from_class_cell_dep(nft_key: &CompactNFTKey) -> Result<[u8; 32], Error> {
     if nft_key.as_slice().len() != COMPACT_NFT_ID_LEN {
         return Err(Error::CompactIssuerIdOrClassIdInvalid);
     }
@@ -59,12 +59,12 @@ pub fn verify_claim_mint_smt(witness_args_input_type: Bytes) -> Result<(), Error
         .get(0)
         .ok_or(Error::Encoding)
         .map_err(|_e| Error::Encoding)?;
-    let class_mint_smt_root = load_smt_root_from_class_cell_dep(&nft_key)?;
+    let class_mint_smt_root = load_mint_smt_root_from_class_cell_dep(&nft_key)?;
 
     let mut mint_nft_keys: Vec<u8> = Vec::new();
     let mut mint_nft_values: Vec<u8> = Vec::new();
-    let mut transfer_keys: Vec<u8> = Vec::new();
-    let mut transfer_values: Vec<u8> = Vec::new();
+    let mut claimed_keys: Vec<u8> = Vec::new();
+    let mut claimed_values: Vec<u8> = Vec::new();
 
     for index in 0..owned_nft_keys.len() {
         // Generate owned and claimed smt kv pairs
@@ -82,9 +82,9 @@ pub fn verify_claim_mint_smt(witness_args_input_type: Bytes) -> Result<(), Error
             return Err(Error::CompactNFTOutPointInvalid);
         }
 
-        transfer_keys.extend(&BYTE3_ZEROS);
-        transfer_keys.extend(owned_nft_key.as_slice());
-        transfer_keys.extend(&blake2b_256(claimed_nft_key.as_slice()));
+        claimed_keys.extend(&BYTE3_ZEROS);
+        claimed_keys.extend(owned_nft_key.as_slice());
+        claimed_keys.extend(&blake2b_256(claimed_nft_key.as_slice()));
 
         let owned_nft_value = claim_entries
             .owned_nft_values()
@@ -96,8 +96,8 @@ pub fn verify_claim_mint_smt(witness_args_input_type: Bytes) -> Result<(), Error
             .get(index)
             .ok_or(Error::Encoding)
             .map_err(|_e| Error::Encoding)?;
-        transfer_values.extend(&blake2b_256(owned_nft_value.as_slice()));
-        transfer_values.extend(claimed_nft_value.as_slice());
+        claimed_values.extend(&blake2b_256(owned_nft_value.as_slice()));
+        claimed_values.extend(claimed_nft_value.as_slice());
 
         // Generate mint smt kv pairs
         mint_nft_keys.extend(&BYTE4_ZEROS);
@@ -123,8 +123,8 @@ pub fn verify_claim_mint_smt(witness_args_input_type: Bytes) -> Result<(), Error
         lib_ckb_smt
             .smt_verify(
                 &compact_smt_root[..],
-                &transfer_keys[..],
-                &transfer_values[..],
+                &claimed_keys[..],
+                &claimed_values[..],
                 &proof[..],
             )
             .map_err(|_| Error::SMTProofVerifyFailed)?;
@@ -143,17 +143,17 @@ pub fn verify_claim_mint_smt(witness_args_input_type: Bytes) -> Result<(), Error
     }
 
     // Verify claim smt proof of compact nft input
-    transfer_values.clear();
+    claimed_values.clear();
     for _ in 0..(claim_entries.owned_nft_values().len() * 2) {
-        transfer_values.extend(&BYTE32_ZEROS);
+        claimed_values.extend(&BYTE32_ZEROS);
     }
     let input_compact_nft = CompactNft::from_data(&load_cell_data(0, Source::Input)?[..])?;
     if let Some(compact_smt_root) = input_compact_nft.nft_smt_root {
         lib_ckb_smt
             .smt_verify(
                 &compact_smt_root[..],
-                &transfer_keys[..],
-                &transfer_values[..],
+                &claimed_keys[..],
+                &claimed_values[..],
                 &proof[..],
             )
             .map_err(|_| Error::SMTProofVerifyFailed)?;

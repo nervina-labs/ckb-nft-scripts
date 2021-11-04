@@ -7,12 +7,12 @@ struct CompactNFTKey {
 
 vector CompactNFTKeyVec <CompactNFTKey>;
 
-struct TransferCompactNFTKey {
+struct ClaimedCompactNFTKey {
 	nft_key: CompactNFTKey,
     out_point: OutPointBytes,
 }
 
-vector TransferCompactNFTKeyVec <TransferCompactNFTKey>;
+vector ClaimedCompactNFTKeyVec <ClaimedCompactNFTKey>;
 
 vector OwnedCompactNFTValueVec <CompactNFTInfo>;
 
@@ -21,6 +21,7 @@ vector ClaimedCommpactNFTValueVec <Byte32>;
 struct WithdrawCompactNFTValue {
 	nft_info: CompactNFTInfo,
 	to: LockHash,
+	out_point: OutPointBytes,
 }
 
 vector WithdrawCompactNFTValueVec <WithdrawCompactNFTValue>;
@@ -28,7 +29,7 @@ vector WithdrawCompactNFTValueVec <WithdrawCompactNFTValue>;
 table ClaimMintCompactNFTEntries {
     owned_nft_keys: CompactNFTKeyVec,
     owned_nft_values: OwnedCompactNFTValueVec,
-	claimed_nft_keys: TransferCompactNFTKeyVec,
+	claimed_nft_keys: ClaimedCompactNFTKeyVec,
     claimed_nft_values: ClaimedCommpactNFTValueVec,
     proof: Bytes,
     mint_proof: Bytes,
@@ -37,7 +38,7 @@ table ClaimMintCompactNFTEntries {
 table ClaimCompactNFTEntries {
     owned_nft_keys: CompactNFTKeyVec,
     owned_nft_values: OwnedCompactNFTValueVec,
-	claimed_nft_keys: TransferCompactNFTKeyVec,
+	claimed_nft_keys: ClaimedCompactNFTKeyVec,
     claimed_nft_values: ClaimedCommpactNFTValueVec,
     proof: Bytes,
 }
@@ -45,7 +46,7 @@ table ClaimCompactNFTEntries {
 table WithdrawCompactNFTEntries {
     owned_nft_keys: CompactNFTKeyVec,
     owned_nft_values: OwnedCompactNFTValueVec,
-	withdrawal_nft_keys: TransferCompactNFTKeyVec,
+	withdrawal_nft_keys: CompactNFTKeyVec,
 	withdrawal_nft_values: WithdrawCompactNFTValueVec,
     proof: Bytes,
 }

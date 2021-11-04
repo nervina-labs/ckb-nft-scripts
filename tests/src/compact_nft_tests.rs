@@ -174,7 +174,7 @@ fn generate_compact_nft_smt_data(
 
     let mut owned_nft_keys: Vec<CompactNFTKey> = Vec::new();
     let mut owned_nft_values: Vec<CompactNFTInfo> = Vec::new();
-    let mut claimed_nft_keys: Vec<TransferCompactNFTKey> = Vec::new();
+    let mut claimed_nft_keys: Vec<ClaimedCompactNFTKey> = Vec::new();
     let mut claimed_nft_values: Vec<Byte32> = Vec::new();
     let mut update_leaves: Vec<(H256, H256)> = Vec::with_capacity(claim_leaves_count * 2);
     for index in 0..claim_leaves_count {
@@ -219,7 +219,7 @@ fn generate_compact_nft_smt_data(
             .nft_id(mint_nft_key.clone())
             .smt_type(Byte::from(2u8))
             .build();
-        let claimed_nft_key = TransferCompactNFTKeyBuilder::default()
+        let claimed_nft_key = ClaimedCompactNFTKeyBuilder::default()
             .nft_key(nft_key_)
             .out_point(compact_out_point)
             .build();
@@ -275,7 +275,7 @@ fn generate_compact_nft_smt_data(
                 .build(),
         )
         .claimed_nft_keys(
-            TransferCompactNFTKeyVecBuilder::default()
+            ClaimedCompactNFTKeyVecBuilder::default()
                 .set(claimed_nft_keys)
                 .build(),
         )
