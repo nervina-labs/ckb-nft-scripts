@@ -45,12 +45,12 @@ pub enum Error {
     SMTProofVerifyFailed = 40,
     CompactCellPositionError,
     CompactIssuerIdOrClassIdInvalid,
-    ClassCompactSmtRootError,
+    ClassCompactMintSmtRootError,
     CompactNFTDataInvalid,
-    CompactClassCellDepInvalid = 45,
-    CompactNFTSmtRootError,
+    CompactNFTSMTRootError = 45,
     CompactNFTClassDepError,
     CompactNFTOutPointInvalid,
+    CompactClassMintSMTProofVerifyFailed,
 }
 
 impl From<SysError> for Error {

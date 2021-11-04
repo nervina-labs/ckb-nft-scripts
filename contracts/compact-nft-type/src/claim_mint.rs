@@ -26,7 +26,7 @@ const COMPACT_NFT_ID_LEN: usize = 29;
 
 fn load_mint_smt_root_from_class_cell_dep(nft_key: &CompactNFTKey) -> Result<[u8; 32], Error> {
     if nft_key.as_slice().len() != COMPACT_NFT_ID_LEN {
-        return Err(Error::CompactIssuerIdOrClassIdInvalid);
+        return Err(Error::CompactNFTClassDepError);
     }
     let class_args = Bytes::from(&nft_key.as_slice()[1..25]);
     let class_cell_dep = load_cell(0, Source::CellDep)?;
@@ -139,7 +139,7 @@ pub fn verify_claim_mint_smt(witness_args_input_type: Bytes) -> Result<(), Error
                 &mint_nft_values[..],
                 &mint_proof[..],
             )
-            .map_err(|_| Error::SMTProofVerifyFailed)?;
+            .map_err(|_| Error::CompactClassMintSMTProofVerifyFailed)?;
     }
 
     // Verify claim smt proof of compact nft input

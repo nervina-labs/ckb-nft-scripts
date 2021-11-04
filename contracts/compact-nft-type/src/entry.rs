@@ -60,13 +60,16 @@ fn verify_compact_nft_smt(compact_nft_type: &Script) -> Result<(), Error> {
     if let Some(witness_args_type) = witness_args.input_type().to_opt() {
         let witness_args_input_type: Bytes = witness_args_type.unpack();
         if compact_nft.nft_smt_root.is_none() {
-            return Err(Error::CompactNFTSmtRootError);
+            return Err(Error::CompactNFTSMTRootError);
         }
         match u8::from(witness_args_input_type[0]) {
             CLAIM_MINT => verify_claim_mint_smt(witness_args_input_type)?,
-            _ => {}
+            _ => return Err(Error::WitnessTypeParseError),
         }
+    } else {
+        return Err(Error::WitnessTypeParseError);
     }
+
     Ok(())
 }
 

@@ -32,7 +32,7 @@ const CLASS_ID_INCREASE_ERROR: i8 = 18;
 const NFT_AND_CLASS_CONFIGURE_NOT_SAME: i8 = 22;
 const GROUP_INPUT_WITNESS_NONE_ERROR: i8 = 37;
 const COMPACT_ISSUER_ID_OR_CLASS_ID_INVALID: i8 = 42;
-const CLASS_COMPACT_SMT_ROOT_ERROR: i8 = 43;
+const CLASS_COMPACT_MINT_SMT_ROOT_ERROR: i8 = 43;
 
 #[derive(PartialEq, Eq, Clone, Copy)]
 enum UpdateCase {
@@ -65,7 +65,7 @@ enum ClassError {
     TypeArgsClassIdNotSame,
     GroupInputWitnessNoneError,
     CompactIssuerIdOrClassIdInvalid,
-    ClassCompactSmtRootError,
+    ClassCompactMintSmtRootError,
     NFTAndClassConfigureNotSame,
 }
 
@@ -484,7 +484,7 @@ fn create_test_context(action: Action, class_error: ClassError) -> (Context, Tra
                     } else {
                         hex::decode("01000000ff000000690000015500026666000489898949").unwrap()
                     };
-                    if class_error == ClassError::ClassCompactSmtRootError {
+                    if class_error == ClassError::ClassCompactMintSmtRootError {
                         data.extend(&smt_root[..30]);
                     } else {
                         data.extend(&smt_root[..]);
@@ -866,7 +866,7 @@ fn test_destroy_class_with_witness_none_error() {
 fn test_update_class_compact_smt_root_error() {
     let (mut context, tx) = create_test_context(
         Action::Update(UpdateCase::Compact),
-        ClassError::ClassCompactSmtRootError,
+        ClassError::ClassCompactMintSmtRootError,
     );
 
     let tx = context.complete_tx(tx);
@@ -875,7 +875,7 @@ fn test_update_class_compact_smt_root_error() {
     let script_cell_index = 0;
     assert_error_eq!(
         err,
-        ScriptError::ValidationFailure(CLASS_COMPACT_SMT_ROOT_ERROR)
+        ScriptError::ValidationFailure(CLASS_COMPACT_MINT_SMT_ROOT_ERROR)
             .input_type_script(script_cell_index)
     );
 }

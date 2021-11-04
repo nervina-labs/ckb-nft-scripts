@@ -19,16 +19,19 @@ use nft_smt::{
     transfer::*,
 };
 use rand::{thread_rng, Rng};
+use std::process::Output;
 
 const MAX_CYCLES: u64 = 70_000_000;
 
 // error numbers
-const LENGTH_NOT_ENOUGH: i8 = 3;
-const TYPE_ARGS_INVALID: i8 = 7;
 const WITNESS_TYPE_PARSE_ERROR: i8 = 38;
 const COMPACT_TYPE_ARGS_NOT_EQUAL_LOCK_HASH: i8 = 39;
 const SMT_PROOF_VERIFY_FAILED: i8 = 40;
 const COMPACT_CELL_POSITION_ERROR: i8 = 41;
+const COMPACT_NFT_SMT_ROOT_ERROR: i8 = 45;
+const COMPACT_NFT_CLASS_DEP_ERROR: i8 = 46;
+const COMPACT_NFT_OUT_POINT_INVALID: i8 = 47;
+const COMPACT_CLASS_MINT_SMT_PROOF_VERIFY_FAILED: i8 = 48;
 
 #[derive(PartialEq)]
 enum Action {
@@ -42,8 +45,11 @@ enum CompactError {
     NoError,
     WitnessTypeParseError,
     CompactTypeArgsNotEqualLockHash,
-    CompactIssuerIdOrClassIdInvalid,
     SMTProofVerifyFailed,
+    CompactNFTSMTRootError,
+    CompactNFTClassDepError,
+    CompactNFTOutPointInvalid,
+    CompactClassMintSMTProofVerifyFailed,
 }
 
 const CLAIM_MINT: u8 = 1;
@@ -344,6 +350,10 @@ fn create_test_context(action: Action, compact_error: CompactError) -> (Context,
         .args(Bytes::copy_from_slice(&class_type_args[..]).pack())
         .hash_type(Byte::new(TYPE))
         .build();
+
+    if compact_error == CompactError::CompactNFTClassDepError {
+        class_type_args.sort();
+    }
     let (class_mint_root, mint_nft_keys, mint_nft_values, class_mint_proof) =
         generate_class_mint_smt_data(class_type_args, lock_script.clone(), 2);
 
@@ -391,11 +401,22 @@ fn create_test_context(action: Action, compact_error: CompactError) -> (Context,
 
     let compact_nft_input_out_point = random_out_point();
 
+    let class_mint_smt_proof =
+        if compact_error == CompactError::CompactClassMintSMTProofVerifyFailed {
+            class_mint_proof[1..].to_vec()
+        } else {
+            class_mint_proof.to_vec()
+        };
+    let mut out_point = if compact_error == CompactError::CompactNFTOutPointInvalid {
+        random_out_point()
+    } else {
+        compact_nft_input_out_point.clone()
+    };
     let (old_root_hash, root_hash, witness_data) = generate_compact_nft_smt_data(
-        compact_nft_input_out_point.clone(),
+        out_point,
         mint_nft_keys,
         mint_nft_values,
-        class_mint_proof.to_vec(),
+        class_mint_smt_proof,
         2,
     );
 
@@ -442,9 +463,16 @@ fn create_test_context(action: Action, compact_error: CompactError) -> (Context,
 
     let outputs_data: Vec<Bytes> = match compact_error {
         CompactError::SMTProofVerifyFailed => vec![Bytes::from(
-            hex::decode("54dfaba38275883ef9b6d5fb02053b71dbba19630ff5f2ec01d5d6965366c1f7")
+            hex::decode("0054dfaba38275883ef9b6d5fb02053b71dbba19630ff5f2ec01d5d6965366c1f7")
                 .unwrap(),
         )],
+        CompactError::CompactNFTSMTRootError => {
+            let mut data_vec = vec![];
+            let version = [0u8];
+            data_vec.extend(&version);
+            data_vec.extend(&root_hash[2..]);
+            vec![Bytes::from(data_vec)]
+        }
         _ => {
             let mut data_vec = vec![];
             let version = [0u8];
@@ -457,7 +485,7 @@ fn create_test_context(action: Action, compact_error: CompactError) -> (Context,
     let error_witness_args = WitnessArgsBuilder::default()
         .input_type(
             Some(Bytes::from(
-                hex::decode("54dfaba38275883ef9b6d5fb02053b71dbba19630ff5f2ec01d5d6965366c1f7")
+                hex::decode("0154dfaba38275883ef9b6d5fb02053b71dbba19630ff5f2ec01d5d6965366c1f7")
                     .unwrap(),
             ))
             .pack(),
@@ -520,18 +548,131 @@ fn test_update_compact_nft_cell_success() {
 }
 
 #[test]
-fn test_destroy_registry_cell_error() {
+fn test_destroy_compact_nft_cell_error() {
     let (mut context, tx) = create_test_context(Action::Destroy, CompactError::NoError);
 
     let tx = context.complete_tx(tx);
     // run
     let err = context.verify_tx(&tx, MAX_CYCLES).unwrap_err();
     let script_cell_index = 0;
-    let errors = vec![
+    assert_error_eq!(
+        err,
         ScriptError::ValidationFailure(COMPACT_CELL_POSITION_ERROR)
-            .input_type_script(script_cell_index),
-        ScriptError::ValidationFailure(COMPACT_CELL_POSITION_ERROR)
-            .output_type_script(script_cell_index),
-    ];
-    assert_errors_contain!(err, errors);
+            .input_type_script(script_cell_index)
+    );
+}
+
+#[test]
+fn test_compact_type_args_not_equal_lock_hash_error() {
+    let (mut context, tx) = create_test_context(
+        Action::Update,
+        CompactError::CompactTypeArgsNotEqualLockHash,
+    );
+
+    let tx = context.complete_tx(tx);
+    // run
+    let err = context.verify_tx(&tx, MAX_CYCLES).unwrap_err();
+    let script_cell_index = 0;
+    assert_error_eq!(
+        err,
+        ScriptError::ValidationFailure(COMPACT_TYPE_ARGS_NOT_EQUAL_LOCK_HASH)
+            .input_type_script(script_cell_index)
+    );
+}
+
+#[test]
+fn test_compact_smt_proof_verify_error() {
+    let (mut context, tx) = create_test_context(Action::Update, CompactError::SMTProofVerifyFailed);
+
+    let tx = context.complete_tx(tx);
+    // run
+    let err = context.verify_tx(&tx, MAX_CYCLES).unwrap_err();
+    let script_cell_index = 0;
+    assert_error_eq!(
+        err,
+        ScriptError::ValidationFailure(SMT_PROOF_VERIFY_FAILED)
+            .input_type_script(script_cell_index)
+    );
+}
+
+#[test]
+fn test_compact_class_mint_smt_proof_verify_error() {
+    let (mut context, tx) = create_test_context(
+        Action::Update,
+        CompactError::CompactClassMintSMTProofVerifyFailed,
+    );
+
+    let tx = context.complete_tx(tx);
+    // run
+    let err = context.verify_tx(&tx, MAX_CYCLES).unwrap_err();
+    let script_cell_index = 0;
+    assert_error_eq!(
+        err,
+        ScriptError::ValidationFailure(COMPACT_CLASS_MINT_SMT_PROOF_VERIFY_FAILED)
+            .input_type_script(script_cell_index)
+    );
+}
+
+#[test]
+fn test_compact_nft_witness_type_parse_error() {
+    let (mut context, tx) =
+        create_test_context(Action::Update, CompactError::WitnessTypeParseError);
+
+    let tx = context.complete_tx(tx);
+    // run
+    let err = context.verify_tx(&tx, MAX_CYCLES).unwrap_err();
+    let script_cell_index = 0;
+    assert_error_eq!(
+        err,
+        ScriptError::ValidationFailure(WITNESS_TYPE_PARSE_ERROR)
+            .input_type_script(script_cell_index)
+    );
+}
+
+#[test]
+fn test_compact_nft_smt_root_error() {
+    let (mut context, tx) =
+        create_test_context(Action::Update, CompactError::CompactNFTSMTRootError);
+
+    let tx = context.complete_tx(tx);
+    // run
+    let err = context.verify_tx(&tx, MAX_CYCLES).unwrap_err();
+    let script_cell_index = 0;
+    assert_error_eq!(
+        err,
+        ScriptError::ValidationFailure(COMPACT_NFT_SMT_ROOT_ERROR)
+            .input_type_script(script_cell_index)
+    );
+}
+
+#[test]
+fn test_compact_nft_class_dep_error() {
+    let (mut context, tx) =
+        create_test_context(Action::Update, CompactError::CompactNFTClassDepError);
+
+    let tx = context.complete_tx(tx);
+    // run
+    let err = context.verify_tx(&tx, MAX_CYCLES).unwrap_err();
+    let script_cell_index = 0;
+    assert_error_eq!(
+        err,
+        ScriptError::ValidationFailure(COMPACT_NFT_CLASS_DEP_ERROR)
+            .input_type_script(script_cell_index)
+    );
+}
+
+#[test]
+fn test_compact_nft_out_point_invalid_error() {
+    let (mut context, tx) =
+        create_test_context(Action::Update, CompactError::CompactNFTOutPointInvalid);
+
+    let tx = context.complete_tx(tx);
+    // run
+    let err = context.verify_tx(&tx, MAX_CYCLES).unwrap_err();
+    let script_cell_index = 0;
+    assert_error_eq!(
+        err,
+        ScriptError::ValidationFailure(COMPACT_NFT_OUT_POINT_INVALID)
+            .input_type_script(script_cell_index)
+    );
 }
