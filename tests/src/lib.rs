@@ -19,7 +19,7 @@ mod nft_tests;
 mod compact_registry_tests;
 
 #[cfg(test)]
-mod compact_nft_tests;
+mod compact_nft_mint_tests;
 
 const TEST_ENV_VAR: &str = "CAPSULE_TEST_ENV";
 

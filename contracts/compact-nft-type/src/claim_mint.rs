@@ -16,7 +16,7 @@ use nft_smt::{
 use script_utils::{
     class::Class,
     compact_nft::CompactNft,
-    constants::{BYTE32_ZEROS, BYTE3_ZEROS, BYTE4_ZEROS},
+    constants::{BYTE22_ZEROS, BYTE32_ZEROS, BYTE3_ZEROS, BYTE4_ZEROS},
     error::Error,
     helper::load_class_type_with_args,
     smt::LibCKBSmt,
@@ -50,7 +50,7 @@ pub fn verify_claim_mint_smt(witness_args_input_type: Bytes) -> Result<(), Error
         .map(|v| Byte::from(*v))
         .collect();
     let compact_nft = CompactNft::from_data(&load_cell_data(0, Source::Output)?[..])?;
-    let first_input_out_point = load_input_out_point(0, Source::Input)?;
+    let compact_input_out_point = load_input_out_point(0, Source::Input)?;
 
     let claim_entries = ClaimMintCompactNFTEntries::from_slice(&witness_args_input_type[1..])
         .map_err(|_e| Error::WitnessTypeParseError)?;
@@ -78,7 +78,7 @@ pub fn verify_claim_mint_smt(witness_args_input_type: Bytes) -> Result<(), Error
             .ok_or(Error::Encoding)
             .map_err(|_e| Error::Encoding)?;
 
-        if &first_input_out_point.as_slice()[12..] != claimed_nft_key.out_point().as_slice() {
+        if &compact_input_out_point.as_slice()[12..] != claimed_nft_key.out_point().as_slice() {
             return Err(Error::CompactNFTOutPointInvalid);
         }
 
@@ -96,12 +96,13 @@ pub fn verify_claim_mint_smt(witness_args_input_type: Bytes) -> Result<(), Error
             .get(index)
             .ok_or(Error::Encoding)
             .map_err(|_e| Error::Encoding)?;
-        claimed_values.extend(&blake2b_256(owned_nft_value.as_slice()));
+        claimed_values.extend(&BYTE22_ZEROS);
+        claimed_values.extend(owned_nft_value.as_slice());
         claimed_values.extend(claimed_nft_value.as_slice());
 
         // Generate mint smt kv pairs
         mint_nft_keys.extend(&BYTE4_ZEROS);
-        mint_nft_keys.extend(&owned_nft_key.as_slice()[1..]);
+        mint_nft_keys.extend(owned_nft_key.nft_id().as_slice());
 
         let lock = common::BytesBuilder::default()
             .set(lock_script.clone())

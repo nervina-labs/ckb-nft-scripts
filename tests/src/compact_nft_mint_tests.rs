@@ -1,5 +1,5 @@
 use super::*;
-use crate::constants::{BYTE3_ZEROS, BYTE4_ZEROS, CLASS_TYPE_CODE_HASH, TYPE};
+use crate::constants::{BYTE22_ZEROS, BYTE3_ZEROS, BYTE4_ZEROS, CLASS_TYPE_CODE_HASH, TYPE};
 use ckb_testtool::context::random_out_point;
 use ckb_testtool::{builtin::ALWAYS_SUCCESS, context::Context};
 use ckb_tool::ckb_error::assert_error_eq;
@@ -184,7 +184,7 @@ fn generate_compact_nft_smt_data(
     let mut claimed_nft_values: Vec<Byte32> = Vec::new();
     let mut update_leaves: Vec<(H256, H256)> = Vec::with_capacity(claim_leaves_count * 2);
     for index in 0..claim_leaves_count {
-        // Generate owned_nft smt proof
+        // Generate owned_nft smt kv pairs
         let mint_nft_key = mint_nft_keys.get(index).unwrap().clone();
         let mut nft_id_vec = Vec::new();
         nft_id_vec.extend(&BYTE3_ZEROS);
@@ -201,14 +201,19 @@ fn generate_compact_nft_smt_data(
         owned_nft_keys.push(owned_nft_key);
 
         let mint_nft_value = mint_nft_values.get(index).unwrap().clone();
-        let owned_nft_value = mint_nft_value.nft_info();
-        owned_nft_values.push(owned_nft_value.clone());
-        let mut value: H256 = H256::from(blake2b_256(owned_nft_value.as_slice()));
+        let mut owed_nft_value_vec = Vec::new();
+        owed_nft_value_vec.extend(&BYTE22_ZEROS);
+        owed_nft_value_vec.extend(mint_nft_value.nft_info().as_slice());
+        let mut owned_nft_value = [0u8; 32];
+        owned_nft_value.copy_from_slice(&owed_nft_value_vec);
+
+        owned_nft_values.push(mint_nft_value.nft_info().clone());
+        let mut value: H256 = H256::from(owned_nft_value);
 
         update_leaves.push((key, value));
         smt.update(key, value).expect("SMT update leave error");
 
-        // Generate claimed_nft smt proof
+        // Generate claimed_nft smt kv pairs
         let compact_out_point_vec = input_compact_nft_out_point
             .as_bytes()
             .slice(12..36)
