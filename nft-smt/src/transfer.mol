@@ -35,7 +35,7 @@ table ClaimMintCompactNFTEntries {
     mint_proof: Bytes,
 }
 
-table ClaimCompactNFTEntries {
+table ClaimTransferCompactNFTEntries {
     owned_nft_keys: CompactNFTKeyVec,
     owned_nft_values: OwnedCompactNFTValueVec,
 	claimed_nft_keys: ClaimedCompactNFTKeyVec,
@@ -43,7 +43,7 @@ table ClaimCompactNFTEntries {
     proof: Bytes,
 }
 
-table WithdrawCompactNFTEntries {
+table WithdrawTransferCompactNFTEntries {
     owned_nft_keys: CompactNFTKeyVec,
     owned_nft_values: OwnedCompactNFTValueVec,
 	withdrawal_nft_keys: CompactNFTKeyVec,

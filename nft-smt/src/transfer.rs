@@ -2559,8 +2559,8 @@ impl molecule::prelude::Builder for ClaimMintCompactNFTEntriesBuilder {
     }
 }
 #[derive(Clone)]
-pub struct ClaimCompactNFTEntries(molecule::bytes::Bytes);
-impl ::core::fmt::LowerHex for ClaimCompactNFTEntries {
+pub struct ClaimTransferCompactNFTEntries(molecule::bytes::Bytes);
+impl ::core::fmt::LowerHex for ClaimTransferCompactNFTEntries {
     fn fmt(&self, f: &mut ::core::fmt::Formatter) -> ::core::fmt::Result {
         use molecule::hex_string;
         if f.alternate() {
@@ -2569,12 +2569,12 @@ impl ::core::fmt::LowerHex for ClaimCompactNFTEntries {
         write!(f, "{}", hex_string(self.as_slice()))
     }
 }
-impl ::core::fmt::Debug for ClaimCompactNFTEntries {
+impl ::core::fmt::Debug for ClaimTransferCompactNFTEntries {
     fn fmt(&self, f: &mut ::core::fmt::Formatter) -> ::core::fmt::Result {
         write!(f, "{}({:#x})", Self::NAME, self)
     }
 }
-impl ::core::fmt::Display for ClaimCompactNFTEntries {
+impl ::core::fmt::Display for ClaimTransferCompactNFTEntries {
     fn fmt(&self, f: &mut ::core::fmt::Formatter) -> ::core::fmt::Result {
         write!(f, "{} {{ ", Self::NAME)?;
         write!(f, "{}: {}", "owned_nft_keys", self.owned_nft_keys())?;
@@ -2594,16 +2594,16 @@ impl ::core::fmt::Display for ClaimCompactNFTEntries {
         write!(f, " }}")
     }
 }
-impl ::core::default::Default for ClaimCompactNFTEntries {
+impl ::core::default::Default for ClaimTransferCompactNFTEntries {
     fn default() -> Self {
         let v: Vec<u8> = vec![
             44, 0, 0, 0, 24, 0, 0, 0, 28, 0, 0, 0, 32, 0, 0, 0, 36, 0, 0, 0, 40, 0, 0, 0, 0, 0, 0,
             0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
         ];
-        ClaimCompactNFTEntries::new_unchecked(v.into())
+        ClaimTransferCompactNFTEntries::new_unchecked(v.into())
     }
 }
-impl ClaimCompactNFTEntries {
+impl ClaimTransferCompactNFTEntries {
     pub const FIELD_COUNT: usize = 5;
 
     pub fn total_size(&self) -> usize {
@@ -2665,17 +2665,17 @@ impl ClaimCompactNFTEntries {
         }
     }
 
-    pub fn as_reader<'r>(&'r self) -> ClaimCompactNFTEntriesReader<'r> {
-        ClaimCompactNFTEntriesReader::new_unchecked(self.as_slice())
+    pub fn as_reader<'r>(&'r self) -> ClaimTransferCompactNFTEntriesReader<'r> {
+        ClaimTransferCompactNFTEntriesReader::new_unchecked(self.as_slice())
     }
 }
-impl molecule::prelude::Entity for ClaimCompactNFTEntries {
-    type Builder = ClaimCompactNFTEntriesBuilder;
+impl molecule::prelude::Entity for ClaimTransferCompactNFTEntries {
+    type Builder = ClaimTransferCompactNFTEntriesBuilder;
 
-    const NAME: &'static str = "ClaimCompactNFTEntries";
+    const NAME: &'static str = "ClaimTransferCompactNFTEntries";
 
     fn new_unchecked(data: molecule::bytes::Bytes) -> Self {
-        ClaimCompactNFTEntries(data)
+        ClaimTransferCompactNFTEntries(data)
     }
 
     fn as_bytes(&self) -> molecule::bytes::Bytes {
@@ -2687,11 +2687,12 @@ impl molecule::prelude::Entity for ClaimCompactNFTEntries {
     }
 
     fn from_slice(slice: &[u8]) -> molecule::error::VerificationResult<Self> {
-        ClaimCompactNFTEntriesReader::from_slice(slice).map(|reader| reader.to_entity())
+        ClaimTransferCompactNFTEntriesReader::from_slice(slice).map(|reader| reader.to_entity())
     }
 
     fn from_compatible_slice(slice: &[u8]) -> molecule::error::VerificationResult<Self> {
-        ClaimCompactNFTEntriesReader::from_compatible_slice(slice).map(|reader| reader.to_entity())
+        ClaimTransferCompactNFTEntriesReader::from_compatible_slice(slice)
+            .map(|reader| reader.to_entity())
     }
 
     fn new_builder() -> Self::Builder {
@@ -2708,8 +2709,8 @@ impl molecule::prelude::Entity for ClaimCompactNFTEntries {
     }
 }
 #[derive(Clone, Copy)]
-pub struct ClaimCompactNFTEntriesReader<'r>(&'r [u8]);
-impl<'r> ::core::fmt::LowerHex for ClaimCompactNFTEntriesReader<'r> {
+pub struct ClaimTransferCompactNFTEntriesReader<'r>(&'r [u8]);
+impl<'r> ::core::fmt::LowerHex for ClaimTransferCompactNFTEntriesReader<'r> {
     fn fmt(&self, f: &mut ::core::fmt::Formatter) -> ::core::fmt::Result {
         use molecule::hex_string;
         if f.alternate() {
@@ -2718,12 +2719,12 @@ impl<'r> ::core::fmt::LowerHex for ClaimCompactNFTEntriesReader<'r> {
         write!(f, "{}", hex_string(self.as_slice()))
     }
 }
-impl<'r> ::core::fmt::Debug for ClaimCompactNFTEntriesReader<'r> {
+impl<'r> ::core::fmt::Debug for ClaimTransferCompactNFTEntriesReader<'r> {
     fn fmt(&self, f: &mut ::core::fmt::Formatter) -> ::core::fmt::Result {
         write!(f, "{}({:#x})", Self::NAME, self)
     }
 }
-impl<'r> ::core::fmt::Display for ClaimCompactNFTEntriesReader<'r> {
+impl<'r> ::core::fmt::Display for ClaimTransferCompactNFTEntriesReader<'r> {
     fn fmt(&self, f: &mut ::core::fmt::Formatter) -> ::core::fmt::Result {
         write!(f, "{} {{ ", Self::NAME)?;
         write!(f, "{}: {}", "owned_nft_keys", self.owned_nft_keys())?;
@@ -2743,7 +2744,7 @@ impl<'r> ::core::fmt::Display for ClaimCompactNFTEntriesReader<'r> {
         write!(f, " }}")
     }
 }
-impl<'r> ClaimCompactNFTEntriesReader<'r> {
+impl<'r> ClaimTransferCompactNFTEntriesReader<'r> {
     pub const FIELD_COUNT: usize = 5;
 
     pub fn total_size(&self) -> usize {
@@ -2805,17 +2806,17 @@ impl<'r> ClaimCompactNFTEntriesReader<'r> {
         }
     }
 }
-impl<'r> molecule::prelude::Reader<'r> for ClaimCompactNFTEntriesReader<'r> {
-    type Entity = ClaimCompactNFTEntries;
+impl<'r> molecule::prelude::Reader<'r> for ClaimTransferCompactNFTEntriesReader<'r> {
+    type Entity = ClaimTransferCompactNFTEntries;
 
-    const NAME: &'static str = "ClaimCompactNFTEntriesReader";
+    const NAME: &'static str = "ClaimTransferCompactNFTEntriesReader";
 
     fn to_entity(&self) -> Self::Entity {
         Self::Entity::new_unchecked(self.as_slice().to_owned().into())
     }
 
     fn new_unchecked(slice: &'r [u8]) -> Self {
-        ClaimCompactNFTEntriesReader(slice)
+        ClaimTransferCompactNFTEntriesReader(slice)
     }
 
     fn as_slice(&self) -> &'r [u8] {
@@ -2868,14 +2869,14 @@ impl<'r> molecule::prelude::Reader<'r> for ClaimCompactNFTEntriesReader<'r> {
     }
 }
 #[derive(Debug, Default)]
-pub struct ClaimCompactNFTEntriesBuilder {
+pub struct ClaimTransferCompactNFTEntriesBuilder {
     pub(crate) owned_nft_keys:     CompactNFTKeyVec,
     pub(crate) owned_nft_values:   OwnedCompactNFTValueVec,
     pub(crate) claimed_nft_keys:   ClaimedCompactNFTKeyVec,
     pub(crate) claimed_nft_values: ClaimedCommpactNFTValueVec,
     pub(crate) proof:              Bytes,
 }
-impl ClaimCompactNFTEntriesBuilder {
+impl ClaimTransferCompactNFTEntriesBuilder {
     pub const FIELD_COUNT: usize = 5;
 
     pub fn owned_nft_keys(mut self, v: CompactNFTKeyVec) -> Self {
@@ -2903,10 +2904,10 @@ impl ClaimCompactNFTEntriesBuilder {
         self
     }
 }
-impl molecule::prelude::Builder for ClaimCompactNFTEntriesBuilder {
-    type Entity = ClaimCompactNFTEntries;
+impl molecule::prelude::Builder for ClaimTransferCompactNFTEntriesBuilder {
+    type Entity = ClaimTransferCompactNFTEntries;
 
-    const NAME: &'static str = "ClaimCompactNFTEntriesBuilder";
+    const NAME: &'static str = "ClaimTransferCompactNFTEntriesBuilder";
 
     fn expected_length(&self) -> usize {
         molecule::NUMBER_SIZE * (Self::FIELD_COUNT + 1)
@@ -2946,12 +2947,12 @@ impl molecule::prelude::Builder for ClaimCompactNFTEntriesBuilder {
         let mut inner = Vec::with_capacity(self.expected_length());
         self.write(&mut inner)
             .unwrap_or_else(|_| panic!("{} build should be ok", Self::NAME));
-        ClaimCompactNFTEntries::new_unchecked(inner.into())
+        ClaimTransferCompactNFTEntries::new_unchecked(inner.into())
     }
 }
 #[derive(Clone)]
-pub struct WithdrawCompactNFTEntries(molecule::bytes::Bytes);
-impl ::core::fmt::LowerHex for WithdrawCompactNFTEntries {
+pub struct WithdrawTransferCompactNFTEntries(molecule::bytes::Bytes);
+impl ::core::fmt::LowerHex for WithdrawTransferCompactNFTEntries {
     fn fmt(&self, f: &mut ::core::fmt::Formatter) -> ::core::fmt::Result {
         use molecule::hex_string;
         if f.alternate() {
@@ -2960,12 +2961,12 @@ impl ::core::fmt::LowerHex for WithdrawCompactNFTEntries {
         write!(f, "{}", hex_string(self.as_slice()))
     }
 }
-impl ::core::fmt::Debug for WithdrawCompactNFTEntries {
+impl ::core::fmt::Debug for WithdrawTransferCompactNFTEntries {
     fn fmt(&self, f: &mut ::core::fmt::Formatter) -> ::core::fmt::Result {
         write!(f, "{}({:#x})", Self::NAME, self)
     }
 }
-impl ::core::fmt::Display for WithdrawCompactNFTEntries {
+impl ::core::fmt::Display for WithdrawTransferCompactNFTEntries {
     fn fmt(&self, f: &mut ::core::fmt::Formatter) -> ::core::fmt::Result {
         write!(f, "{} {{ ", Self::NAME)?;
         write!(f, "{}: {}", "owned_nft_keys", self.owned_nft_keys())?;
@@ -2990,16 +2991,16 @@ impl ::core::fmt::Display for WithdrawCompactNFTEntries {
         write!(f, " }}")
     }
 }
-impl ::core::default::Default for WithdrawCompactNFTEntries {
+impl ::core::default::Default for WithdrawTransferCompactNFTEntries {
     fn default() -> Self {
         let v: Vec<u8> = vec![
             44, 0, 0, 0, 24, 0, 0, 0, 28, 0, 0, 0, 32, 0, 0, 0, 36, 0, 0, 0, 40, 0, 0, 0, 0, 0, 0,
             0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
         ];
-        WithdrawCompactNFTEntries::new_unchecked(v.into())
+        WithdrawTransferCompactNFTEntries::new_unchecked(v.into())
     }
 }
-impl WithdrawCompactNFTEntries {
+impl WithdrawTransferCompactNFTEntries {
     pub const FIELD_COUNT: usize = 5;
 
     pub fn total_size(&self) -> usize {
@@ -3061,17 +3062,17 @@ impl WithdrawCompactNFTEntries {
         }
     }
 
-    pub fn as_reader<'r>(&'r self) -> WithdrawCompactNFTEntriesReader<'r> {
-        WithdrawCompactNFTEntriesReader::new_unchecked(self.as_slice())
+    pub fn as_reader<'r>(&'r self) -> WithdrawTransferCompactNFTEntriesReader<'r> {
+        WithdrawTransferCompactNFTEntriesReader::new_unchecked(self.as_slice())
     }
 }
-impl molecule::prelude::Entity for WithdrawCompactNFTEntries {
-    type Builder = WithdrawCompactNFTEntriesBuilder;
+impl molecule::prelude::Entity for WithdrawTransferCompactNFTEntries {
+    type Builder = WithdrawTransferCompactNFTEntriesBuilder;
 
-    const NAME: &'static str = "WithdrawCompactNFTEntries";
+    const NAME: &'static str = "WithdrawTransferCompactNFTEntries";
 
     fn new_unchecked(data: molecule::bytes::Bytes) -> Self {
-        WithdrawCompactNFTEntries(data)
+        WithdrawTransferCompactNFTEntries(data)
     }
 
     fn as_bytes(&self) -> molecule::bytes::Bytes {
@@ -3083,11 +3084,11 @@ impl molecule::prelude::Entity for WithdrawCompactNFTEntries {
     }
 
     fn from_slice(slice: &[u8]) -> molecule::error::VerificationResult<Self> {
-        WithdrawCompactNFTEntriesReader::from_slice(slice).map(|reader| reader.to_entity())
+        WithdrawTransferCompactNFTEntriesReader::from_slice(slice).map(|reader| reader.to_entity())
     }
 
     fn from_compatible_slice(slice: &[u8]) -> molecule::error::VerificationResult<Self> {
-        WithdrawCompactNFTEntriesReader::from_compatible_slice(slice)
+        WithdrawTransferCompactNFTEntriesReader::from_compatible_slice(slice)
             .map(|reader| reader.to_entity())
     }
 
@@ -3105,8 +3106,8 @@ impl molecule::prelude::Entity for WithdrawCompactNFTEntries {
     }
 }
 #[derive(Clone, Copy)]
-pub struct WithdrawCompactNFTEntriesReader<'r>(&'r [u8]);
-impl<'r> ::core::fmt::LowerHex for WithdrawCompactNFTEntriesReader<'r> {
+pub struct WithdrawTransferCompactNFTEntriesReader<'r>(&'r [u8]);
+impl<'r> ::core::fmt::LowerHex for WithdrawTransferCompactNFTEntriesReader<'r> {
     fn fmt(&self, f: &mut ::core::fmt::Formatter) -> ::core::fmt::Result {
         use molecule::hex_string;
         if f.alternate() {
@@ -3115,12 +3116,12 @@ impl<'r> ::core::fmt::LowerHex for WithdrawCompactNFTEntriesReader<'r> {
         write!(f, "{}", hex_string(self.as_slice()))
     }
 }
-impl<'r> ::core::fmt::Debug for WithdrawCompactNFTEntriesReader<'r> {
+impl<'r> ::core::fmt::Debug for WithdrawTransferCompactNFTEntriesReader<'r> {
     fn fmt(&self, f: &mut ::core::fmt::Formatter) -> ::core::fmt::Result {
         write!(f, "{}({:#x})", Self::NAME, self)
     }
 }
-impl<'r> ::core::fmt::Display for WithdrawCompactNFTEntriesReader<'r> {
+impl<'r> ::core::fmt::Display for WithdrawTransferCompactNFTEntriesReader<'r> {
     fn fmt(&self, f: &mut ::core::fmt::Formatter) -> ::core::fmt::Result {
         write!(f, "{} {{ ", Self::NAME)?;
         write!(f, "{}: {}", "owned_nft_keys", self.owned_nft_keys())?;
@@ -3145,7 +3146,7 @@ impl<'r> ::core::fmt::Display for WithdrawCompactNFTEntriesReader<'r> {
         write!(f, " }}")
     }
 }
-impl<'r> WithdrawCompactNFTEntriesReader<'r> {
+impl<'r> WithdrawTransferCompactNFTEntriesReader<'r> {
     pub const FIELD_COUNT: usize = 5;
 
     pub fn total_size(&self) -> usize {
@@ -3207,17 +3208,17 @@ impl<'r> WithdrawCompactNFTEntriesReader<'r> {
         }
     }
 }
-impl<'r> molecule::prelude::Reader<'r> for WithdrawCompactNFTEntriesReader<'r> {
-    type Entity = WithdrawCompactNFTEntries;
+impl<'r> molecule::prelude::Reader<'r> for WithdrawTransferCompactNFTEntriesReader<'r> {
+    type Entity = WithdrawTransferCompactNFTEntries;
 
-    const NAME: &'static str = "WithdrawCompactNFTEntriesReader";
+    const NAME: &'static str = "WithdrawTransferCompactNFTEntriesReader";
 
     fn to_entity(&self) -> Self::Entity {
         Self::Entity::new_unchecked(self.as_slice().to_owned().into())
     }
 
     fn new_unchecked(slice: &'r [u8]) -> Self {
-        WithdrawCompactNFTEntriesReader(slice)
+        WithdrawTransferCompactNFTEntriesReader(slice)
     }
 
     fn as_slice(&self) -> &'r [u8] {
@@ -3270,14 +3271,14 @@ impl<'r> molecule::prelude::Reader<'r> for WithdrawCompactNFTEntriesReader<'r> {
     }
 }
 #[derive(Debug, Default)]
-pub struct WithdrawCompactNFTEntriesBuilder {
+pub struct WithdrawTransferCompactNFTEntriesBuilder {
     pub(crate) owned_nft_keys:        CompactNFTKeyVec,
     pub(crate) owned_nft_values:      OwnedCompactNFTValueVec,
     pub(crate) withdrawal_nft_keys:   CompactNFTKeyVec,
     pub(crate) withdrawal_nft_values: WithdrawCompactNFTValueVec,
     pub(crate) proof:                 Bytes,
 }
-impl WithdrawCompactNFTEntriesBuilder {
+impl WithdrawTransferCompactNFTEntriesBuilder {
     pub const FIELD_COUNT: usize = 5;
 
     pub fn owned_nft_keys(mut self, v: CompactNFTKeyVec) -> Self {
@@ -3305,10 +3306,10 @@ impl WithdrawCompactNFTEntriesBuilder {
         self
     }
 }
-impl molecule::prelude::Builder for WithdrawCompactNFTEntriesBuilder {
-    type Entity = WithdrawCompactNFTEntries;
+impl molecule::prelude::Builder for WithdrawTransferCompactNFTEntriesBuilder {
+    type Entity = WithdrawTransferCompactNFTEntries;
 
-    const NAME: &'static str = "WithdrawCompactNFTEntriesBuilder";
+    const NAME: &'static str = "WithdrawTransferCompactNFTEntriesBuilder";
 
     fn expected_length(&self) -> usize {
         molecule::NUMBER_SIZE * (Self::FIELD_COUNT + 1)
@@ -3348,6 +3349,6 @@ impl molecule::prelude::Builder for WithdrawCompactNFTEntriesBuilder {
         let mut inner = Vec::with_capacity(self.expected_length());
         self.write(&mut inner)
             .unwrap_or_else(|_| panic!("{} build should be ok", Self::NAME));
-        WithdrawCompactNFTEntries::new_unchecked(inner.into())
+        WithdrawTransferCompactNFTEntries::new_unchecked(inner.into())
     }
 }

@@ -6,7 +6,7 @@ use ckb_std::{
     high_level::{load_cell_data, load_cell_lock_hash, load_input_out_point},
 };
 use core::result::Result;
-use nft_smt::{smt::blake2b_256, transfer::WithdrawCompactNFTEntries};
+use nft_smt::{smt::blake2b_256, transfer::WithdrawTransferCompactNFTEntries};
 use script_utils::{
     compact_nft::CompactNft,
     constants::{BYTE22_ZEROS, BYTE32_ZEROS, BYTE3_ZEROS},
@@ -20,8 +20,9 @@ pub fn verify_withdraw_transfer_smt(witness_args_input_type: Bytes) -> Result<()
 
     let lock_hash = load_cell_lock_hash(0, Source::Output)?;
 
-    let withdraw_entries = WithdrawCompactNFTEntries::from_slice(&witness_args_input_type[1..])
-        .map_err(|_e| Error::WitnessTypeParseError)?;
+    let withdraw_entries =
+        WithdrawTransferCompactNFTEntries::from_slice(&witness_args_input_type[1..])
+            .map_err(|_e| Error::WitnessTypeParseError)?;
     let owned_nft_keys = withdraw_entries.owned_nft_keys();
 
     let mut withdrawal_keys: Vec<u8> = Vec::new();
