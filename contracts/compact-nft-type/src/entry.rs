@@ -1,4 +1,5 @@
 use super::claim_mint::verify_claim_mint_smt;
+use super::withdraw_transfer::verify_withdraw_transfer_smt;
 use ckb_std::high_level::load_cell_data;
 use ckb_std::{
     ckb_constants::Source,
@@ -64,7 +65,8 @@ fn verify_compact_nft_smt(compact_nft_type: &Script) -> Result<(), Error> {
         }
         match u8::from(witness_args_input_type[0]) {
             CLAIM_MINT => verify_claim_mint_smt(witness_args_input_type)?,
-            WITHDRAW_TRANSFER => {}
+            WITHDRAW_TRANSFER => verify_withdraw_transfer_smt(witness_args_input_type)?,
+            CLAIM_TRANSFER => {}
             _ => return Err(Error::WitnessTypeParseError),
         }
     } else {

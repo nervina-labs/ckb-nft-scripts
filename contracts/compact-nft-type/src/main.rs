@@ -8,6 +8,7 @@ use ckb_std::default_alloc;
 
 mod claim_mint;
 mod entry;
+mod withdraw_transfer;
 
 ckb_std::entry!(program_entry);
 default_alloc!();

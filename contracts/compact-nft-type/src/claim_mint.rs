@@ -118,7 +118,7 @@ pub fn verify_claim_mint_smt(witness_args_input_type: Bytes) -> Result<(), Error
     let mut context = unsafe { CKBDLContext::<[u8; 128 * 1024]>::new() };
     let lib_ckb_smt = LibCKBSmt::load(&mut context);
 
-    // Verify claim smt proof of compact nft output
+    // Verify claimed smt proof of compact nft output
     let proof = claim_entries.proof().raw_data().to_vec();
     if let Some(compact_smt_root) = compact_nft.nft_smt_root {
         lib_ckb_smt
@@ -143,7 +143,7 @@ pub fn verify_claim_mint_smt(witness_args_input_type: Bytes) -> Result<(), Error
             .map_err(|_| Error::CompactClassMintSMTProofVerifyFailed)?;
     }
 
-    // Verify claim smt proof of compact nft input
+    // Verify claimed smt proof of compact nft input
     claimed_values.clear();
     for _ in 0..(claim_entries.owned_nft_values().len() * 2) {
         claimed_values.extend(&BYTE32_ZEROS);
