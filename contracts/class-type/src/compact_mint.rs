@@ -32,8 +32,9 @@ pub fn check_compact_nft_mint(
             return Err(Error::ClassIssuedInvalid);
         }
 
-        let mut keys: Vec<u8> = Vec::new();
+        let mut smt_keys: Vec<u8> = Vec::new();
         let mut token_ids: Vec<u32> = Vec::new();
+
         for nft_id in mint_entries.nft_keys() {
             if nft_id.issuer_id().as_slice() != &class_args.to_vec()[0..20]
                 || nft_id.class_id().as_slice() != &class_args.to_vec()[20..]
@@ -46,8 +47,8 @@ pub fn check_compact_nft_mint(
             }
             token_ids.push(token_id);
 
-            keys.extend(&BYTE4_ZEROS);
-            keys.extend(nft_id.as_slice());
+            smt_keys.extend(&BYTE4_ZEROS);
+            smt_keys.extend(nft_id.as_slice());
         }
         let mut class_cell_token_ids = Vec::new();
         for token_id in input_class.issued..output_class.issued {
@@ -57,12 +58,12 @@ pub fn check_compact_nft_mint(
             return Err(Error::NFTTokenIdIncreaseError);
         }
 
-        let mut values: Vec<u8> = Vec::new();
+        let mut smt_values: Vec<u8> = Vec::new();
         for nft_value in mint_entries.nft_values() {
             if nft_value.nft_info().configure().as_slice()[0] != input_class.configure {
                 return Err(Error::NFTAndClassConfigureNotSame);
             }
-            values.extend(Vec::from(blake2b_256(nft_value.as_slice())));
+            smt_values.extend(&blake2b_256(nft_value.as_slice()));
         }
 
         let proof: Vec<u8> = mint_entries.proof().raw_data().to_vec();
@@ -72,20 +73,25 @@ pub fn check_compact_nft_mint(
 
         if let Some(mint_smt_root) = output_class.nft_smt_root {
             lib_ckb_smt
-                .smt_verify(&mint_smt_root[..], &keys[..], &values[..], &proof[..])
+                .smt_verify(
+                    &mint_smt_root[..],
+                    &smt_keys[..],
+                    &smt_values[..],
+                    &proof[..],
+                )
                 .map_err(|_| Error::SMTProofVerifyFailed)?;
         }
 
         if let Some(input_class_smt_root) = input_class.nft_smt_root {
-            values.clear();
+            smt_values.clear();
             for _ in mint_entries.nft_values() {
-                values.extend(&BYTE32_ZEROS);
+                smt_values.extend(&BYTE32_ZEROS);
             }
             lib_ckb_smt
                 .smt_verify(
                     &input_class_smt_root[..],
-                    &keys[..],
-                    &values[..],
+                    &smt_keys[..],
+                    &smt_values[..],
                     &proof[..],
                 )
                 .map_err(|_| Error::SMTProofVerifyFailed)?;

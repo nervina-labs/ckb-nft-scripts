@@ -52,7 +52,9 @@ pub enum Error {
     CompactNFTOutPointInvalid,
     CompactClassMintSMTProofVerifyFailed,
     WithdrawCompactToNotEqualLockHash,
-    WithdrawCompactNFTInfoNotSame,
+    WithdrawCompactNFTInfoNotSame = 50,
+    CompactNFTWithdrawalDepError,
+    ClaimedCompactWithdrawalSMTProofVerifyFailed,
 }
 
 impl From<SysError> for Error {

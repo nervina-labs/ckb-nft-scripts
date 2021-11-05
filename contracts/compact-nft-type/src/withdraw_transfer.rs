@@ -25,9 +25,9 @@ pub fn verify_withdraw_transfer_smt(witness_args_input_type: Bytes) -> Result<()
             .map_err(|_e| Error::WitnessTypeParseError)?;
     let owned_nft_keys = withdraw_entries.owned_nft_keys();
 
-    let mut withdrawal_keys: Vec<u8> = Vec::new();
-    let mut withdrawal_values: Vec<u8> = Vec::new();
-    let mut withdrawal_old_values: Vec<u8> = Vec::new();
+    let mut withdrawal_nft_keys: Vec<u8> = Vec::new();
+    let mut withdrawal_nft_values: Vec<u8> = Vec::new();
+    let mut withdrawal_old_nft_values: Vec<u8> = Vec::new();
 
     for index in 0..owned_nft_keys.len() {
         let withdrawal_nft_value = withdraw_entries
@@ -52,12 +52,12 @@ pub fn verify_withdraw_transfer_smt(witness_args_input_type: Bytes) -> Result<()
         }
 
         // Generate owned and withdrawal smt kv pairs
-        withdrawal_values.extend(&BYTE32_ZEROS);
-        withdrawal_values.extend(&blake2b_256(withdrawal_nft_value.as_slice()));
+        withdrawal_nft_values.extend(&BYTE32_ZEROS);
+        withdrawal_nft_values.extend(&blake2b_256(withdrawal_nft_value.as_slice()));
 
-        withdrawal_old_values.extend(&BYTE22_ZEROS);
-        withdrawal_old_values.extend(owned_nft_value.as_slice());
-        withdrawal_old_values.extend(&BYTE32_ZEROS);
+        withdrawal_old_nft_values.extend(&BYTE22_ZEROS);
+        withdrawal_old_nft_values.extend(owned_nft_value.as_slice());
+        withdrawal_old_nft_values.extend(&BYTE32_ZEROS);
 
         let owned_nft_key = owned_nft_keys
             .get(index)
@@ -68,10 +68,10 @@ pub fn verify_withdraw_transfer_smt(witness_args_input_type: Bytes) -> Result<()
             .get(index)
             .ok_or(Error::Encoding)
             .map_err(|_e| Error::Encoding)?;
-        withdrawal_keys.extend(&BYTE3_ZEROS);
-        withdrawal_keys.extend(owned_nft_key.as_slice());
-        withdrawal_keys.extend(&BYTE3_ZEROS);
-        withdrawal_keys.extend(withdrawal_nft_key.as_slice());
+        withdrawal_nft_keys.extend(&BYTE3_ZEROS);
+        withdrawal_nft_keys.extend(owned_nft_key.as_slice());
+        withdrawal_nft_keys.extend(&BYTE3_ZEROS);
+        withdrawal_nft_keys.extend(withdrawal_nft_key.as_slice());
     }
 
     let mut context = unsafe { CKBDLContext::<[u8; 128 * 1024]>::new() };
@@ -83,8 +83,8 @@ pub fn verify_withdraw_transfer_smt(witness_args_input_type: Bytes) -> Result<()
         lib_ckb_smt
             .smt_verify(
                 &compact_smt_root[..],
-                &withdrawal_keys[..],
-                &withdrawal_values[..],
+                &withdrawal_nft_keys[..],
+                &withdrawal_nft_values[..],
                 &proof[..],
             )
             .map_err(|_| Error::SMTProofVerifyFailed)?;
@@ -96,8 +96,8 @@ pub fn verify_withdraw_transfer_smt(witness_args_input_type: Bytes) -> Result<()
         lib_ckb_smt
             .smt_verify(
                 &compact_smt_root[..],
-                &withdrawal_keys[..],
-                &withdrawal_old_values[..],
+                &withdrawal_nft_keys[..],
+                &withdrawal_old_nft_values[..],
                 &proof[..],
             )
             .map_err(|_| Error::SMTProofVerifyFailed)?;

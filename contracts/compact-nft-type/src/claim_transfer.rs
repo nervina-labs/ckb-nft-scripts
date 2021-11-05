@@ -1,5 +1,5 @@
 use alloc::vec::Vec;
-use ckb_std::high_level::{load_cell_data, load_cell_lock, load_input_out_point};
+use ckb_std::high_level::{load_cell_data, load_cell_lock_hash};
 use ckb_std::{
     ckb_constants::Source,
     ckb_types::{bytes::Bytes, packed::*, prelude::*},
@@ -7,68 +7,61 @@ use ckb_std::{
     high_level::load_cell,
 };
 use core::result::Result;
-use nft_smt::mint::MintCompactNFTValueBuilder;
 use nft_smt::{
-    common::{self},
+    common::LockHashBuilder,
     smt::blake2b_256,
-    transfer::{ClaimMintCompactNFTEntries, CompactNFTKey},
+    transfer::{ClaimTransferCompactNFTEntries, WithdrawCompactNFTValueBuilder},
 };
 use script_utils::{
-    class::Class,
     compact_nft::CompactNft,
-    constants::{BYTE22_ZEROS, BYTE32_ZEROS, BYTE3_ZEROS, BYTE4_ZEROS},
+    constants::{BYTE22_ZEROS, BYTE32_ZEROS, BYTE3_ZEROS},
     error::Error,
-    helper::load_class_type_with_args,
     smt::LibCKBSmt,
 };
 
-const COMPACT_NFT_KEY_LEN: usize = 29;
-
-fn load_mint_smt_root_from_class_cell_dep(nft_key: &CompactNFTKey) -> Result<[u8; 32], Error> {
-    if nft_key.as_slice().len() != COMPACT_NFT_KEY_LEN {
-        return Err(Error::CompactNFTClassDepError);
-    }
-    let class_args = Bytes::from(&nft_key.as_slice()[1..25]);
-    let class_cell_dep = load_cell(0, Source::CellDep)?;
-    let class_type = load_class_type_with_args(&class_args);
-    if let Some(dep_class_type) = class_cell_dep.type_().to_opt() {
-        if dep_class_type.as_slice() == class_type.as_slice() {
-            let class_data = load_cell_data(0, Source::CellDep).map_err(|_e| Error::Encoding)?;
-            let class = Class::from_data(&class_data)?;
-            return Ok(class.nft_smt_root.ok_or(Error::Encoding)?);
+fn load_withdrawal_smt_root_from_compact_cell_dep(
+    compact_nft_type: &Script,
+) -> Result<[u8; 32], Error> {
+    let withdrawal_compact_cell_dep = load_cell(0, Source::CellDep)?;
+    if let Some(dep_compact_type) = withdrawal_compact_cell_dep.type_().to_opt() {
+        if dep_compact_type.code_hash().as_slice() == compact_nft_type.code_hash().as_slice()
+            && dep_compact_type.hash_type() == compact_nft_type.hash_type()
+        {
+            let compact_nft_data = load_cell_data(0, Source::CellDep)?;
+            let compact_nft = CompactNft::from_data(&compact_nft_data)?;
+            return Ok(compact_nft.nft_smt_root.ok_or(Error::Encoding)?);
         }
-        return Err(Error::CompactNFTClassDepError);
+        return Err(Error::CompactNFTWithdrawalDepError);
     }
-    Err(Error::CompactNFTClassDepError)
+    Err(Error::CompactNFTWithdrawalDepError)
 }
 
-pub fn verify_claim_mint_smt(witness_args_input_type: Bytes) -> Result<(), Error> {
-    let lock_script: Vec<Byte> = load_cell_lock(0, Source::Output)
-        .map_err(|_e| Error::Encoding)?
-        .as_slice()
+pub fn verify_claim_transfer_smt(
+    compact_nft_type: &Script,
+    witness_args_input_type: Bytes,
+) -> Result<(), Error> {
+    let mut lock_hash_160 = [Byte::from(0u8); 20];
+    let lock_hash: Vec<Byte> = load_cell_lock_hash(0, Source::Output)?[12..]
         .iter()
         .map(|v| Byte::from(*v))
         .collect();
+    lock_hash_160.copy_from_slice(&lock_hash);
     let compact_nft = CompactNft::from_data(&load_cell_data(0, Source::Output)?[..])?;
-    let compact_input_out_point = load_input_out_point(0, Source::Input)?;
 
-    let claim_entries = ClaimMintCompactNFTEntries::from_slice(&witness_args_input_type[1..])
+    let claim_entries = ClaimTransferCompactNFTEntries::from_slice(&witness_args_input_type[1..])
         .map_err(|_e| Error::WitnessTypeParseError)?;
-    let owned_nft_keys = claim_entries.owned_nft_keys();
-    let nft_key = owned_nft_keys
-        .get(0)
-        .ok_or(Error::Encoding)
-        .map_err(|_e| Error::Encoding)?;
-    let class_mint_smt_root = load_mint_smt_root_from_class_cell_dep(&nft_key)?;
+    let withdrawal_compact_smt_root =
+        load_withdrawal_smt_root_from_compact_cell_dep(&compact_nft_type)?;
 
-    let mut mint_nft_keys: Vec<u8> = Vec::new();
-    let mut mint_nft_values: Vec<u8> = Vec::new();
+    let mut withdrawal_nft_keys: Vec<u8> = Vec::new();
+    let mut withdrawal_nft_values: Vec<u8> = Vec::new();
     let mut claimed_nft_keys: Vec<u8> = Vec::new();
     let mut claimed_nft_values: Vec<u8> = Vec::new();
 
-    for index in 0..owned_nft_keys.len() {
+    for index in 0..claim_entries.owned_nft_keys().len() {
         // Generate owned and claimed smt kv pairs
-        let owned_nft_key = owned_nft_keys
+        let owned_nft_key = claim_entries
+            .owned_nft_keys()
             .get(index)
             .ok_or(Error::Encoding)
             .map_err(|_e| Error::Encoding)?;
@@ -77,10 +70,6 @@ pub fn verify_claim_mint_smt(witness_args_input_type: Bytes) -> Result<(), Error
             .get(index)
             .ok_or(Error::Encoding)
             .map_err(|_e| Error::Encoding)?;
-
-        if &compact_input_out_point.as_slice()[12..] != claimed_nft_key.out_point().as_slice() {
-            return Err(Error::CompactNFTOutPointInvalid);
-        }
 
         claimed_nft_keys.extend(&BYTE3_ZEROS);
         claimed_nft_keys.extend(owned_nft_key.as_slice());
@@ -100,19 +89,18 @@ pub fn verify_claim_mint_smt(witness_args_input_type: Bytes) -> Result<(), Error
         claimed_nft_values.extend(owned_nft_value.as_slice());
         claimed_nft_values.extend(claimed_nft_value.as_slice());
 
-        // Generate mint smt kv pairs
-        mint_nft_keys.extend(&BYTE4_ZEROS);
-        mint_nft_keys.extend(owned_nft_key.nft_id().as_slice());
+        // Generate withdrawal smt kv pairs
+        let withdrawal_smt_type = [3u8];
+        withdrawal_nft_keys.extend(&BYTE3_ZEROS);
+        withdrawal_nft_keys.extend(&withdrawal_smt_type);
+        withdrawal_nft_keys.extend(owned_nft_key.nft_id().as_slice());
 
-        let lock = common::BytesBuilder::default()
-            .set(lock_script.clone())
-            .build();
-
-        let mint_nft_value = MintCompactNFTValueBuilder::default()
+        let withdrawal_nft_value = WithdrawCompactNFTValueBuilder::default()
             .nft_info(owned_nft_value)
-            .receiver_lock(lock)
+            .to(LockHashBuilder::default().set(lock_hash_160).build())
+            .out_point(claimed_nft_key.out_point())
             .build();
-        mint_nft_values.extend(&blake2b_256(mint_nft_value.as_slice()))
+        withdrawal_nft_values.extend(&blake2b_256(withdrawal_nft_value.as_slice()));
     }
 
     let mut context = unsafe { CKBDLContext::<[u8; 128 * 1024]>::new() };
@@ -130,17 +118,17 @@ pub fn verify_claim_mint_smt(witness_args_input_type: Bytes) -> Result<(), Error
             )
             .map_err(|_| Error::SMTProofVerifyFailed)?;
     }
-    // Verify mint smt proof of class cell_dep
-    if !mint_nft_keys.is_empty() {
-        let mint_proof = claim_entries.mint_proof().raw_data().to_vec();
+    // Verify withdrawal smt proof of compact cell_dep
+    if !withdrawal_nft_keys.is_empty() {
+        let withdrawal_proof = claim_entries.withdrawal_proof().raw_data().to_vec();
         lib_ckb_smt
             .smt_verify(
-                &class_mint_smt_root[..],
-                &mint_nft_keys[..],
-                &mint_nft_values[..],
-                &mint_proof[..],
+                &withdrawal_compact_smt_root[..],
+                &withdrawal_nft_keys[..],
+                &withdrawal_nft_values[..],
+                &withdrawal_proof[..],
             )
-            .map_err(|_| Error::CompactClassMintSMTProofVerifyFailed)?;
+            .map_err(|_| Error::ClaimedCompactWithdrawalSMTProofVerifyFailed)?;
     }
 
     // Verify claimed smt proof of compact nft input

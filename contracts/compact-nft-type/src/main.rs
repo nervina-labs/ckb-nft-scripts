@@ -7,6 +7,7 @@
 use ckb_std::default_alloc;
 
 mod claim_mint;
+mod claim_transfer;
 mod entry;
 mod withdraw_transfer;
 
