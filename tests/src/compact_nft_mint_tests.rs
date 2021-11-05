@@ -303,7 +303,7 @@ fn generate_compact_nft_smt_data(
 }
 
 fn create_test_context(action: Action, compact_error: CompactError) -> (Context, TransactionView) {
-    // deploy compact-registry-type script
+    // deploy compact-nft-type script
     let mut context = Context::default();
     let compact_nft_bin: Bytes = Loader::default().load_binary("compact-nft-type");
     let compact_nft_out_point = context.deploy_cell(compact_nft_bin);

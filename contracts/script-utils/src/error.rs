@@ -51,9 +51,8 @@ pub enum Error {
     CompactNFTClassDepError,
     CompactNFTOutPointInvalid,
     CompactClassMintSMTProofVerifyFailed,
-    WithdrawCompactToNotEqualLockHash,
-    WithdrawCompactNFTInfoNotSame = 50,
-    CompactNFTWithdrawalDepError,
+    WithdrawCompactNFTInfoNotSame,
+    CompactNFTWithdrawalDepError = 50,
     ClaimedCompactWithdrawalSMTProofVerifyFailed,
 }
 

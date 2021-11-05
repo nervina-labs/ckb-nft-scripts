@@ -3,7 +3,7 @@ use ckb_std::{
     ckb_constants::Source,
     ckb_types::{bytes::Bytes, prelude::*},
     dynamic_loading_c_impl::CKBDLContext,
-    high_level::{load_cell_data, load_cell_lock_hash, load_input_out_point},
+    high_level::{load_cell_data, load_input_out_point},
 };
 use core::result::Result;
 use nft_smt::{smt::blake2b_256, transfer::WithdrawTransferCompactNFTEntries};
@@ -17,8 +17,6 @@ use script_utils::{
 pub fn verify_withdraw_transfer_smt(witness_args_input_type: Bytes) -> Result<(), Error> {
     let compact_nft = CompactNft::from_data(&load_cell_data(0, Source::Output)?[..])?;
     let compact_input_out_point = load_input_out_point(0, Source::Input)?;
-
-    let lock_hash = load_cell_lock_hash(0, Source::Output)?;
 
     let withdraw_entries =
         WithdrawTransferCompactNFTEntries::from_slice(&witness_args_input_type[1..])
@@ -38,9 +36,6 @@ pub fn verify_withdraw_transfer_smt(witness_args_input_type: Bytes) -> Result<()
         if &compact_input_out_point.as_slice()[12..] != withdrawal_nft_value.out_point().as_slice()
         {
             return Err(Error::CompactNFTOutPointInvalid);
-        }
-        if &lock_hash[0..20] != withdrawal_nft_value.to().as_slice() {
-            return Err(Error::WithdrawCompactToNotEqualLockHash);
         }
         let owned_nft_value = withdraw_entries
             .owned_nft_values()

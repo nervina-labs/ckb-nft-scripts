@@ -90,7 +90,7 @@ pub fn verify_claim_transfer_smt(
         claimed_nft_values.extend(claimed_nft_value.as_slice());
 
         // Generate withdrawal smt kv pairs
-        let withdrawal_smt_type = [3u8];
+        let withdrawal_smt_type = [2u8];
         withdrawal_nft_keys.extend(&BYTE3_ZEROS);
         withdrawal_nft_keys.extend(&withdrawal_smt_type);
         withdrawal_nft_keys.extend(owned_nft_key.nft_id().as_slice());
