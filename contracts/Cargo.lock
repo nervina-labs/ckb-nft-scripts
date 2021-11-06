@@ -69,7 +69,7 @@ dependencies = [
 
 [[package]]
 name = "class-type"
-version = "0.3.0"
+version = "0.10.0"
 dependencies = [
  "ckb-std",
  "nft-smt",
@@ -78,7 +78,7 @@ dependencies = [
 
 [[package]]
 name = "compact-nft-type"
-version = "0.3.0"
+version = "0.10.0"
 dependencies = [
  "ckb-std",
  "nft-smt",
@@ -87,7 +87,7 @@ dependencies = [
 
 [[package]]
 name = "compact-registry-type"
-version = "0.3.0"
+version = "0.10.0"
 dependencies = [
  "ckb-std",
  "nft-smt",
@@ -102,7 +102,7 @@ checksum = "7313c0d620d0cb4dbd9d019e461a4beb501071ff46ec0ab933efb4daa76d73e3"
 
 [[package]]
 name = "issuer-type"
-version = "0.3.0"
+version = "0.10.0"
 dependencies = [
  "blake2b-rs",
  "ckb-std",
@@ -120,7 +120,7 @@ dependencies = [
 
 [[package]]
 name = "nft-smt"
-version = "0.3.0"
+version = "0.10.0"
 dependencies = [
  "blake2b-ref",
  "cfg-if",
@@ -131,7 +131,7 @@ dependencies = [
 
 [[package]]
 name = "nft-type"
-version = "0.3.0"
+version = "0.10.0"
 dependencies = [
  "ckb-std",
  "script-utils",
@@ -139,7 +139,7 @@ dependencies = [
 
 [[package]]
 name = "script-utils"
-version = "0.3.0"
+version = "0.10.0"
 dependencies = [
  "ckb-lib-smt",
  "ckb-std",

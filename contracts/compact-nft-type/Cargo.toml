@@ -1,6 +1,6 @@
 [package]
 name = "compact-nft-type"
-version = "0.3.0"
+version = "0.10.0"
 authors = ["duanyytop <duanyytop@gmail.com>"]
 edition = "2018"
 
