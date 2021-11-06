@@ -4,6 +4,6 @@ version = "0.3.0"
 edition = "2018"
 
 [dependencies]
-ckb-std = "0.7.4"
+ckb-std = "0.7.1"
 script-utils = { path = "../script-utils" }
 nft-smt = {path = "../../nft-smt", default_features = false, features = ["no-std"]}
