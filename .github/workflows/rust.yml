@@ -23,7 +23,7 @@ jobs:
 
       - name: Install Capsule
         env:
-          CAPSULE_VERSION: v0.4.3
+          CAPSULE_VERSION: v0.4.6
         run: |
           curl -OL https://github.com/nervosnetwork/capsule/releases/download/${CAPSULE_VERSION}/capsule_${CAPSULE_VERSION}_x86_64-linux.tar.gz && tar xf capsule_${CAPSULE_VERSION}_x86_64-linux.tar.gz && echo `pwd`/capsule_${CAPSULE_VERSION}_x86_64-linux >> $GITHUB_PATH
 
