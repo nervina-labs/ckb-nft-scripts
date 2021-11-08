@@ -12,13 +12,13 @@ use nft_smt::{
     smt::blake2b_256,
     transfer::{ClaimTransferCompactNFTEntries, WithdrawCompactNFTValueBuilder},
 };
+use script_utils::constants::WITHDRAWAL_SMT_TYPE;
 use script_utils::{
     compact_nft::CompactNft,
     constants::{BYTE22_ZEROS, BYTE32_ZEROS, BYTE3_ZEROS},
     error::Error,
     smt::LibCKBSmt,
 };
-use script_utils::constants::WITHDRAWAL_SMT_TYPE;
 
 fn load_withdrawal_smt_root_from_compact_cell_dep(
     compact_nft_type: &Script,
