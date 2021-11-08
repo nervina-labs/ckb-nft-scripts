@@ -56,12 +56,13 @@ fn check_input_compact_nft_exist(compact_nft_type: &Script) -> Result<bool, Erro
 }
 
 fn verify_compact_nft_smt(compact_nft_type: &Script) -> Result<(), Error> {
-    let compact_nft = CompactNft::from_data(&load_cell_data(0, Source::Output)?[..])?;
     let witness_args = load_group_input_witness_args_with_type(&compact_nft_type)?;
 
     if let Some(witness_args_type) = witness_args.input_type().to_opt() {
         let witness_args_input_type: Bytes = witness_args_type.unpack();
-        if compact_nft.nft_smt_root.is_none() {
+        let output_compact_nft = CompactNft::from_data(&load_cell_data(0, Source::Output)?[..])?;
+        let input_compact_nft = CompactNft::from_data(&load_cell_data(0, Source::Input)?[..])?;
+        if output_compact_nft.nft_smt_root.is_none() || input_compact_nft.nft_smt_root.is_none() {
             return Err(Error::CompactNFTSMTRootError);
         }
         match u8::from(witness_args_input_type[0]) {

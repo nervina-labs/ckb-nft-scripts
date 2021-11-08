@@ -21,7 +21,7 @@ pub fn check_compact_nft_mint(
 ) -> Result<(), Error> {
     // Parse witness_args.input_type to get smt leaves and proof to verify smt proof
     if let Some(mint_witness_type) = witness_args.input_type().to_opt() {
-        if output_class.nft_smt_root.is_none() {
+        if output_class.nft_smt_root.is_none() || input_class.nft_smt_root.is_none() {
             return Err(Error::ClassCompactMintSmtRootError);
         }
         let witness_type_bytes: Bytes = mint_witness_type.unpack();

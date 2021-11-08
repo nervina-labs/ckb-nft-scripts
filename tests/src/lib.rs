@@ -24,6 +24,9 @@ mod compact_nft_mint_tests;
 #[cfg(test)]
 mod compact_transfer_withdraw_tests;
 
+#[cfg(test)]
+mod compact_transfer_claim_tests;
+
 const TEST_ENV_VAR: &str = "CAPSULE_TEST_ENV";
 
 pub enum TestEnv {

@@ -18,6 +18,7 @@ use script_utils::{
     error::Error,
     smt::LibCKBSmt,
 };
+use script_utils::constants::WITHDRAWAL_SMT_TYPE;
 
 fn load_withdrawal_smt_root_from_compact_cell_dep(
     compact_nft_type: &Script,
@@ -41,7 +42,7 @@ pub fn verify_claim_transfer_smt(
     witness_args_input_type: Bytes,
 ) -> Result<(), Error> {
     let mut lock_hash_160 = [Byte::from(0u8); 20];
-    let lock_hash: Vec<Byte> = load_cell_lock_hash(0, Source::Output)?[12..]
+    let lock_hash: Vec<Byte> = load_cell_lock_hash(0, Source::Output)?[0..20]
         .iter()
         .map(|v| Byte::from(*v))
         .collect();
@@ -89,12 +90,16 @@ pub fn verify_claim_transfer_smt(
         claimed_nft_values.extend(owned_nft_value.as_slice());
         claimed_nft_values.extend(claimed_nft_value.as_slice());
 
-        // Generate withdrawal smt kv pairs
-        let withdrawal_smt_type = [2u8];
+        // Generate owned and withdrawal smt kv pairs
         withdrawal_nft_keys.extend(&BYTE3_ZEROS);
-        withdrawal_nft_keys.extend(&withdrawal_smt_type);
+        withdrawal_nft_keys.extend(owned_nft_key.as_slice());
+
+        withdrawal_nft_keys.extend(&BYTE3_ZEROS);
+        withdrawal_nft_keys.extend(&[WITHDRAWAL_SMT_TYPE]);
         withdrawal_nft_keys.extend(owned_nft_key.nft_id().as_slice());
 
+        withdrawal_nft_values.extend(&BYTE22_ZEROS);
+        withdrawal_nft_values.extend(owned_nft_value.as_slice());
         let withdrawal_nft_value = WithdrawCompactNFTValueBuilder::default()
             .nft_info(owned_nft_value)
             .to(LockHashBuilder::default().set(lock_hash_160).build())

@@ -10,3 +10,7 @@ pub const BYTE4_ZEROS: [u8; 4] = [0u8; 4];
 pub const BYTE3_ZEROS: [u8; 3] = [0u8; 3];
 
 pub const SMT_ROOT_LEN: usize = 32;
+
+pub const OWNED_SMT_TYPE: u8 = 1u8;
+pub const WITHDRAWAL_SMT_TYPE: u8 = 2u8;
+pub const CLAIMED_SMT_TYPE: u8 = 3u8;
