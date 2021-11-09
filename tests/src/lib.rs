@@ -5,8 +5,6 @@ use std::fs;
 use std::path::PathBuf;
 use std::str::FromStr;
 
-mod constants;
-
 #[cfg(test)]
 mod issuer_tests;
 
@@ -108,17 +106,17 @@ fn assert_script_errors(err: Error, err_codes: &[i8]) {
     );
 }
 
-#[macro_export]
-macro_rules! assert_errors_contain {
-    ($err:expr, $errors:expr) => {
-        type Error = ckb_testtool::ckb_error::Error;
-        let err_ = Into::<Error>::into($err).to_string();
-        let result = $errors
-            .into_iter()
-            .any(|error| err_ == Into::<Error>::into(Error::from(error)).to_string());
-        assert!(result);
-    };
-    ($err:expr, $errors:expr,) => {
-        $crate::assert_errors_contain!($err, $errors);
-    };
-}
+const TYPE: u8 = 1;
+const CLASS_TYPE_CODE_HASH: [u8; 32] = [
+    9, 91, 140, 11, 78, 81, 164, 95, 149, 58, 205, 31, 205, 30, 57, 72, 159, 38, 117, 180, 188,
+    148, 231, 175, 39, 187, 56, 149, 135, 144, 227, 252,
+];
+
+const BYTE32_ZEROS: [u8; 32] = [0u8; 32];
+const BYTE22_ZEROS: [u8; 22] = [0u8; 22];
+const BYTE4_ZEROS: [u8; 4] = [0u8; 4];
+const BYTE3_ZEROS: [u8; 3] = [0u8; 3];
+
+const OWNED_SMT_TYPE: u8 = 1u8;
+const WITHDRAWAL_SMT_TYPE: u8 = 2u8;
+const CLAIMED_SMT_TYPE: u8 = 3u8;

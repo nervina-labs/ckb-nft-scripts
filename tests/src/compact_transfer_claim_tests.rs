@@ -1,5 +1,4 @@
 use super::*;
-use crate::constants::{BYTE22_ZEROS, BYTE3_ZEROS, OWNED_SMT_TYPE, WITHDRAWAL_SMT_TYPE};
 use ckb_testtool::ckb_types::{
     bytes::Bytes,
     core::{TransactionBuilder, TransactionView},
