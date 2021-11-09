@@ -1,14 +1,12 @@
 use super::*;
 use crate::constants::BYTE4_ZEROS;
-use ckb_testtool::{builtin::ALWAYS_SUCCESS, context::Context};
-use ckb_tool::ckb_error::assert_error_eq;
-use ckb_tool::ckb_script::ScriptError;
-use ckb_tool::ckb_types::{
+use ckb_testtool::ckb_types::{
     bytes::Bytes,
     core::{TransactionBuilder, TransactionView},
     packed::*,
     prelude::*,
 };
+use ckb_testtool::{builtin::ALWAYS_SUCCESS, context::Context};
 use nft_smt::smt::blake2b_256;
 use nft_smt::{
     common::{BytesBuilder, Uint32Builder, *},
@@ -607,11 +605,7 @@ fn test_update_class_data_len_error() {
     let tx = context.complete_tx(tx);
     // run
     let err = context.verify_tx(&tx, MAX_CYCLES).unwrap_err();
-    let script_cell_index = 0;
-    assert_error_eq!(
-        err,
-        ScriptError::ValidationFailure(CLASS_DATA_INVALID).input_type_script(script_cell_index)
-    );
+    assert_script_error(err, CLASS_DATA_INVALID);
 }
 
 #[test]
@@ -624,14 +618,7 @@ fn test_update_class_data_error() {
     let tx = context.complete_tx(tx);
     // run
     let err = context.verify_tx(&tx, MAX_CYCLES).unwrap_err();
-    let script_cell_index = 0;
-    let errors = vec![
-        ScriptError::ValidationFailure(ENCODING).input_type_script(script_cell_index),
-        ScriptError::ValidationFailure(ENCODING).output_type_script(script_cell_index),
-        ScriptError::ValidationFailure(CLASS_DATA_INVALID).input_type_script(script_cell_index),
-        ScriptError::ValidationFailure(CLASS_DATA_INVALID).output_type_script(script_cell_index),
-    ];
-    assert_errors_contain!(err, errors);
+    assert_script_errors(err, &[ENCODING, CLASS_DATA_INVALID]);
 }
 
 #[test]
@@ -644,14 +631,7 @@ fn test_update_class_with_witness_none_error() {
     let tx = context.complete_tx(tx);
     // run
     let err = context.verify_tx(&tx, MAX_CYCLES).unwrap_err();
-    let script_cell_index = 0;
-    let errors = vec![
-        ScriptError::ValidationFailure(GROUP_INPUT_WITNESS_NONE_ERROR)
-            .input_type_script(script_cell_index),
-        ScriptError::ValidationFailure(GROUP_INPUT_WITNESS_NONE_ERROR)
-            .output_type_script(script_cell_index),
-    ];
-    assert_errors_contain!(err, errors);
+    assert_script_error(err, GROUP_INPUT_WITNESS_NONE_ERROR);
 }
 
 #[test]
@@ -664,12 +644,7 @@ fn test_update_class_total_smaller_than_issued_error() {
     let tx = context.complete_tx(tx);
     // run
     let err = context.verify_tx(&tx, MAX_CYCLES).unwrap_err();
-    let script_cell_index = 0;
-    assert_error_eq!(
-        err,
-        ScriptError::ValidationFailure(CLASS_TOTAL_SMALLER_THAN_ISSUED)
-            .input_type_script(script_cell_index)
-    );
+    assert_script_error(err, CLASS_TOTAL_SMALLER_THAN_ISSUED);
 }
 
 #[test]
@@ -679,16 +654,7 @@ fn test_create_class_cells_count_error() {
     let tx = context.complete_tx(tx);
     // run
     let err = context.verify_tx(&tx, MAX_CYCLES).unwrap_err();
-    let script_cell_indexes = [1, 2, 3];
-
-    let errors = script_cell_indexes
-        .iter()
-        .map(|index| {
-            ScriptError::ValidationFailure(CLASS_CELLS_COUNT_ERROR).output_type_script(*index)
-        })
-        .collect::<Vec<_>>();
-
-    assert_errors_contain!(err, errors);
+    assert_script_error(err, CLASS_CELLS_COUNT_ERROR);
 }
 
 #[test]
@@ -698,11 +664,7 @@ fn test_create_class_issued_not_zero_error() {
     let tx = context.complete_tx(tx);
     // run
     let err = context.verify_tx(&tx, MAX_CYCLES).unwrap_err();
-    let script_cell_index = 1;
-    assert_error_eq!(
-        err,
-        ScriptError::ValidationFailure(CLASS_ISSUED_INVALID).output_type_script(script_cell_index)
-    );
+    assert_script_error(err, CLASS_ISSUED_INVALID);
 }
 
 #[test]
@@ -715,11 +677,7 @@ fn test_update_class_issued_invalid_error() {
     let tx = context.complete_tx(tx);
     // run
     let err = context.verify_tx(&tx, MAX_CYCLES).unwrap_err();
-    let script_cell_index = 0;
-    assert_error_eq!(
-        err,
-        ScriptError::ValidationFailure(CLASS_ISSUED_INVALID).input_type_script(script_cell_index)
-    );
+    assert_script_error(err, CLASS_ISSUED_INVALID);
 }
 
 #[test]
@@ -732,12 +690,7 @@ fn test_update_class_immutable_total_not_same_error() {
     let tx = context.complete_tx(tx);
     // run
     let err = context.verify_tx(&tx, MAX_CYCLES).unwrap_err();
-    let script_cell_index = 0;
-    assert_error_eq!(
-        err,
-        ScriptError::ValidationFailure(CLASS_IMMUTABLE_FIELDS_NOT_SAME)
-            .input_type_script(script_cell_index)
-    );
+    assert_script_error(err, CLASS_IMMUTABLE_FIELDS_NOT_SAME);
 }
 
 #[test]
@@ -750,12 +703,7 @@ fn test_update_class_immutable_configure_not_same_error() {
     let tx = context.complete_tx(tx);
     // run
     let err = context.verify_tx(&tx, MAX_CYCLES).unwrap_err();
-    let script_cell_index = 0;
-    assert_error_eq!(
-        err,
-        ScriptError::ValidationFailure(CLASS_IMMUTABLE_FIELDS_NOT_SAME)
-            .input_type_script(script_cell_index)
-    );
+    assert_script_error(err, CLASS_IMMUTABLE_FIELDS_NOT_SAME);
 }
 
 #[test]
@@ -768,12 +716,7 @@ fn test_update_class_immutable_name_not_same_error() {
     let tx = context.complete_tx(tx);
     // run
     let err = context.verify_tx(&tx, MAX_CYCLES).unwrap_err();
-    let script_cell_index = 0;
-    assert_error_eq!(
-        err,
-        ScriptError::ValidationFailure(CLASS_IMMUTABLE_FIELDS_NOT_SAME)
-            .input_type_script(script_cell_index)
-    );
+    assert_script_error(err, CLASS_IMMUTABLE_FIELDS_NOT_SAME);
 }
 
 #[test]
@@ -786,12 +729,7 @@ fn test_update_class_immutable_description_not_same_error() {
     let tx = context.complete_tx(tx);
     // run
     let err = context.verify_tx(&tx, MAX_CYCLES).unwrap_err();
-    let script_cell_index = 0;
-    assert_error_eq!(
-        err,
-        ScriptError::ValidationFailure(CLASS_IMMUTABLE_FIELDS_NOT_SAME)
-            .input_type_script(script_cell_index)
-    );
+    assert_script_error(err, CLASS_IMMUTABLE_FIELDS_NOT_SAME);
 }
 
 #[test]
@@ -802,12 +740,7 @@ fn test_class_cell_cannot_destroyed_error() {
     let tx = context.complete_tx(tx);
     // run
     let err = context.verify_tx(&tx, MAX_CYCLES).unwrap_err();
-    let script_cell_index = 0;
-    assert_error_eq!(
-        err,
-        ScriptError::ValidationFailure(CLASS_CELL_CANNOT_DESTROYED)
-            .input_type_script(script_cell_index)
-    );
+    assert_script_error(err, CLASS_CELL_CANNOT_DESTROYED);
 }
 
 #[test]
@@ -817,16 +750,7 @@ fn test_create_class_cells_increase_error() {
     let tx = context.complete_tx(tx);
     // run
     let err = context.verify_tx(&tx, MAX_CYCLES).unwrap_err();
-    let script_cell_indexes = [1, 2, 3];
-
-    let errors = script_cell_indexes
-        .iter()
-        .map(|index| {
-            ScriptError::ValidationFailure(CLASS_ID_INCREASE_ERROR).output_type_script(*index)
-        })
-        .collect::<Vec<_>>();
-
-    assert_errors_contain!(err, errors);
+    assert_script_error(err, CLASS_ID_INCREASE_ERROR);
 }
 
 #[test]
@@ -839,11 +763,7 @@ fn test_update_class_type_args_invalid_error() {
     let tx = context.complete_tx(tx);
     // run
     let err = context.verify_tx(&tx, MAX_CYCLES).unwrap_err();
-    let script_cell_index = 0;
-    assert_error_eq!(
-        err,
-        ScriptError::ValidationFailure(TYPE_ARGS_INVALID).input_type_script(script_cell_index)
-    );
+    assert_script_error(err, TYPE_ARGS_INVALID);
 }
 
 #[test]
@@ -854,12 +774,7 @@ fn test_destroy_class_with_witness_none_error() {
     let tx = context.complete_tx(tx);
     // run
     let err = context.verify_tx(&tx, MAX_CYCLES).unwrap_err();
-    let script_cell_index = 0;
-    assert_error_eq!(
-        err,
-        ScriptError::ValidationFailure(GROUP_INPUT_WITNESS_NONE_ERROR)
-            .input_type_script(script_cell_index)
-    );
+    assert_script_error(err, GROUP_INPUT_WITNESS_NONE_ERROR);
 }
 
 #[test]
@@ -872,12 +787,7 @@ fn test_update_class_compact_smt_root_error() {
     let tx = context.complete_tx(tx);
     // run
     let err = context.verify_tx(&tx, MAX_CYCLES).unwrap_err();
-    let script_cell_index = 0;
-    assert_error_eq!(
-        err,
-        ScriptError::ValidationFailure(CLASS_COMPACT_MINT_SMT_ROOT_ERROR)
-            .input_type_script(script_cell_index)
-    );
+    assert_script_error(err, CLASS_COMPACT_MINT_SMT_ROOT_ERROR);
 }
 
 #[test]
@@ -890,11 +800,7 @@ fn test_update_class_compact_issued_error() {
     let tx = context.complete_tx(tx);
     // run
     let err = context.verify_tx(&tx, MAX_CYCLES).unwrap_err();
-    let script_cell_index = 0;
-    assert_error_eq!(
-        err,
-        ScriptError::ValidationFailure(CLASS_ISSUED_INVALID).input_type_script(script_cell_index)
-    );
+    assert_script_error(err, CLASS_ISSUED_INVALID);
 }
 
 #[test]
@@ -907,12 +813,7 @@ fn test_update_class_compact_issuer_id_or_class_id_error() {
     let tx = context.complete_tx(tx);
     // run
     let err = context.verify_tx(&tx, MAX_CYCLES).unwrap_err();
-    let script_cell_index = 0;
-    assert_error_eq!(
-        err,
-        ScriptError::ValidationFailure(COMPACT_ISSUER_ID_OR_CLASS_ID_INVALID)
-            .input_type_script(script_cell_index)
-    );
+    assert_script_error(err, COMPACT_ISSUER_ID_OR_CLASS_ID_INVALID);
 }
 
 #[test]
@@ -925,10 +826,5 @@ fn test_update_compact_nft_and_class_configure_not_same_error() {
     let tx = context.complete_tx(tx);
     // run
     let err = context.verify_tx(&tx, MAX_CYCLES).unwrap_err();
-    let script_cell_index = 0;
-    assert_error_eq!(
-        err,
-        ScriptError::ValidationFailure(NFT_AND_CLASS_CONFIGURE_NOT_SAME)
-            .input_type_script(script_cell_index)
-    );
+    assert_script_error(err, NFT_AND_CLASS_CONFIGURE_NOT_SAME);
 }

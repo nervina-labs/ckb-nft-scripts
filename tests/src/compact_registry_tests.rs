@@ -1,13 +1,11 @@
 use super::*;
-use ckb_testtool::{builtin::ALWAYS_SUCCESS, context::Context};
-use ckb_tool::ckb_error::assert_error_eq;
-use ckb_tool::ckb_script::ScriptError;
-use ckb_tool::ckb_types::{
+use ckb_testtool::ckb_types::{
     bytes::Bytes,
     core::{TransactionBuilder, TransactionView},
     packed::*,
     prelude::*,
 };
+use ckb_testtool::{builtin::ALWAYS_SUCCESS, context::Context};
 use nft_smt::smt::blake2b_256;
 use nft_smt::{
     common::{Byte32, BytesBuilder, *},
@@ -274,14 +272,7 @@ fn test_destroy_registry_cell_error() {
     let tx = context.complete_tx(tx);
     // run
     let err = context.verify_tx(&tx, MAX_CYCLES).unwrap_err();
-    let script_cell_index = 0;
-    let errors = vec![
-        ScriptError::ValidationFailure(COMPACT_CELL_POSITION_ERROR)
-            .input_type_script(script_cell_index),
-        ScriptError::ValidationFailure(COMPACT_CELL_POSITION_ERROR)
-            .output_type_script(script_cell_index),
-    ];
-    assert_errors_contain!(err, errors);
+    assert_script_error(err, COMPACT_CELL_POSITION_ERROR);
 }
 
 #[test]
@@ -294,12 +285,7 @@ fn test_registry_type_args_not_equal_to_lock_hash_error() {
     let tx = context.complete_tx(tx);
     // run
     let err = context.verify_tx(&tx, MAX_CYCLES).unwrap_err();
-    let script_cell_index = 0;
-    assert_error_eq!(
-        err,
-        ScriptError::ValidationFailure(COMPACT_TYPE_ARGS_NOT_EQUAL_LOCK_HASH)
-            .output_type_script(script_cell_index)
-    );
+    assert_script_error(err, COMPACT_TYPE_ARGS_NOT_EQUAL_LOCK_HASH);
 }
 
 #[test]
@@ -310,12 +296,7 @@ fn test_registry_type_smt_verify_error() {
     let tx = context.complete_tx(tx);
     // run
     let err = context.verify_tx(&tx, MAX_CYCLES).unwrap_err();
-    let script_cell_index = 0;
-    assert_error_eq!(
-        err,
-        ScriptError::ValidationFailure(SMT_PROOF_VERIFY_FAILED)
-            .output_type_script(script_cell_index)
-    );
+    assert_script_error(err, SMT_PROOF_VERIFY_FAILED);
 }
 
 #[test]
@@ -325,11 +306,7 @@ fn test_registry_cell_data_length_error() {
     let tx = context.complete_tx(tx);
     // run
     let err = context.verify_tx(&tx, MAX_CYCLES).unwrap_err();
-    let script_cell_index = 0;
-    assert_error_eq!(
-        err,
-        ScriptError::ValidationFailure(LENGTH_NOT_ENOUGH).output_type_script(script_cell_index)
-    );
+    assert_script_error(err, LENGTH_NOT_ENOUGH);
 }
 
 #[test]
@@ -339,11 +316,7 @@ fn test_registry_type_args_error() {
     let tx = context.complete_tx(tx);
     // run
     let err = context.verify_tx(&tx, MAX_CYCLES).unwrap_err();
-    let script_cell_index = 0;
-    assert_error_eq!(
-        err,
-        ScriptError::ValidationFailure(TYPE_ARGS_INVALID).output_type_script(script_cell_index)
-    );
+    assert_script_error(err, TYPE_ARGS_INVALID);
 }
 
 #[test]
@@ -354,10 +327,5 @@ fn test_registry_type_parse_witness_error() {
     let tx = context.complete_tx(tx);
     // run
     let err = context.verify_tx(&tx, MAX_CYCLES).unwrap_err();
-    let script_cell_index = 0;
-    assert_error_eq!(
-        err,
-        ScriptError::ValidationFailure(WITNESS_TYPE_PARSE_ERROR)
-            .output_type_script(script_cell_index)
-    );
+    assert_script_error(err, WITNESS_TYPE_PARSE_ERROR);
 }

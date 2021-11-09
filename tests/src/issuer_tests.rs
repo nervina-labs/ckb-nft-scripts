@@ -1,14 +1,12 @@
 use super::*;
-use ckb_testtool::{builtin::ALWAYS_SUCCESS, context::Context};
-use ckb_tool::ckb_error::assert_error_eq;
-use ckb_tool::ckb_hash::Blake2bBuilder;
-use ckb_tool::ckb_script::ScriptError;
-use ckb_tool::ckb_types::{
+use blake2b_rs::Blake2bBuilder;
+use ckb_testtool::ckb_types::{
     bytes::Bytes,
     core::{TransactionBuilder, TransactionView},
     packed::*,
     prelude::*,
 };
+use ckb_testtool::{builtin::ALWAYS_SUCCESS, context::Context};
 
 const MAX_CYCLES: u64 = 10_000_000;
 
@@ -268,11 +266,7 @@ fn test_create_issuer_data_info_len_error() {
     let tx = context.complete_tx(tx);
     // run
     let err = context.verify_tx(&tx, MAX_CYCLES).unwrap_err();
-    let script_cell_index = 0;
-    assert_error_eq!(
-        err,
-        ScriptError::ValidationFailure(ISSUER_DATA_INVALID).output_type_script(script_cell_index)
-    );
+    assert_script_error(err, ISSUER_DATA_INVALID);
 }
 
 #[test]
@@ -283,12 +277,7 @@ fn test_update_issuer_cell_witness_none_error() {
     let tx = context.complete_tx(tx);
     // run
     let err = context.verify_tx(&tx, MAX_CYCLES).unwrap_err();
-    let script_cell_index = 1;
-    assert_error_eq!(
-        err,
-        ScriptError::ValidationFailure(GROUP_INPUT_WITNESS_NONE_ERROR)
-            .input_type_script(script_cell_index)
-    );
+    assert_script_error(err, GROUP_INPUT_WITNESS_NONE_ERROR);
 }
 
 #[test]
@@ -298,12 +287,7 @@ fn test_update_issuer_cell_count_error() {
     let tx = context.complete_tx(tx);
     // run
     let err = context.verify_tx(&tx, MAX_CYCLES).unwrap_err();
-    let script_cell_index = 1;
-    assert_error_eq!(
-        err,
-        ScriptError::ValidationFailure(ISSUER_CELLS_COUNT_ERROR)
-            .input_type_script(script_cell_index)
-    );
+    assert_script_error(err, ISSUER_CELLS_COUNT_ERROR);
 }
 
 #[test]
@@ -313,12 +297,7 @@ fn test_create_issuer_class_count_error() {
     let tx = context.complete_tx(tx);
     // run
     let err = context.verify_tx(&tx, MAX_CYCLES).unwrap_err();
-    let script_cell_index = 0;
-    assert_error_eq!(
-        err,
-        ScriptError::ValidationFailure(ISSUER_CLASS_COUNT_ERROR)
-            .output_type_script(script_cell_index)
-    );
+    assert_script_error(err, ISSUER_CLASS_COUNT_ERROR);
 }
 
 #[test]
@@ -328,12 +307,7 @@ fn test_create_issuer_set_count_error() {
     let tx = context.complete_tx(tx);
     // run
     let err = context.verify_tx(&tx, MAX_CYCLES).unwrap_err();
-    let script_cell_index = 0;
-    assert_error_eq!(
-        err,
-        ScriptError::ValidationFailure(ISSUER_SET_COUNT_ERROR)
-            .output_type_script(script_cell_index)
-    );
+    assert_script_error(err, ISSUER_SET_COUNT_ERROR);
 }
 
 #[test]
@@ -343,11 +317,7 @@ fn test_create_issuer_version_error() {
     let tx = context.complete_tx(tx);
     // run
     let err = context.verify_tx(&tx, MAX_CYCLES).unwrap_err();
-    let script_cell_index = 0;
-    assert_error_eq!(
-        err,
-        ScriptError::ValidationFailure(VERSION_INVALID).output_type_script(script_cell_index)
-    );
+    assert_script_error(err, VERSION_INVALID);
 }
 
 #[test]
@@ -357,11 +327,7 @@ fn test_create_issuer_type_args_error() {
     let tx = context.complete_tx(tx);
     // run
     let err = context.verify_tx(&tx, MAX_CYCLES).unwrap_err();
-    let script_cell_index = 0;
-    assert_error_eq!(
-        err,
-        ScriptError::ValidationFailure(TYPE_ARGS_INVALID).output_type_script(script_cell_index)
-    );
+    assert_script_error(err, TYPE_ARGS_INVALID);
 }
 
 #[test]
@@ -372,12 +338,7 @@ fn test_destroy_issuer_error() {
     let tx = context.complete_tx(tx);
     // run
     let err = context.verify_tx(&tx, MAX_CYCLES).unwrap_err();
-    let script_cell_index = 1;
-    assert_error_eq!(
-        err,
-        ScriptError::ValidationFailure(ISSUER_CELL_CANNOT_DESTROYED)
-            .input_type_script(script_cell_index)
-    );
+    assert_script_error(err, ISSUER_CELL_CANNOT_DESTROYED);
 }
 
 #[test]
@@ -388,12 +349,7 @@ fn test_destroy_issuer_with_witness_none_error() {
     let tx = context.complete_tx(tx);
     // run
     let err = context.verify_tx(&tx, MAX_CYCLES).unwrap_err();
-    let script_cell_index = 1;
-    assert_error_eq!(
-        err,
-        ScriptError::ValidationFailure(GROUP_INPUT_WITNESS_NONE_ERROR)
-            .input_type_script(script_cell_index)
-    );
+    assert_script_error(err, GROUP_INPUT_WITNESS_NONE_ERROR);
 }
 
 #[test]
@@ -403,10 +359,5 @@ fn test_batch_destroy_issuer_error() {
     let tx = context.complete_tx(tx);
     // run
     let err = context.verify_tx(&tx, MAX_CYCLES).unwrap_err();
-    let script_cell_index = 1;
-    assert_error_eq!(
-        err,
-        ScriptError::ValidationFailure(ISSUER_CELLS_COUNT_ERROR)
-            .input_type_script(script_cell_index)
-    );
+    assert_script_error(err, ISSUER_CELLS_COUNT_ERROR);
 }

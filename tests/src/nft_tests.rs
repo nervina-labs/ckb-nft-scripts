@@ -1,14 +1,12 @@
 use super::*;
 use crate::constants::{CLASS_TYPE_CODE_HASH, TYPE};
-use ckb_testtool::{builtin::ALWAYS_SUCCESS, context::Context};
-use ckb_tool::ckb_error::assert_error_eq;
-use ckb_tool::ckb_script::ScriptError;
-use ckb_tool::ckb_types::{
+use ckb_testtool::ckb_types::{
     bytes::Bytes,
     core::{TransactionBuilder, TransactionView},
     packed::*,
     prelude::*,
 };
+use ckb_testtool::{builtin::ALWAYS_SUCCESS, context::Context};
 
 const MAX_CYCLES: u64 = 70_000_000;
 
@@ -789,11 +787,7 @@ fn test_update_nft_cell_data_len_error() {
     let tx = context.complete_tx(tx);
     // run
     let err = context.verify_tx(&tx, MAX_CYCLES).unwrap_err();
-    let script_cell_index = 0;
-    assert_error_eq!(
-        err,
-        ScriptError::ValidationFailure(NFT_DATA_INVALID).input_type_script(script_cell_index)
-    );
+    assert_script_error(err, NFT_DATA_INVALID);
 }
 
 #[test]
@@ -806,73 +800,8 @@ fn test_update_nft_with_group_input_witness_none_error() {
     let tx = context.complete_tx(tx);
     // run
     let err = context.verify_tx(&tx, MAX_CYCLES).unwrap_err();
-    let script_cell_index = 0;
-    assert_error_eq!(
-        err,
-        ScriptError::ValidationFailure(GROUP_INPUT_WITNESS_NONE_ERROR)
-            .input_type_script(script_cell_index)
-    );
+    assert_script_error(err, GROUP_INPUT_WITNESS_NONE_ERROR);
 }
-
-// #[test]
-// fn test_create_nft_cells_count_error() {
-//     let (mut context, tx) = create_test_context(Action::Create, NftError::NFTCellsCountError);
-
-//     let tx = context.complete_tx(tx);
-//     // run
-//     let err = context.verify_tx(&tx, MAX_CYCLES).unwrap_err();
-//     let script_cell_indexes = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15];
-
-//     let errors = script_cell_indexes
-//         .iter()
-//         .map(|index| {
-//             ScriptError::ValidationFailure(NFT_CELLS_COUNT_ERROR).output_type_script(*index)
-//         })
-//         .collect::<Vec<_>>();
-
-//     assert_errors_contain!(err, errors);
-// }
-
-// #[test]
-// fn test_create_nft_cells_token_id_increase_error() {
-//     let (mut context, tx) = create_test_context(Action::Create,
-// NftError::NFTTokenIdIncreaseError);
-
-//     let tx = context.complete_tx(tx);
-//     // run
-//     let err = context.verify_tx(&tx, MAX_CYCLES).unwrap_err();
-//     let script_cell_indexes = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15];
-
-//     let errors = script_cell_indexes
-//         .iter()
-//         .map(|index| {
-//
-// ScriptError::ValidationFailure(NFT_TOKEN_ID_INCREASE_ERROR).output_type_script(*index)         })
-//         .collect::<Vec<_>>();
-
-//     assert_errors_contain!(err, errors);
-// }
-
-// #[test]
-// fn test_create_nft_and_class_configure_not_same_error() {
-//     let (mut context, tx) =
-//         create_test_context(Action::Create, NftError::NFTAndClassConfigureNotSame);
-
-//     let tx = context.complete_tx(tx);
-//     // run
-//     let err = context.verify_tx(&tx, MAX_CYCLES).unwrap_err();
-//     let script_cell_indexes = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15];
-
-//     let errors = script_cell_indexes
-//         .iter()
-//         .map(|index| {
-//             ScriptError::ValidationFailure(NFT_AND_CLASS_CONFIGURE_NOT_SAME)
-//                 .output_type_script(*index)
-//         })
-//         .collect::<Vec<_>>();
-
-//     assert_errors_contain!(err, errors);
-// }
 
 #[test]
 fn test_update_nft_characteristic_not_same_error() {
@@ -884,12 +813,7 @@ fn test_update_nft_characteristic_not_same_error() {
     let tx = context.complete_tx(tx);
     // run
     let err = context.verify_tx(&tx, MAX_CYCLES).unwrap_err();
-    let script_cell_index = 0;
-    assert_error_eq!(
-        err,
-        ScriptError::ValidationFailure(NFT_CHARACTERISTIC_NOT_SAME)
-            .input_type_script(script_cell_index)
-    );
+    assert_script_error(err, NFT_CHARACTERISTIC_NOT_SAME);
 }
 
 #[test]
@@ -902,11 +826,7 @@ fn test_update_nft_configure_not_same_error() {
     let tx = context.complete_tx(tx);
     // run
     let err = context.verify_tx(&tx, MAX_CYCLES).unwrap_err();
-    let script_cell_index = 0;
-    assert_error_eq!(
-        err,
-        ScriptError::ValidationFailure(NFT_CONFIGURE_NOT_SAME).input_type_script(script_cell_index)
-    );
+    assert_script_error(err, NFT_CONFIGURE_NOT_SAME);
 }
 
 #[test]
@@ -919,12 +839,7 @@ fn test_update_nft_claimed_to_unclaimed_error() {
     let tx = context.complete_tx(tx);
     // run
     let err = context.verify_tx(&tx, MAX_CYCLES).unwrap_err();
-    let script_cell_index = 0;
-    assert_error_eq!(
-        err,
-        ScriptError::ValidationFailure(NFT_CLAIMED_TO_UNCLAIMED_ERROR)
-            .input_type_script(script_cell_index)
-    );
+    assert_script_error(err, NFT_CLAIMED_TO_UNCLAIMED_ERROR);
 }
 
 #[test]
@@ -937,12 +852,7 @@ fn test_update_nft_claimed_to_unclaimed_caused_by_issuer_error() {
     let tx = context.complete_tx(tx);
     // run
     let err = context.verify_tx(&tx, MAX_CYCLES).unwrap_err();
-    let script_cell_index = 1;
-    assert_error_eq!(
-        err,
-        ScriptError::ValidationFailure(NFT_CLAIMED_TO_UNCLAIMED_ERROR)
-            .input_type_script(script_cell_index)
-    );
+    assert_script_error(err, NFT_CLAIMED_TO_UNCLAIMED_ERROR);
 }
 
 #[test]
@@ -955,12 +865,7 @@ fn test_update_nft_claimed_to_unclaimed_caused_by_issuer_lock_error() {
     let tx = context.complete_tx(tx);
     // run
     let err = context.verify_tx(&tx, MAX_CYCLES).unwrap_err();
-    let script_cell_index = 1;
-    assert_error_eq!(
-        err,
-        ScriptError::ValidationFailure(NFT_CLAIMED_TO_UNCLAIMED_ERROR)
-            .input_type_script(script_cell_index)
-    );
+    assert_script_error(err, NFT_CLAIMED_TO_UNCLAIMED_ERROR);
 }
 
 #[test]
@@ -973,12 +878,7 @@ fn test_update_nft_claimed_to_unclaimed_caused_by_class_error() {
     let tx = context.complete_tx(tx);
     // run
     let err = context.verify_tx(&tx, MAX_CYCLES).unwrap_err();
-    let script_cell_index = 1;
-    assert_error_eq!(
-        err,
-        ScriptError::ValidationFailure(NFT_CLAIMED_TO_UNCLAIMED_ERROR)
-            .input_type_script(script_cell_index)
-    );
+    assert_script_error(err, NFT_CLAIMED_TO_UNCLAIMED_ERROR);
 }
 
 #[test]
@@ -991,12 +891,7 @@ fn test_update_nft_claimed_to_unclaimed_caused_by_class_lock_error() {
     let tx = context.complete_tx(tx);
     // run
     let err = context.verify_tx(&tx, MAX_CYCLES).unwrap_err();
-    let script_cell_index = 1;
-    assert_error_eq!(
-        err,
-        ScriptError::ValidationFailure(NFT_CLAIMED_TO_UNCLAIMED_ERROR)
-            .input_type_script(script_cell_index)
-    );
+    assert_script_error(err, NFT_CLAIMED_TO_UNCLAIMED_ERROR);
 }
 
 #[test]
@@ -1009,12 +904,7 @@ fn test_update_nft_locked_to_unlocked_error() {
     let tx = context.complete_tx(tx);
     // run
     let err = context.verify_tx(&tx, MAX_CYCLES).unwrap_err();
-    let script_cell_index = 0;
-    assert_error_eq!(
-        err,
-        ScriptError::ValidationFailure(NFT_LOCKED_TO_UNLOCKED_ERROR)
-            .input_type_script(script_cell_index)
-    );
+    assert_script_error(err, NFT_LOCKED_TO_UNLOCKED_ERROR);
 }
 
 #[test]
@@ -1027,11 +917,7 @@ fn test_update_nft_disallow_to_be_claimed_error() {
     let tx = context.complete_tx(tx);
     // run
     let err = context.verify_tx(&tx, MAX_CYCLES).unwrap_err();
-    let script_cell_index = 0;
-    assert_error_eq!(
-        err,
-        ScriptError::ValidationFailure(NFT_DISALLOW_CLAIMED).input_type_script(script_cell_index)
-    );
+    assert_script_error(err, NFT_DISALLOW_CLAIMED);
 }
 
 #[test]
@@ -1044,11 +930,7 @@ fn test_update_nft_disallow_to_be_locked_error() {
     let tx = context.complete_tx(tx);
     // run
     let err = context.verify_tx(&tx, MAX_CYCLES).unwrap_err();
-    let script_cell_index = 0;
-    assert_error_eq!(
-        err,
-        ScriptError::ValidationFailure(NFT_DISALLOW_LOCKED).input_type_script(script_cell_index)
-    );
+    assert_script_error(err, NFT_DISALLOW_LOCKED);
 }
 
 #[test]
@@ -1061,12 +943,7 @@ fn test_update_nft_cannot_transfer_before_claim_error() {
     let tx = context.complete_tx(tx);
     // run
     let err = context.verify_tx(&tx, MAX_CYCLES).unwrap_err();
-    let script_cell_index = 0;
-    assert_error_eq!(
-        err,
-        ScriptError::ValidationFailure(NFT_CANNOT_TRANSFER_BEFORE_CLAIM)
-            .input_type_script(script_cell_index)
-    );
+    assert_script_error(err, NFT_CANNOT_TRANSFER_BEFORE_CLAIM);
 }
 
 #[test]
@@ -1079,12 +956,7 @@ fn test_update_nft_cannot_transfer_after_claim_error() {
     let tx = context.complete_tx(tx);
     // run
     let err = context.verify_tx(&tx, MAX_CYCLES).unwrap_err();
-    let script_cell_index = 0;
-    assert_error_eq!(
-        err,
-        ScriptError::ValidationFailure(NFT_CANNOT_TRANSFER_AFTER_CLAIM)
-            .input_type_script(script_cell_index)
-    );
+    assert_script_error(err, NFT_CANNOT_TRANSFER_AFTER_CLAIM);
 }
 
 #[test]
@@ -1097,12 +969,7 @@ fn test_cannot_destroy_nft_before_claim_error() {
     let tx = context.complete_tx(tx);
     // run
     let err = context.verify_tx(&tx, MAX_CYCLES).unwrap_err();
-    let script_cell_index = 0;
-    assert_error_eq!(
-        err,
-        ScriptError::ValidationFailure(NFT_CANNOT_DESTROY_BEFORE_CLAIM)
-            .input_type_script(script_cell_index)
-    );
+    assert_script_error(err, NFT_CANNOT_DESTROY_BEFORE_CLAIM);
 }
 
 #[test]
@@ -1115,12 +982,7 @@ fn test_cannot_destroy_nft_after_claim_error() {
     let tx = context.complete_tx(tx);
     // run
     let err = context.verify_tx(&tx, MAX_CYCLES).unwrap_err();
-    let script_cell_index = 0;
-    assert_error_eq!(
-        err,
-        ScriptError::ValidationFailure(NFT_CANNOT_DESTROY_AFTER_CLAIM)
-            .input_type_script(script_cell_index)
-    );
+    assert_script_error(err, NFT_CANNOT_DESTROY_AFTER_CLAIM);
 }
 
 #[test]
@@ -1133,12 +995,7 @@ fn test_locked_nft_cannot_claim_error() {
     let tx = context.complete_tx(tx);
     // run
     let err = context.verify_tx(&tx, MAX_CYCLES).unwrap_err();
-    let script_cell_index = 0;
-    assert_error_eq!(
-        err,
-        ScriptError::ValidationFailure(LOCKED_NFT_CANNOT_CLAIM)
-            .input_type_script(script_cell_index)
-    );
+    assert_script_error(err, LOCKED_NFT_CANNOT_CLAIM);
 }
 
 #[test]
@@ -1151,12 +1008,7 @@ fn test_locked_nft_cannot_transfer_error() {
     let tx = context.complete_tx(tx);
     // run
     let err = context.verify_tx(&tx, MAX_CYCLES).unwrap_err();
-    let script_cell_index = 0;
-    assert_error_eq!(
-        err,
-        ScriptError::ValidationFailure(LOCKED_NFT_CANNOT_TRANSFER)
-            .input_type_script(script_cell_index)
-    );
+    assert_script_error(err, LOCKED_NFT_CANNOT_TRANSFER);
 }
 
 #[test]
@@ -1169,12 +1021,7 @@ fn test_locked_nft_cannot_update_characteristic_error() {
     let tx = context.complete_tx(tx);
     // run
     let err = context.verify_tx(&tx, MAX_CYCLES).unwrap_err();
-    let script_cell_index = 0;
-    assert_error_eq!(
-        err,
-        ScriptError::ValidationFailure(LOCKED_NFT_CANNOT_UPDATE_CHARACTERISTIC)
-            .input_type_script(script_cell_index)
-    );
+    assert_script_error(err, LOCKED_NFT_CANNOT_UPDATE_CHARACTERISTIC);
 }
 
 #[test]
@@ -1187,12 +1034,7 @@ fn test_locked_nft_cannot_destroy_error() {
     let tx = context.complete_tx(tx);
     // run
     let err = context.verify_tx(&tx, MAX_CYCLES).unwrap_err();
-    let script_cell_index = 0;
-    assert_error_eq!(
-        err,
-        ScriptError::ValidationFailure(LOCKED_NFT_CANNOT_DESTROY)
-            .input_type_script(script_cell_index)
-    );
+    assert_script_error(err, LOCKED_NFT_CANNOT_DESTROY);
 }
 
 #[test]
@@ -1205,12 +1047,7 @@ fn test_destroy_nft_with_group_input_witness_none_error() {
     let tx = context.complete_tx(tx);
     // run
     let err = context.verify_tx(&tx, MAX_CYCLES).unwrap_err();
-    let script_cell_index = 0;
-    assert_error_eq!(
-        err,
-        ScriptError::ValidationFailure(GROUP_INPUT_WITNESS_NONE_ERROR)
-            .input_type_script(script_cell_index)
-    );
+    assert_script_error(err, GROUP_INPUT_WITNESS_NONE_ERROR);
 }
 
 #[test]
@@ -1221,9 +1058,5 @@ fn test_nft_type_args_invalid_error() {
     let tx = context.complete_tx(tx);
     // run
     let err = context.verify_tx(&tx, MAX_CYCLES).unwrap_err();
-    let script_cell_index = 0;
-    assert_error_eq!(
-        err,
-        ScriptError::ValidationFailure(TYPE_ARGS_INVALID).input_type_script(script_cell_index)
-    );
+    assert_script_error(err, TYPE_ARGS_INVALID);
 }

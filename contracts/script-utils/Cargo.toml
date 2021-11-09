@@ -4,5 +4,5 @@ version = "0.10.0"
 edition = "2018"
 
 [dependencies]
-ckb-std = "0.7.1"
+ckb-std = "0.9.0"
 ckb-lib-smt = {package = "ckb-lib-smt", git = "https://github.com/lay2dev/ckb-lib-c-script", branch = "main"}

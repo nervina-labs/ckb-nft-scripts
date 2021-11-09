@@ -1,15 +1,13 @@
 use super::*;
 use crate::constants::{BYTE22_ZEROS, BYTE3_ZEROS, BYTE4_ZEROS, CLASS_TYPE_CODE_HASH, TYPE};
-use ckb_testtool::context::random_out_point;
-use ckb_testtool::{builtin::ALWAYS_SUCCESS, context::Context};
-use ckb_tool::ckb_error::assert_error_eq;
-use ckb_tool::ckb_script::ScriptError;
-use ckb_tool::ckb_types::packed::*;
-use ckb_tool::ckb_types::{
+use ckb_testtool::ckb_types::{
     bytes::Bytes,
     core::{TransactionBuilder, TransactionView},
+    packed::*,
     prelude::*,
 };
+use ckb_testtool::context::random_out_point;
+use ckb_testtool::{builtin::ALWAYS_SUCCESS, context::Context};
 use nft_smt::smt::blake2b_256;
 use nft_smt::{
     common::{Byte32, Byte32Builder, BytesBuilder, Uint32Builder, *},
@@ -555,12 +553,7 @@ fn test_destroy_compact_nft_cell_error() {
     let tx = context.complete_tx(tx);
     // run
     let err = context.verify_tx(&tx, MAX_CYCLES).unwrap_err();
-    let script_cell_index = 0;
-    assert_error_eq!(
-        err,
-        ScriptError::ValidationFailure(COMPACT_CELL_POSITION_ERROR)
-            .input_type_script(script_cell_index)
-    );
+    assert_script_error(err, COMPACT_CELL_POSITION_ERROR);
 }
 
 #[test]
@@ -573,12 +566,7 @@ fn test_compact_type_args_not_equal_lock_hash_error() {
     let tx = context.complete_tx(tx);
     // run
     let err = context.verify_tx(&tx, MAX_CYCLES).unwrap_err();
-    let script_cell_index = 0;
-    assert_error_eq!(
-        err,
-        ScriptError::ValidationFailure(COMPACT_TYPE_ARGS_NOT_EQUAL_LOCK_HASH)
-            .input_type_script(script_cell_index)
-    );
+    assert_script_error(err, COMPACT_TYPE_ARGS_NOT_EQUAL_LOCK_HASH);
 }
 
 #[test]
@@ -588,12 +576,7 @@ fn test_compact_smt_proof_verify_error() {
     let tx = context.complete_tx(tx);
     // run
     let err = context.verify_tx(&tx, MAX_CYCLES).unwrap_err();
-    let script_cell_index = 0;
-    assert_error_eq!(
-        err,
-        ScriptError::ValidationFailure(SMT_PROOF_VERIFY_FAILED)
-            .input_type_script(script_cell_index)
-    );
+    assert_script_error(err, SMT_PROOF_VERIFY_FAILED);
 }
 
 #[test]
@@ -606,12 +589,7 @@ fn test_compact_class_mint_smt_proof_verify_error() {
     let tx = context.complete_tx(tx);
     // run
     let err = context.verify_tx(&tx, MAX_CYCLES).unwrap_err();
-    let script_cell_index = 0;
-    assert_error_eq!(
-        err,
-        ScriptError::ValidationFailure(COMPACT_CLASS_MINT_SMT_PROOF_VERIFY_FAILED)
-            .input_type_script(script_cell_index)
-    );
+    assert_script_error(err, COMPACT_CLASS_MINT_SMT_PROOF_VERIFY_FAILED);
 }
 
 #[test]
@@ -622,12 +600,7 @@ fn test_compact_nft_witness_type_parse_error() {
     let tx = context.complete_tx(tx);
     // run
     let err = context.verify_tx(&tx, MAX_CYCLES).unwrap_err();
-    let script_cell_index = 0;
-    assert_error_eq!(
-        err,
-        ScriptError::ValidationFailure(WITNESS_TYPE_PARSE_ERROR)
-            .input_type_script(script_cell_index)
-    );
+    assert_script_error(err, WITNESS_TYPE_PARSE_ERROR);
 }
 
 #[test]
@@ -638,12 +611,7 @@ fn test_compact_nft_smt_root_error() {
     let tx = context.complete_tx(tx);
     // run
     let err = context.verify_tx(&tx, MAX_CYCLES).unwrap_err();
-    let script_cell_index = 0;
-    assert_error_eq!(
-        err,
-        ScriptError::ValidationFailure(COMPACT_NFT_SMT_ROOT_ERROR)
-            .input_type_script(script_cell_index)
-    );
+    assert_script_error(err, COMPACT_NFT_SMT_ROOT_ERROR);
 }
 
 #[test]
@@ -654,12 +622,7 @@ fn test_compact_nft_class_dep_error() {
     let tx = context.complete_tx(tx);
     // run
     let err = context.verify_tx(&tx, MAX_CYCLES).unwrap_err();
-    let script_cell_index = 0;
-    assert_error_eq!(
-        err,
-        ScriptError::ValidationFailure(COMPACT_NFT_CLASS_DEP_ERROR)
-            .input_type_script(script_cell_index)
-    );
+    assert_script_error(err, COMPACT_NFT_CLASS_DEP_ERROR);
 }
 
 #[test]
@@ -670,10 +633,5 @@ fn test_compact_nft_out_point_invalid_error() {
     let tx = context.complete_tx(tx);
     // run
     let err = context.verify_tx(&tx, MAX_CYCLES).unwrap_err();
-    let script_cell_index = 0;
-    assert_error_eq!(
-        err,
-        ScriptError::ValidationFailure(COMPACT_NFT_OUT_POINT_INVALID)
-            .input_type_script(script_cell_index)
-    );
+    assert_script_error(err, COMPACT_NFT_OUT_POINT_INVALID);
 }

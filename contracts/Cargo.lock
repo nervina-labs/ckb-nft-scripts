@@ -37,9 +37,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "4785bdd1c96b2a846b2bd7cc02e86b6b3dbf14e7e53446c4f54c92a361040822"
 
 [[package]]
+name = "cfg-if"
+version = "1.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "baf1de4339761588bc0619e3cbc0120ee582ebb74b53b4efbf79117bd2da40fd"
+
+[[package]]
 name = "ckb-lib-smt"
-version = "0.1.0"
-source = "git+https://github.com/lay2dev/ckb-lib-c-script?branch=main#848dc38f671835acf442bf7781a6113a36f39fe5"
+version = "0.1.1"
+source = "git+https://github.com/lay2dev/ckb-lib-c-script?branch=main#4c17bb4ca5b6da3ddd5e0f1b145535d122a1f633"
 dependencies = [
  "blake2b-rs",
  "cc",
@@ -48,23 +54,24 @@ dependencies = [
 
 [[package]]
 name = "ckb-standalone-types"
-version = "0.0.1-pre.1"
+version = "0.1.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "af2cdbdf65ee5b1da71504f5a03d6984bce77d0b4b46daff63f4ba4a3b0eef08"
+checksum = "22d7cbbdab96e6b809a102cf88bfec28795a0a3c06bfdea4abe4de89777801cd"
 dependencies = [
- "cfg-if",
+ "cfg-if 1.0.0",
  "molecule",
 ]
 
 [[package]]
 name = "ckb-std"
-version = "0.7.4"
+version = "0.9.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5247e68ff32c17714105e2460db6113fb99efde8c830bbdd99f8bf715100dd64"
+checksum = "e5761f11372e794d77b8e8a8059b22c5d6ccef907588dd5302a669f056ecce6b"
 dependencies = [
  "buddy-alloc",
  "cc",
  "ckb-standalone-types",
+ "cstr_core",
 ]
 
 [[package]]
@@ -72,8 +79,20 @@ name = "class-type"
 version = "0.10.0"
 dependencies = [
  "ckb-std",
- "nft-smt",
+ "compact-nft-smt",
  "script-utils",
+]
+
+[[package]]
+name = "compact-nft-smt"
+version = "0.10.0"
+source = "git+https://github.com/nervina-labs/compact-nft-smt?branch=master#d4d3013232d735b50ecb3f1ab142a7df00caf4b8"
+dependencies = [
+ "blake2b-ref",
+ "cfg-if 0.1.10",
+ "ckb-std",
+ "molecule",
+ "sparse-merkle-tree",
 ]
 
 [[package]]
@@ -81,7 +100,7 @@ name = "compact-nft-type"
 version = "0.10.0"
 dependencies = [
  "ckb-std",
- "nft-smt",
+ "compact-nft-smt",
  "script-utils",
 ]
 
@@ -90,8 +109,18 @@ name = "compact-registry-type"
 version = "0.10.0"
 dependencies = [
  "ckb-std",
- "nft-smt",
+ "compact-nft-smt",
  "script-utils",
+]
+
+[[package]]
+name = "cstr_core"
+version = "0.2.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "917ba9efe9e1e736671d5a03f006afc4e7e3f32503e2077e0bcaf519c0c8c1d3"
+dependencies = [
+ "cty",
+ "memchr",
 ]
 
 [[package]]
@@ -110,23 +139,18 @@ dependencies = [
 ]
 
 [[package]]
-name = "molecule"
-version = "0.6.0"
+name = "memchr"
+version = "2.4.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "663f76cc52219e5957e2f5563cce9d89f98aa8503c9c898b5c412d97df663998"
-dependencies = [
- "cfg-if",
-]
+checksum = "308cc39be01b73d0d18f82a0e7b2a3df85245f84af96fdddc5d202d27e47b86a"
 
 [[package]]
-name = "nft-smt"
-version = "0.10.0"
+name = "molecule"
+version = "0.7.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "be5f63176422224eadd975789462a96cedaf339cd1009ef92fbdfaad39d35f5f"
 dependencies = [
- "blake2b-ref",
- "cfg-if",
- "ckb-std",
- "molecule",
- "sparse-merkle-tree",
+ "cfg-if 1.0.0",
 ]
 
 [[package]]
@@ -151,5 +175,5 @@ version = "0.5.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ce70bcf7d75eb7e7a0ed37032b2f13b46c02754a3a983d21bd682140738b67ef"
 dependencies = [
- "cfg-if",
+ "cfg-if 0.1.10",
 ]
