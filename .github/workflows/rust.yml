@@ -13,7 +13,7 @@ jobs:
       - uses: actions-rs/toolchain@v1
         with:
           profile: minimal
-          toolchain: nightly-2020-09-28
+          toolchain: nightly-2021-08-16
           override: true
 
       - uses: docker-practice/actions-setup-docker@master
@@ -23,7 +23,7 @@ jobs:
 
       - name: Install Capsule
         env:
-          CAPSULE_VERSION: v0.4.6
+          CAPSULE_VERSION: v0.7.0
         run: |
           curl -OL https://github.com/nervosnetwork/capsule/releases/download/${CAPSULE_VERSION}/capsule_${CAPSULE_VERSION}_x86_64-linux.tar.gz && tar xf capsule_${CAPSULE_VERSION}_x86_64-linux.tar.gz && echo `pwd`/capsule_${CAPSULE_VERSION}_x86_64-linux >> $GITHUB_PATH
 
