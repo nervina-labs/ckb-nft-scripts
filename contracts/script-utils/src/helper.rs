@@ -29,7 +29,7 @@ fn parse_type_args_id(type_script: Script, slice_start: usize) -> Option<u32> {
         return None;
     }
     let mut ids = [0u8; ID_LEN];
-    ids.copy_from_slice(&id_slice[..]);
+    ids.copy_from_slice(id_slice);
     Some(u32::from_be_bytes(ids))
 }
 
@@ -58,7 +58,7 @@ pub fn load_class_type_with_args(class_args: &Bytes) -> Script {
 
 pub fn count_cells_by_type(source: Source, predicate: &dyn Fn(&Script) -> bool) -> usize {
     QueryIter::new(load_cell_type, source)
-        .filter(|type_opt| parse_type_opt(&type_opt, predicate))
+        .filter(|type_opt| parse_type_opt(type_opt, predicate))
         .count()
 }
 
@@ -97,7 +97,7 @@ pub fn load_output_type_args_ids(
     predicate: &dyn Fn(&Script) -> bool,
 ) -> Vec<u32> {
     QueryIter::new(load_cell_type, Source::Output)
-        .filter(|type_opt| parse_type_opt(&type_opt, predicate))
+        .filter(|type_opt| parse_type_opt(type_opt, predicate))
         .filter_map(|type_opt| type_opt.and_then(|type_| parse_type_args_id(type_, slice_start)))
         .collect()
 }
@@ -159,7 +159,7 @@ pub fn check_group_input_witness_is_none_with_type(type_script: &Script) -> Resu
 
 pub fn parse_dyn_vec_len(data: &[u8]) -> usize {
     let mut size_buf = [0u8; 2];
-    size_buf.copy_from_slice(&data[..]);
+    size_buf.copy_from_slice(data);
     let size = u16::from_be_bytes(size_buf) as usize;
     size + DYN_MIN_LEN
 }

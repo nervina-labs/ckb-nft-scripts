@@ -15,7 +15,7 @@ pub struct CompactNft {
 
 impl CompactNft {
     pub fn from_data(data: &[u8]) -> Result<Self, Error> {
-        if data.len() < 1 {
+        if data.is_empty() {
             return Err(Error::CompactNFTDataInvalid);
         }
 

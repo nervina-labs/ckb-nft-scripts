@@ -30,9 +30,6 @@ jobs:
       - name: Check Rust format
         run: cd contracts && cargo fmt -- --check
 
-      - name: Cargo clippy check
-        run: cd contracts && cargo clippy
-
       - name: Build contracts
         run: make build
 
