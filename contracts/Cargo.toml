@@ -5,7 +5,8 @@ members = [
     "nft-type",
     "script-utils",
     "compact-registry-type",
-    "compact-nft-type"
+    "compact-nft-type",
+    "tests",
 ]
 
 [profile.release]

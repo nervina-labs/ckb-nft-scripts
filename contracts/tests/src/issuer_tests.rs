@@ -252,11 +252,7 @@ fn test_create_issuer_data_len_error() {
     let tx = context.complete_tx(tx);
     // run
     let err = context.verify_tx(&tx, MAX_CYCLES).unwrap_err();
-    let script_cell_index = 0;
-    assert_error_eq!(
-        err,
-        ScriptError::ValidationFailure(ISSUER_DATA_INVALID).output_type_script(script_cell_index)
-    );
+    assert_script_error(err, ISSUER_DATA_INVALID);
 }
 
 #[test]

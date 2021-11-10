@@ -79,7 +79,7 @@ impl Loader {
     }
 }
 
-fn assert_script_error(err: Error, err_code: i8) {
+pub fn assert_script_error(err: Error, err_code: i8) {
     let error_string = err.to_string();
     assert!(
         error_string.contains(format!("error code {} ", err_code).as_str()),
@@ -89,7 +89,7 @@ fn assert_script_error(err: Error, err_code: i8) {
     );
 }
 
-fn assert_script_errors(err: Error, err_codes: &[i8]) {
+pub fn assert_script_errors(err: Error, err_codes: &[i8]) {
     let error_string = err.to_string();
     let mut result = false;
     let mut err_code_ = 0i8;
@@ -106,17 +106,17 @@ fn assert_script_errors(err: Error, err_codes: &[i8]) {
     );
 }
 
-const TYPE: u8 = 1;
-const CLASS_TYPE_CODE_HASH: [u8; 32] = [
+pub const TYPE: u8 = 1;
+pub const CLASS_TYPE_CODE_HASH: [u8; 32] = [
     9, 91, 140, 11, 78, 81, 164, 95, 149, 58, 205, 31, 205, 30, 57, 72, 159, 38, 117, 180, 188,
     148, 231, 175, 39, 187, 56, 149, 135, 144, 227, 252,
 ];
 
-const BYTE32_ZEROS: [u8; 32] = [0u8; 32];
-const BYTE22_ZEROS: [u8; 22] = [0u8; 22];
-const BYTE4_ZEROS: [u8; 4] = [0u8; 4];
-const BYTE3_ZEROS: [u8; 3] = [0u8; 3];
+pub const BYTE32_ZEROS: [u8; 32] = [0u8; 32];
+pub const BYTE22_ZEROS: [u8; 22] = [0u8; 22];
+pub const BYTE4_ZEROS: [u8; 4] = [0u8; 4];
+pub const BYTE3_ZEROS: [u8; 3] = [0u8; 3];
 
-const OWNED_SMT_TYPE: u8 = 1u8;
-const WITHDRAWAL_SMT_TYPE: u8 = 2u8;
-const CLAIMED_SMT_TYPE: u8 = 3u8;
+pub const OWNED_SMT_TYPE: u8 = 1u8;
+pub const WITHDRAWAL_SMT_TYPE: u8 = 2u8;
+pub const CLAIMED_SMT_TYPE: u8 = 3u8;

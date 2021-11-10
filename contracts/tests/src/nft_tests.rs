@@ -1,5 +1,4 @@
 use super::*;
-use crate::constants::{CLASS_TYPE_CODE_HASH, TYPE};
 use ckb_testtool::ckb_types::{
     bytes::Bytes,
     core::{TransactionBuilder, TransactionView},
