@@ -1,4 +1,5 @@
 use super::*;
+use crate::constants::{BYTE22_ZEROS, BYTE3_ZEROS, BYTE4_ZEROS, CLASS_TYPE_CODE_HASH, TYPE};
 use ckb_testtool::ckb_types::{
     bytes::Bytes,
     core::{TransactionBuilder, TransactionView},
@@ -475,7 +476,9 @@ fn create_test_context(action: Action, compact_error: CompactError) -> (Context,
             let mut data_vec = vec![];
             let version = [0u8];
             data_vec.extend(&version);
-            data_vec.extend(&root_hash[..]);
+            if action != Action::Create {
+                data_vec.extend(&root_hash[..]);
+            }
             vec![Bytes::from(data_vec)]
         }
     };
@@ -519,18 +522,6 @@ fn create_test_context(action: Action, compact_error: CompactError) -> (Context,
         .witnesses(witnesses.pack())
         .build();
     (context, tx)
-}
-
-#[test]
-fn test_create_compact_nft_cell_success() {
-    let (mut context, tx) = create_test_context(Action::Create, CompactError::NoError);
-
-    let tx = context.complete_tx(tx);
-    // run
-    let cycles = context
-        .verify_tx(&tx, MAX_CYCLES)
-        .expect("pass verification");
-    println!("consume cycles: {}", cycles);
 }
 
 #[test]

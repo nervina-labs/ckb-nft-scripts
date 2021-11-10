@@ -1649,6 +1649,7 @@ version = "0.10.0"
 dependencies = [
  "ckb-lib-smt",
  "ckb-std",
+ "compact-nft-smt",
 ]
 
 [[package]]

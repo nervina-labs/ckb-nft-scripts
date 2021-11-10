@@ -1,17 +1,21 @@
 use crate::class::CLASS_TYPE_ARGS_LEN;
-use crate::constants::{CLASS_TYPE_CODE_HASH, TYPE};
+use crate::constants::{
+    CLASS_TYPE_CODE_HASH, COMPACT_TYPE_CODE_HASH, REGISTRY_TYPE_CODE_HASH, TYPE,
+};
 use crate::error::Error;
 use crate::issuer::ISSUER_TYPE_ARGS_LEN;
+use alloc::collections::BTreeSet;
 use alloc::vec::Vec;
 use ckb_std::{
     ckb_constants::Source,
     ckb_types::{bytes::Bytes, packed::*, prelude::*},
     high_level::{
-        load_cell_data, load_cell_lock, load_cell_type, load_cell_type_hash, load_witness_args,
-        QueryIter,
+        load_cell, load_cell_data, load_cell_lock, load_cell_type, load_cell_type_hash,
+        load_witness_args, QueryIter,
     },
 };
 use core::result::Result;
+use nft_smt::smt::blake2b_256;
 
 const ID_LEN: usize = 4;
 pub const DYN_MIN_LEN: usize = 2; // the length of dynamic data size(u16)
@@ -29,7 +33,7 @@ fn parse_type_args_id(type_script: Script, slice_start: usize) -> Option<u32> {
         return None;
     }
     let mut ids = [0u8; ID_LEN];
-    ids.copy_from_slice(id_slice);
+    ids.copy_from_slice(&id_slice[..]);
     Some(u32::from_be_bytes(ids))
 }
 
@@ -58,7 +62,7 @@ pub fn load_class_type_with_args(class_args: &Bytes) -> Script {
 
 pub fn count_cells_by_type(source: Source, predicate: &dyn Fn(&Script) -> bool) -> usize {
     QueryIter::new(load_cell_type, source)
-        .filter(|type_opt| parse_type_opt(type_opt, predicate))
+        .filter(|type_opt| parse_type_opt(&type_opt, predicate))
         .count()
 }
 
@@ -97,7 +101,7 @@ pub fn load_output_type_args_ids(
     predicate: &dyn Fn(&Script) -> bool,
 ) -> Vec<u32> {
     QueryIter::new(load_cell_type, Source::Output)
-        .filter(|type_opt| parse_type_opt(type_opt, predicate))
+        .filter(|type_opt| parse_type_opt(&type_opt, predicate))
         .filter_map(|type_opt| type_opt.and_then(|type_| parse_type_args_id(type_, slice_start)))
         .collect()
 }
@@ -159,7 +163,7 @@ pub fn check_group_input_witness_is_none_with_type(type_script: &Script) -> Resu
 
 pub fn parse_dyn_vec_len(data: &[u8]) -> usize {
     let mut size_buf = [0u8; 2];
-    size_buf.copy_from_slice(data);
+    size_buf.copy_from_slice(&data[..]);
     let size = u16::from_be_bytes(size_buf) as usize;
     size + DYN_MIN_LEN
 }
@@ -168,4 +172,57 @@ pub fn u32_from_slice(data: &[u8]) -> u32 {
     let mut buf = [0u8; 4];
     buf.copy_from_slice(data);
     u32::from_be_bytes(buf)
+}
+
+pub fn check_compact_nft_exist(source: Source) -> bool {
+    QueryIter::new(load_cell_type, source).any(|type_opt| {
+        if let Some(type_) = type_opt {
+            return type_.code_hash().as_slice() == &COMPACT_TYPE_CODE_HASH
+                && type_.hash_type().as_slice() == &[TYPE];
+        }
+        return false;
+    })
+}
+
+pub fn load_output_compact_nft_lock_hashes() -> BTreeSet<[u8; 32]> {
+    QueryIter::new(load_cell, Source::Output)
+        .filter(|cell| {
+            if let Some(type_) = cell.type_().to_opt() {
+                return type_.code_hash().as_slice() == &COMPACT_TYPE_CODE_HASH
+                    && type_.hash_type().as_slice() == &[TYPE];
+            }
+            return false;
+        })
+        .map(|cell| blake2b_256(cell.lock().as_slice()))
+        .collect::<BTreeSet<[u8; 32]>>()
+}
+
+fn count_compact_nft_cells(compact_nft_type: &Script, source: Source) -> usize {
+    QueryIter::new(load_cell_type, source)
+        .filter(|type_opt| {
+            if let Some(type_) = type_opt {
+                return type_.as_slice() == compact_nft_type.as_slice();
+            }
+            return false;
+        })
+        .count()
+}
+pub fn check_compact_nft_cells_only_one(compact_nft_type: &Script) -> bool {
+    count_compact_nft_cells(compact_nft_type, Source::Input) == 1
+        && count_compact_nft_cells(compact_nft_type, Source::Output) == 1
+}
+
+pub fn check_registry_cells_exist() -> Result<bool, Error> {
+    Ok([
+        load_cell_type(0, Source::Input)?,
+        load_cell_type(0, Source::Output)?,
+    ]
+    .iter()
+    .all(|type_opt| {
+        if let Some(type_) = type_opt {
+            return type_.code_hash().as_slice() == &REGISTRY_TYPE_CODE_HASH
+                && type_.hash_type().as_slice() == &[TYPE];
+        }
+        return false;
+    }))
 }

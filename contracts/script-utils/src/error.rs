@@ -54,6 +54,12 @@ pub enum Error {
     WithdrawCompactNFTInfoNotSame,
     CompactNFTWithdrawalDepError = 50,
     ClaimedCompactWithdrawalSMTProofVerifyFailed,
+    RegistryCellSMTRootError,
+    RegistryCompactNFTExistError,
+    CompactRegistryCellExistError,
+    RegistryDataInvalid = 55,
+    CompactNFTCellsCountError,
+    RegistryKeysNotEqualLockHashes,
 }
 
 impl From<SysError> for Error {

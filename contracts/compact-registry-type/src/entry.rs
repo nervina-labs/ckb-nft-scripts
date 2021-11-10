@@ -1,3 +1,4 @@
+use alloc::collections::BTreeSet;
 use alloc::vec::Vec;
 use ckb_std::{
     ckb_constants::Source,
@@ -9,11 +10,9 @@ use ckb_std::{
 };
 use core::result::Result;
 use nft_smt::registry::CompactNFTRegistryEntries;
-use script_utils::{
-    constants::{BYTE32_ZEROS, SMT_ROOT_LEN},
-    error::Error,
-    smt::LibCKBSmt,
-};
+use script_utils::helper::{check_compact_nft_exist, load_output_compact_nft_lock_hashes};
+use script_utils::registry::Registry;
+use script_utils::{constants::BYTE32_ZEROS, error::Error, smt::LibCKBSmt};
 
 const TYPE_ARGS_LEN: usize = 20;
 
@@ -39,14 +38,37 @@ fn check_registry_output_type(registry_type: &Script) -> Result<(), Error> {
     }
 }
 
-fn validate_type_and_verify_smt(registry_type: &Script) -> Result<(), Error> {
-    // Parse cell data to get registry smt root hash
-    let registry_smt_root = load_cell_data(0, Source::Output)?;
-    if registry_smt_root.len() != SMT_ROOT_LEN {
-        return Err(Error::LengthNotEnough);
+fn check_output_registry_data() -> Result<(), Error> {
+    let output_registry_data = load_cell_data(0, Source::Output)?;
+    // Registry cell data only has version
+    if output_registry_data.len() != 1 {
+        return Err(Error::RegistryDataInvalid);
     }
-    let mut registry_smt_root_hash = [0u8; 32];
-    registry_smt_root_hash.copy_from_slice(&registry_smt_root);
+    Ok(())
+}
+
+fn check_input_registry_exist(registry_type: &Script) -> Result<bool, Error> {
+    // If the inputs[0] is compact_registry_cell, then its type_args must be equal to
+    // lock_hash[0..20].
+    if let Some(type_) = load_cell_type(0, Source::Input)? {
+        if registry_type.as_slice() != type_.as_slice() {
+            return Ok(false);
+        }
+        if check_type_args_not_equal_lock_hash(&type_, Source::Input)? {
+            return Err(Error::CompactTypeArgsNotEqualLockHash);
+        }
+        return Ok(true);
+    };
+    Ok(false)
+}
+
+fn validate_type_and_verify_smt() -> Result<(), Error> {
+    // Parse cell data to get registry smt root hash
+    let output_registry = Registry::from_data(&load_cell_data(0, Source::Output)?[..])?;
+    let input_registry = Registry::from_data(&load_cell_data(0, Source::Input)?[..])?;
+    if output_registry.registry_smt_root.is_none() {
+        return Err(Error::RegistryCellSMTRootError);
+    }
 
     // Parse witness_args.input_type to get smt leaves and proof to verify smt proof
     let registry_witness_type = load_witness_args(0, Source::Input)?.input_type();
@@ -61,56 +83,45 @@ fn validate_type_and_verify_smt(registry_type: &Script) -> Result<(), Error> {
 
     let mut context = unsafe { CKBDLContext::<[u8; 128 * 1024]>::new() };
 
+    let mut registry_keys = BTreeSet::new();
+    let mut registry_key_bytes = [0u8; 32];
     let mut keys: Vec<u8> = Vec::new();
     let mut values: Vec<u8> = Vec::new();
     for kv in registry_entries.kv_state() {
         keys.extend(kv.k().as_slice());
         values.extend(kv.v().as_slice());
+        registry_key_bytes.copy_from_slice(kv.k().as_slice());
+        registry_keys.insert(registry_key_bytes);
     }
 
     let proof: Vec<u8> = registry_entries.kv_proof().raw_data().to_vec();
 
     let lib_ckb_smt = LibCKBSmt::load(&mut context);
 
-    lib_ckb_smt
-        .smt_verify(
-            &registry_smt_root_hash[..],
-            &keys[..],
-            &values[..],
-            &proof[..],
-        )
-        .map_err(|_| Error::SMTProofVerifyFailed)?;
+    if let Some(smt_root) = output_registry.registry_smt_root {
+        lib_ckb_smt
+            .smt_verify(&smt_root, &keys[..], &values[..], &proof[..])
+            .map_err(|_| Error::SMTProofVerifyFailed)?;
+    }
 
-    // If the inputs[0] is compact_registry_cell, then its type_args must be equal to
-    // lock_hash[0..20] and its lock script must be equal to outputs.compact_registry_cell.
-    if let Some(type_) = load_cell_type(0, Source::Input)? {
-        if registry_type.as_slice() != type_.as_slice() {
-            return Ok(());
-        }
-        if check_type_args_not_equal_lock_hash(&type_, Source::Input)? {
-            return Err(Error::CompactTypeArgsNotEqualLockHash);
-        }
-
-        let input_registry_smt_root = load_cell_data(0, Source::Input).or(Err(Error::Encoding))?;
-        if input_registry_smt_root.len() != SMT_ROOT_LEN {
-            return Err(Error::LengthNotEnough);
-        }
-        let mut input_registry_smt_root_hash = [0u8; 32];
-        input_registry_smt_root_hash.copy_from_slice(&input_registry_smt_root);
-
+    if let Some(smt_root) = input_registry.registry_smt_root {
         values.clear();
         for _ in registry_entries.kv_state() {
             values.extend(&BYTE32_ZEROS);
         }
         lib_ckb_smt
-            .smt_verify(
-                &input_registry_smt_root_hash[..],
-                &keys[..],
-                &values[..],
-                &proof[..],
-            )
+            .smt_verify(&smt_root[..], &keys[..], &values[..], &proof[..])
             .map_err(|_| Error::SMTProofVerifyFailed)?;
-    };
+    }
+
+    if check_compact_nft_exist(Source::Input) || !check_compact_nft_exist(Source::Output) {
+        return Err(Error::RegistryCompactNFTExistError);
+    }
+
+    let compact_nft_lock_hashes = load_output_compact_nft_lock_hashes();
+    if registry_keys != compact_nft_lock_hashes {
+        return Err(Error::RegistryKeysNotEqualLockHashes);
+    }
 
     Ok(())
 }
@@ -123,7 +134,11 @@ pub fn main() -> Result<(), Error> {
     }
 
     check_registry_output_type(&script)?;
-    validate_type_and_verify_smt(&script)?;
 
+    if check_input_registry_exist(&script)? {
+        validate_type_and_verify_smt()?;
+    } else {
+        check_output_registry_data()?;
+    }
     Ok(())
 }
