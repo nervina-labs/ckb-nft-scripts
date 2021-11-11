@@ -31,8 +31,7 @@ pub fn verify_withdraw_transfer_smt(witness_args_input_type: Bytes) -> Result<()
         let withdrawal_nft_value = withdraw_entries
             .withdrawal_nft_values()
             .get(index)
-            .ok_or(Error::Encoding)
-            .map_err(|_e| Error::Encoding)?;
+            .ok_or(Error::Encoding)?;
         if &compact_input_out_point.as_slice()[12..] != withdrawal_nft_value.out_point().as_slice()
         {
             return Err(Error::CompactNFTOutPointInvalid);
@@ -40,8 +39,7 @@ pub fn verify_withdraw_transfer_smt(witness_args_input_type: Bytes) -> Result<()
         let owned_nft_value = withdraw_entries
             .owned_nft_values()
             .get(index)
-            .ok_or(Error::Encoding)
-            .map_err(|_e| Error::Encoding)?;
+            .ok_or(Error::Encoding)?;
         if owned_nft_value.as_slice() != withdrawal_nft_value.nft_info().as_slice() {
             return Err(Error::WithdrawCompactNFTInfoNotSame);
         }
@@ -54,17 +52,14 @@ pub fn verify_withdraw_transfer_smt(witness_args_input_type: Bytes) -> Result<()
         withdrawal_old_nft_values.extend(owned_nft_value.as_slice());
         withdrawal_old_nft_values.extend(&BYTE32_ZEROS);
 
-        let owned_nft_key = owned_nft_keys
-            .get(index)
-            .ok_or(Error::Encoding)
-            .map_err(|_e| Error::Encoding)?;
+        let owned_nft_key = owned_nft_keys.get(index).ok_or(Error::Encoding)?;
         let withdrawal_nft_key = withdraw_entries
             .withdrawal_nft_keys()
             .get(index)
-            .ok_or(Error::Encoding)
-            .map_err(|_e| Error::Encoding)?;
+            .ok_or(Error::Encoding)?;
         withdrawal_nft_keys.extend(&BYTE3_ZEROS);
         withdrawal_nft_keys.extend(owned_nft_key.as_slice());
+
         withdrawal_nft_keys.extend(&BYTE3_ZEROS);
         withdrawal_nft_keys.extend(withdrawal_nft_key.as_slice());
     }

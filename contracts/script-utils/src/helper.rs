@@ -10,14 +10,15 @@ use ckb_std::{
     ckb_constants::Source,
     ckb_types::{bytes::Bytes, packed::*, prelude::*},
     high_level::{
-        load_cell, load_cell_data, load_cell_lock, load_cell_type, load_cell_type_hash,
-        load_witness_args, QueryIter,
+        load_cell, load_cell_data, load_cell_lock, load_cell_lock_hash, load_cell_type,
+        load_cell_type_hash, load_witness_args, QueryIter,
     },
 };
 use core::result::Result;
 use nft_smt::smt::blake2b_256;
 
 const ID_LEN: usize = 4;
+const TYPE_ARGS_LEN: usize = 20;
 pub const DYN_MIN_LEN: usize = 2; // the length of dynamic data size(u16)
 
 pub enum Action {
@@ -225,4 +226,10 @@ pub fn check_registry_cells_exist() -> Result<bool, Error> {
         }
         return false;
     }))
+}
+
+pub fn check_type_args_not_equal_lock_hash(type_: &Script, source: Source) -> Result<bool, Error> {
+    let lock_hash = load_cell_lock_hash(0, source)?;
+    let type_args: Bytes = type_.args().unpack();
+    Ok(type_args[..] != lock_hash[0..TYPE_ARGS_LEN])
 }

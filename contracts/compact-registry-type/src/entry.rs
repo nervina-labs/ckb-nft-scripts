@@ -4,26 +4,20 @@ use ckb_std::{
     ckb_constants::Source,
     ckb_types::{bytes::Bytes, packed::*, prelude::*},
     dynamic_loading_c_impl::CKBDLContext,
-    high_level::{
-        load_cell_data, load_cell_lock_hash, load_cell_type, load_script, load_witness_args,
-    },
+    high_level::{load_cell_data, load_cell_type, load_script, load_witness_args},
 };
 use core::result::Result;
 use nft_smt::registry::CompactNFTRegistryEntries;
-use script_utils::helper::{check_compact_nft_exist, load_output_compact_nft_lock_hashes};
+use script_utils::helper::{
+    check_compact_nft_exist, check_type_args_not_equal_lock_hash,
+    load_output_compact_nft_lock_hashes,
+};
 use script_utils::registry::Registry;
 use script_utils::{constants::BYTE32_ZEROS, error::Error, smt::LibCKBSmt};
 
 const TYPE_ARGS_LEN: usize = 20;
 
-fn check_type_args_not_equal_lock_hash(type_: &Script, source: Source) -> Result<bool, Error> {
-    let lock_hash = load_cell_lock_hash(0, source)?;
-    let type_args: Bytes = type_.args().unpack();
-    Ok(type_args[..] != lock_hash[0..TYPE_ARGS_LEN])
-}
-
 fn check_registry_output_type(registry_type: &Script) -> Result<(), Error> {
-    // Outputs[0] must be compact_registry_cell whose type_args must be equal the lock_hash[0..20]
     match load_cell_type(0, Source::Output)? {
         Some(type_) => {
             if registry_type.as_slice() != type_.as_slice() {
@@ -48,8 +42,6 @@ fn check_output_registry_data() -> Result<(), Error> {
 }
 
 fn check_input_registry_exist(registry_type: &Script) -> Result<bool, Error> {
-    // If the inputs[0] is compact_registry_cell, then its type_args must be equal to
-    // lock_hash[0..20].
     if let Some(type_) = load_cell_type(0, Source::Input)? {
         if registry_type.as_slice() != type_.as_slice() {
             return Ok(false);

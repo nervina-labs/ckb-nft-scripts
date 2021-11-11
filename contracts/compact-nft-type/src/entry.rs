@@ -5,10 +5,13 @@ use ckb_std::high_level::load_cell_data;
 use ckb_std::{
     ckb_constants::Source,
     ckb_types::{bytes::Bytes, packed::*, prelude::*},
-    high_level::{load_cell_lock_hash, load_cell_type, load_script},
+    high_level::{load_cell_type, load_script},
 };
 use core::result::Result;
-use script_utils::helper::{check_compact_nft_cells_only_one, check_registry_cells_exist};
+use script_utils::helper::{
+    check_compact_nft_cells_only_one, check_registry_cells_exist,
+    check_type_args_not_equal_lock_hash,
+};
 use script_utils::{
     compact_nft::CompactNft, error::Error, helper::load_group_input_witness_args_with_type,
 };
@@ -19,19 +22,13 @@ const CLAIM_MINT: u8 = 1;
 const WITHDRAW_TRANSFER: u8 = 2;
 const CLAIM_TRANSFER: u8 = 3;
 
-fn check_type_args_not_equal_lock_hash(type_: &Script, source: Source) -> Result<bool, Error> {
-    let lock_hash = load_cell_lock_hash(0, source)?;
-    let type_args: Bytes = type_.args().unpack();
-    Ok(type_args[..] != lock_hash[0..TYPE_ARGS_LEN])
-}
-
 fn check_output_compact_nft_type(compact_nft_type: &Script) -> Result<(), Error> {
     match load_cell_type(0, Source::GroupOutput).map_err(|_e| Error::CompactCellPositionError)? {
         Some(type_) => {
             if compact_nft_type.as_slice() != type_.as_slice() {
                 return Err(Error::CompactCellPositionError);
             }
-            if check_type_args_not_equal_lock_hash(&type_, Source::Output)? {
+            if check_type_args_not_equal_lock_hash(&type_, Source::GroupOutput)? {
                 return Err(Error::CompactTypeArgsNotEqualLockHash);
             }
             Ok(())
@@ -58,7 +55,7 @@ fn check_input_compact_nft_exist(compact_nft_type: &Script) -> Result<bool, Erro
             if compact_nft_type.as_slice() != type_.as_slice() {
                 return Ok(false);
             }
-            if check_type_args_not_equal_lock_hash(&type_, Source::Input)? {
+            if check_type_args_not_equal_lock_hash(&type_, Source::GroupInput)? {
                 return Err(Error::CompactTypeArgsNotEqualLockHash);
             }
             return Ok(true);

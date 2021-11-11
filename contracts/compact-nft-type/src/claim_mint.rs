@@ -43,8 +43,7 @@ fn load_mint_smt_root_from_class_cell_dep(nft_key: &CompactNFTKey) -> Result<[u8
 }
 
 pub fn verify_claim_mint_smt(witness_args_input_type: Bytes) -> Result<(), Error> {
-    let lock_script: Vec<Byte> = load_cell_lock(0, Source::Output)
-        .map_err(|_e| Error::Encoding)?
+    let lock_script: Vec<Byte> = load_cell_lock(0, Source::Output)?
         .as_slice()
         .iter()
         .map(|v| Byte::from(*v))
@@ -68,15 +67,11 @@ pub fn verify_claim_mint_smt(witness_args_input_type: Bytes) -> Result<(), Error
 
     for index in 0..owned_nft_keys.len() {
         // Generate owned and claimed smt kv pairs
-        let owned_nft_key = owned_nft_keys
-            .get(index)
-            .ok_or(Error::Encoding)
-            .map_err(|_e| Error::Encoding)?;
+        let owned_nft_key = owned_nft_keys.get(index).ok_or(Error::Encoding)?;
         let claimed_nft_key = claim_entries
             .claimed_nft_keys()
             .get(index)
-            .ok_or(Error::Encoding)
-            .map_err(|_e| Error::Encoding)?;
+            .ok_or(Error::Encoding)?;
 
         if &compact_input_out_point.as_slice()[12..] != claimed_nft_key.out_point().as_slice() {
             return Err(Error::CompactNFTOutPointInvalid);
@@ -89,13 +84,11 @@ pub fn verify_claim_mint_smt(witness_args_input_type: Bytes) -> Result<(), Error
         let owned_nft_value = claim_entries
             .owned_nft_values()
             .get(index)
-            .ok_or(Error::Encoding)
-            .map_err(|_e| Error::Encoding)?;
+            .ok_or(Error::Encoding)?;
         let claimed_nft_value = claim_entries
             .claimed_nft_values()
             .get(index)
-            .ok_or(Error::Encoding)
-            .map_err(|_e| Error::Encoding)?;
+            .ok_or(Error::Encoding)?;
         claimed_nft_values.extend(&BYTE22_ZEROS);
         claimed_nft_values.extend(owned_nft_value.as_slice());
         claimed_nft_values.extend(claimed_nft_value.as_slice());
@@ -144,12 +137,12 @@ pub fn verify_claim_mint_smt(witness_args_input_type: Bytes) -> Result<(), Error
     }
 
     // Verify claimed smt proof of compact nft input
-    claimed_nft_values.clear();
-    for _ in 0..(claim_entries.owned_nft_values().len() * 2) {
-        claimed_nft_values.extend(&BYTE32_ZEROS);
-    }
     let input_compact_nft = CompactNft::from_data(&load_cell_data(0, Source::Input)?[..])?;
     if let Some(compact_smt_root) = input_compact_nft.nft_smt_root {
+        claimed_nft_values.clear();
+        for _ in 0..(claim_entries.owned_nft_values().len() * 2) {
+            claimed_nft_values.extend(&BYTE32_ZEROS);
+        }
         lib_ckb_smt
             .smt_verify(
                 &compact_smt_root[..],

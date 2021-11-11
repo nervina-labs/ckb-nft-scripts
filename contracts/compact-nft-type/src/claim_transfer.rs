@@ -64,13 +64,11 @@ pub fn verify_claim_transfer_smt(
         let owned_nft_key = claim_entries
             .owned_nft_keys()
             .get(index)
-            .ok_or(Error::Encoding)
-            .map_err(|_e| Error::Encoding)?;
+            .ok_or(Error::Encoding)?;
         let claimed_nft_key = claim_entries
             .claimed_nft_keys()
             .get(index)
-            .ok_or(Error::Encoding)
-            .map_err(|_e| Error::Encoding)?;
+            .ok_or(Error::Encoding)?;
 
         claimed_nft_keys.extend(&BYTE3_ZEROS);
         claimed_nft_keys.extend(owned_nft_key.as_slice());
@@ -79,13 +77,11 @@ pub fn verify_claim_transfer_smt(
         let owned_nft_value = claim_entries
             .owned_nft_values()
             .get(index)
-            .ok_or(Error::Encoding)
-            .map_err(|_e| Error::Encoding)?;
+            .ok_or(Error::Encoding)?;
         let claimed_nft_value = claim_entries
             .claimed_nft_values()
             .get(index)
-            .ok_or(Error::Encoding)
-            .map_err(|_e| Error::Encoding)?;
+            .ok_or(Error::Encoding)?;
         claimed_nft_values.extend(&BYTE22_ZEROS);
         claimed_nft_values.extend(owned_nft_value.as_slice());
         claimed_nft_values.extend(claimed_nft_value.as_slice());
@@ -100,6 +96,7 @@ pub fn verify_claim_transfer_smt(
 
         withdrawal_nft_values.extend(&BYTE22_ZEROS);
         withdrawal_nft_values.extend(owned_nft_value.as_slice());
+
         let withdrawal_nft_value = WithdrawCompactNFTValueBuilder::default()
             .nft_info(owned_nft_value)
             .to(LockHashBuilder::default().set(lock_hash_160).build())
