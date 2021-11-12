@@ -1,4 +1,4 @@
-version = "0.7.0"
+version = "0.7.1"
 deployment = "deployment.toml"
 [rust]
 workspace_dir = "contracts"
