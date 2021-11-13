@@ -1,4 +1,3 @@
-use alloc::collections::BTreeSet;
 use alloc::vec::Vec;
 use ckb_std::{
     ckb_constants::Source,
@@ -75,7 +74,7 @@ fn validate_type_and_verify_smt() -> Result<(), Error> {
 
     let mut context = unsafe { CKBDLContext::<[u8; 128 * 1024]>::new() };
 
-    let mut registry_keys = BTreeSet::new();
+    let mut registry_keys: Vec<[u8; 32]> = Vec::new();
     let mut registry_key_bytes = [0u8; 32];
     let mut keys: Vec<u8> = Vec::new();
     let mut values: Vec<u8> = Vec::new();
@@ -83,7 +82,7 @@ fn validate_type_and_verify_smt() -> Result<(), Error> {
         keys.extend(kv.k().as_slice());
         values.extend(kv.v().as_slice());
         registry_key_bytes.copy_from_slice(kv.k().as_slice());
-        registry_keys.insert(registry_key_bytes);
+        registry_keys.push(registry_key_bytes);
     }
 
     let proof: Vec<u8> = registry_entries.kv_proof().raw_data().to_vec();
@@ -111,6 +110,7 @@ fn validate_type_and_verify_smt() -> Result<(), Error> {
     }
 
     let compact_nft_lock_hashes = load_output_compact_nft_lock_hashes();
+    registry_keys.sort_unstable();
     if registry_keys != compact_nft_lock_hashes {
         return Err(Error::RegistryKeysNotEqualLockHashes);
     }

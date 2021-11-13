@@ -4,7 +4,6 @@ use crate::constants::{
 };
 use crate::error::Error;
 use crate::issuer::ISSUER_TYPE_ARGS_LEN;
-use alloc::collections::BTreeSet;
 use alloc::vec::Vec;
 use ckb_std::{
     ckb_constants::Source,
@@ -185,8 +184,8 @@ pub fn check_compact_nft_exist(source: Source) -> bool {
     })
 }
 
-pub fn load_output_compact_nft_lock_hashes() -> BTreeSet<[u8; 32]> {
-    QueryIter::new(load_cell, Source::Output)
+pub fn load_output_compact_nft_lock_hashes() -> Vec<[u8; 32]> {
+    let mut lock_hashes = QueryIter::new(load_cell, Source::Output)
         .filter(|cell| {
             if let Some(type_) = cell.type_().to_opt() {
                 return type_.code_hash().as_slice() == &COMPACT_TYPE_CODE_HASH
@@ -195,7 +194,9 @@ pub fn load_output_compact_nft_lock_hashes() -> BTreeSet<[u8; 32]> {
             return false;
         })
         .map(|cell| blake2b_256(cell.lock().as_slice()))
-        .collect::<BTreeSet<[u8; 32]>>()
+        .collect::<Vec<[u8; 32]>>();
+    lock_hashes.sort_unstable();
+    lock_hashes
 }
 
 fn count_compact_nft_cells(compact_nft_type: &Script, source: Source) -> usize {
