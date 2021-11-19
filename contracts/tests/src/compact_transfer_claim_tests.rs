@@ -1,5 +1,5 @@
 use super::*;
-use crate::constants::{BYTE22_ZEROS, BYTE3_ZEROS, OWNED_SMT_TYPE, WITHDRAWAL_SMT_TYPE};
+use crate::constants::{BYTE22_ZEROS, BYTE3_ZEROS, CLAIMED_SMT_TYPE, OWNED_SMT_TYPE, WITHDRAWAL_SMT_TYPE};
 use ckb_testtool::ckb_types::{
     bytes::Bytes,
     core::{TransactionBuilder, TransactionView},
@@ -184,7 +184,7 @@ fn generate_withdrawal_compact_nft_smt_data(
 }
 
 fn generate_claimed_compact_nft_smt_data(
-    input_compact_nft_out_point: OutPoint,
+    withdrawal_compact_nft_out_point: OutPoint,
     withdrawal_nft_keys: Vec<CompactNFTKey>,
     withdrawal_nft_values: Vec<WithdrawCompactNFTValue>,
     withdrawal_nft_proof: Vec<u8>,
@@ -239,7 +239,7 @@ fn generate_claimed_compact_nft_smt_data(
         smt.update(key, value).expect("SMT update leave error");
 
         // Generate claimed_nft smt kv pairs
-        let compact_out_point_vec = input_compact_nft_out_point
+        let compact_out_point_vec = withdrawal_compact_nft_out_point
             .as_bytes()
             .slice(12..36)
             .to_vec()
@@ -253,7 +253,7 @@ fn generate_claimed_compact_nft_smt_data(
             .build();
         let nft_key_ = CompactNFTKeyBuilder::default()
             .nft_id(withdrawal_nft_key.nft_id())
-            .smt_type(Byte::from(WITHDRAWAL_SMT_TYPE))
+            .smt_type(Byte::from(CLAIMED_SMT_TYPE))
             .build();
         let claimed_nft_key = ClaimedCompactNFTKeyBuilder::default()
             .nft_key(nft_key_)

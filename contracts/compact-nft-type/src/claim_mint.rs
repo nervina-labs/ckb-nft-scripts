@@ -13,6 +13,7 @@ use nft_smt::{
     smt::blake2b_256,
     transfer::{ClaimMintCompactNFTEntries, CompactNFTKey},
 };
+use script_utils::constants::{CLAIMED_SMT_TYPE, OWNED_SMT_TYPE};
 use script_utils::{
     class::Class,
     compact_nft::CompactNft,
@@ -33,7 +34,7 @@ fn load_mint_smt_root_from_class_cell_dep(nft_key: &CompactNFTKey) -> Result<[u8
     let class_type = load_class_type_with_args(&class_args);
     if let Some(dep_class_type) = class_cell_dep.type_().to_opt() {
         if dep_class_type.as_slice() == class_type.as_slice() {
-            let class_data = load_cell_data(0, Source::CellDep).map_err(|_e| Error::Encoding)?;
+            let class_data = load_cell_data(0, Source::CellDep)?;
             let class = Class::from_data(&class_data)?;
             return Ok(class.nft_smt_root.ok_or(Error::Encoding)?);
         }
@@ -68,10 +69,20 @@ pub fn verify_claim_mint_smt(witness_args_input_type: Bytes) -> Result<(), Error
     for index in 0..owned_nft_keys.len() {
         // Generate owned and claimed smt kv pairs
         let owned_nft_key = owned_nft_keys.get(index).ok_or(Error::Encoding)?;
+        if let Some(smt_type) = owned_nft_key.smt_type().as_slice().get(0) {
+            if smt_type != &OWNED_SMT_TYPE {
+                return Err(Error::CompactNFTSmtTypeError);
+            }
+        }
         let claimed_nft_key = claim_entries
             .claimed_nft_keys()
             .get(index)
             .ok_or(Error::Encoding)?;
+        if let Some(smt_type) = claimed_nft_key.nft_key().smt_type().as_slice().get(0) {
+            if smt_type != &CLAIMED_SMT_TYPE {
+                return Err(Error::CompactNFTSmtTypeError);
+            }
+        }
 
         if &compact_input_out_point.as_slice()[12..] != claimed_nft_key.out_point().as_slice() {
             return Err(Error::CompactNFTOutPointInvalid);

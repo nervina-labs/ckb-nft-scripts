@@ -12,7 +12,7 @@ use nft_smt::{
     smt::blake2b_256,
     transfer::{ClaimTransferCompactNFTEntries, WithdrawCompactNFTValueBuilder},
 };
-use script_utils::constants::WITHDRAWAL_SMT_TYPE;
+use script_utils::constants::{CLAIMED_SMT_TYPE, OWNED_SMT_TYPE, WITHDRAWAL_SMT_TYPE};
 use script_utils::{
     compact_nft::CompactNft,
     constants::{BYTE22_ZEROS, BYTE32_ZEROS, BYTE3_ZEROS},
@@ -65,10 +65,20 @@ pub fn verify_claim_transfer_smt(
             .owned_nft_keys()
             .get(index)
             .ok_or(Error::Encoding)?;
+        if let Some(smt_type) = owned_nft_key.smt_type().as_slice().get(0) {
+            if smt_type != &OWNED_SMT_TYPE {
+                return Err(Error::CompactNFTSmtTypeError);
+            }
+        }
         let claimed_nft_key = claim_entries
             .claimed_nft_keys()
             .get(index)
             .ok_or(Error::Encoding)?;
+        if let Some(smt_type) = claimed_nft_key.nft_key().smt_type().as_slice().get(0) {
+            if smt_type != &CLAIMED_SMT_TYPE {
+                return Err(Error::CompactNFTSmtTypeError);
+            }
+        }
 
         claimed_nft_keys.extend(&BYTE3_ZEROS);
         claimed_nft_keys.extend(owned_nft_key.as_slice());

@@ -60,6 +60,7 @@ pub enum Error {
     RegistryDataInvalid = 55,
     CompactNFTCellsCountError,
     RegistryKeysNotEqualLockHashes,
+    CompactNFTSmtTypeError,
 }
 
 impl From<SysError> for Error {

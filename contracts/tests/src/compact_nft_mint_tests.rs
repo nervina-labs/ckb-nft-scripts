@@ -1,5 +1,8 @@
 use super::*;
-use crate::constants::{BYTE22_ZEROS, BYTE3_ZEROS, BYTE4_ZEROS, CLASS_TYPE_CODE_HASH, TYPE};
+use crate::constants::{
+    BYTE22_ZEROS, BYTE3_ZEROS, BYTE4_ZEROS, CLAIMED_SMT_TYPE, CLASS_TYPE_CODE_HASH, OWNED_SMT_TYPE,
+    TYPE,
+};
 use ckb_testtool::ckb_types::{
     bytes::Bytes,
     core::{TransactionBuilder, TransactionView},
@@ -182,14 +185,14 @@ fn generate_compact_nft_smt_data(
         let mint_nft_key = mint_nft_keys.get(index).unwrap().clone();
         let mut nft_id_vec = Vec::new();
         nft_id_vec.extend(&BYTE3_ZEROS);
-        nft_id_vec.extend(&[1u8]);
+        nft_id_vec.extend(&[OWNED_SMT_TYPE]);
         nft_id_vec.extend(&mint_nft_key.as_slice().to_vec());
         let mut nft_id_bytes = [0u8; 32];
         nft_id_bytes.copy_from_slice(&nft_id_vec);
         let mut key = H256::from(nft_id_bytes);
 
         let owned_nft_key = CompactNFTKeyBuilder::default()
-            .smt_type(Byte::from(1u8))
+            .smt_type(Byte::from(OWNED_SMT_TYPE))
             .nft_id(mint_nft_key.clone())
             .build();
         owned_nft_keys.push(owned_nft_key);
@@ -222,7 +225,7 @@ fn generate_compact_nft_smt_data(
             .build();
         let nft_key_ = CompactNFTKeyBuilder::default()
             .nft_id(mint_nft_key.clone())
-            .smt_type(Byte::from(2u8))
+            .smt_type(Byte::from(CLAIMED_SMT_TYPE))
             .build();
         let claimed_nft_key = ClaimedCompactNFTKeyBuilder::default()
             .nft_key(nft_key_)

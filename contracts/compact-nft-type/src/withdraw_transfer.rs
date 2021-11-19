@@ -7,6 +7,7 @@ use ckb_std::{
 };
 use core::result::Result;
 use nft_smt::{smt::blake2b_256, transfer::WithdrawTransferCompactNFTEntries};
+use script_utils::constants::{OWNED_SMT_TYPE, WITHDRAWAL_SMT_TYPE};
 use script_utils::{
     compact_nft::CompactNft,
     constants::{BYTE22_ZEROS, BYTE32_ZEROS, BYTE3_ZEROS},
@@ -53,10 +54,20 @@ pub fn verify_withdraw_transfer_smt(witness_args_input_type: Bytes) -> Result<()
         withdrawal_old_nft_values.extend(&BYTE32_ZEROS);
 
         let owned_nft_key = owned_nft_keys.get(index).ok_or(Error::Encoding)?;
+        if let Some(smt_type) = owned_nft_key.smt_type().as_slice().get(0) {
+            if smt_type != &OWNED_SMT_TYPE {
+                return Err(Error::CompactNFTSmtTypeError);
+            }
+        }
         let withdrawal_nft_key = withdraw_entries
             .withdrawal_nft_keys()
             .get(index)
             .ok_or(Error::Encoding)?;
+        if let Some(smt_type) = withdrawal_nft_key.smt_type().as_slice().get(0) {
+            if smt_type != &WITHDRAWAL_SMT_TYPE {
+                return Err(Error::CompactNFTSmtTypeError);
+            }
+        }
         withdrawal_nft_keys.extend(&BYTE3_ZEROS);
         withdrawal_nft_keys.extend(owned_nft_key.as_slice());
 
