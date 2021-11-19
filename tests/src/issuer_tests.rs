@@ -29,6 +29,7 @@ enum Action {
     Destroy,
 }
 
+#[derive(PartialEq)]
 enum IssuerError {
     NoError,
     DataLenInvalid,
@@ -39,6 +40,7 @@ enum IssuerError {
     TypeArgsInvalid,
     IssuerCellCannotDestroyed,
     GroupInputWitnessNoneError,
+    BatchDestroyError,
 }
 
 fn create_test_context(action: Action, issuer_error: IssuerError) -> (Context, TransactionView) {
@@ -122,6 +124,13 @@ fn create_test_context(action: Action, issuer_error: IssuerError) -> (Context, T
                     .previous_output(issuer_input_out_point.clone())
                     .build(),
             );
+            if issuer_error == IssuerError::BatchDestroyError {
+                inputs.push(
+                    CellInput::new_builder()
+                        .previous_output(issuer_input_out_point.clone())
+                        .build(),
+                );
+            }
         }
         Action::Create => (),
     }
@@ -380,6 +389,22 @@ fn test_destroy_issuer_with_witness_none_error() {
     assert_error_eq!(
         err,
         ScriptError::ValidationFailure(GROUP_INPUT_WITNESS_NONE_ERROR)
+            .input_type_script(script_cell_index)
+    );
+}
+
+#[test]
+fn test_batch_destroy_issuer_error() {
+    let (mut context, tx) =
+        create_test_context(Action::Destroy, IssuerError::BatchDestroyError);
+
+    let tx = context.complete_tx(tx);
+    // run
+    let err = context.verify_tx(&tx, MAX_CYCLES).unwrap_err();
+    let script_cell_index = 1;
+    assert_error_eq!(
+        err,
+        ScriptError::ValidationFailure(ISSUER_CELLS_COUNT_ERROR)
             .input_type_script(script_cell_index)
     );
 }

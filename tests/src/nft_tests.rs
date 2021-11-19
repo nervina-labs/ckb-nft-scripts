@@ -46,6 +46,7 @@ enum DestroyCase {
     Default,
     IssuerInput,
     ClassInput,
+    Batch,
 }
 
 #[derive(PartialEq, Eq, Clone, Copy)]
@@ -339,6 +340,7 @@ fn create_test_context(action: Action, nft_error: NftError) -> (Context, Transac
                 }
                 _ => Bytes::from(hex::decode("0000000000000000000000").unwrap()),
             },
+            DestroyCase::Batch => Bytes::from(hex::decode("0000000000000000000000").unwrap()),
             _ => Bytes::from(hex::decode("000000000000000000c000").unwrap()),
         },
         // Action::Create => Bytes::new(),
@@ -406,6 +408,7 @@ fn create_test_context(action: Action, nft_error: NftError) -> (Context, Transac
         },
         Action::Destroy(case) => match case {
             DestroyCase::Default => vec![nft_input],
+            DestroyCase::Batch => vec![nft_input.clone(), nft_input],
             DestroyCase::ClassInput => vec![class_input_without_type, nft_input],
             DestroyCase::IssuerInput => vec![issuer_input, nft_input],
         },
@@ -441,7 +444,7 @@ fn create_test_context(action: Action, nft_error: NftError) -> (Context, Transac
                 .build()],
         },
         Action::Destroy(case) => match case {
-            DestroyCase::Default => vec![CellOutput::new_builder()
+            DestroyCase::Default | DestroyCase::Batch => vec![CellOutput::new_builder()
                 .capacity(500u64.pack())
                 .lock(lock_script.clone())
                 .build()],
@@ -615,7 +618,7 @@ fn create_test_context(action: Action, nft_error: NftError) -> (Context, Transac
             (_, _) => vec![Bytes::from(hex::decode("0000000000000000000000").unwrap())],
         },
         Action::Destroy(case) => match case {
-            DestroyCase::Default => vec![Bytes::new()],
+            DestroyCase::Default | DestroyCase::Batch => vec![Bytes::new()],
             DestroyCase::ClassInput => vec![
                 Bytes::new(),
                 Bytes::from(hex::decode("0000000000000000000000").unwrap()),
@@ -792,6 +795,19 @@ fn test_update_nft_state_with_class_success() {
 fn test_destroy_nft_cell_with_default_success() {
     let (mut context, tx) =
         create_test_context(Action::Destroy(DestroyCase::Default), NftError::NoError);
+
+    let tx = context.complete_tx(tx);
+    // run
+    let cycles = context
+        .verify_tx(&tx, MAX_CYCLES)
+        .expect("pass verification");
+    println!("consume cycles: {}", cycles);
+}
+
+#[test]
+fn test_batch_destroy_nft_cell_with_default_success() {
+    let (mut context, tx) =
+        create_test_context(Action::Destroy(DestroyCase::Batch), NftError::NoError);
 
     let tx = context.complete_tx(tx);
     // run
