@@ -1,5 +1,7 @@
 use super::*;
-use crate::constants::{BYTE22_ZEROS, BYTE3_ZEROS};
+use crate::constants::{
+    BYTE22_ZEROS, BYTE3_ZEROS, CLAIMED_SMT_TYPE, OWNED_SMT_TYPE, WITHDRAWAL_SMT_TYPE,
+};
 use ckb_testtool::ckb_types::{
     bytes::Bytes,
     core::{TransactionBuilder, TransactionView},
@@ -24,6 +26,7 @@ const SMT_PROOF_VERIFY_FAILED: i8 = 40;
 const COMPACT_NFT_SMT_ROOT_ERROR: i8 = 45;
 const COMPACT_NFT_OUT_POINT_INVALID: i8 = 47;
 const WITHDRAW_COMPACT_NFT_INFO_NOT_SAME: i8 = 49;
+const COMPACT_NFT_SMT_TYPE: i8 = 58;
 
 #[derive(PartialEq)]
 enum WithdrawError {
@@ -33,6 +36,7 @@ enum WithdrawError {
     SMTProofVerifyFailed,
     CompactNFTSMTRootError,
     CompactNFTOutPointInvalid,
+    CompactNFTSmtTypeError,
 }
 
 const WITHDRAW_TRANSFER: u8 = 2;
@@ -91,11 +95,11 @@ fn generate_withdrawal_compact_nft_smt_data(
             .build();
         let owned_nft_key = CompactNFTKeyBuilder::default()
             .nft_id(nft_id.clone())
-            .smt_type(Byte::from(1u8))
+            .smt_type(Byte::from(OWNED_SMT_TYPE))
             .build();
         let mut nft_id_vec = Vec::new();
         nft_id_vec.extend(&BYTE3_ZEROS);
-        nft_id_vec.extend(&[1u8]);
+        nft_id_vec.extend(&[OWNED_SMT_TYPE]);
         nft_id_vec.extend(nft_id.as_slice());
         let mut nft_id_bytes = [0u8; 32];
         nft_id_bytes.copy_from_slice(&nft_id_vec);
@@ -128,11 +132,16 @@ fn generate_withdrawal_compact_nft_smt_data(
         old_update_leaves.push((key, value));
         new_update_leaves.push((key, H256::from([0u8; 32])));
 
+        let smt_type = if withdraw_error == &WithdrawError::CompactNFTSmtTypeError {
+            CLAIMED_SMT_TYPE
+        } else {
+            WITHDRAWAL_SMT_TYPE
+        };
         let withdrawal_nft_key = CompactNFTKeyBuilder::default()
-            .smt_type(Byte::from(2u8))
+            .smt_type(Byte::from(smt_type))
             .nft_id(nft_id)
             .build();
-        nft_id_bytes[3] = 2u8;
+        nft_id_bytes[3] = smt_type;
         key = H256::from(nft_id_bytes);
         withdrawal_nft_keys.push(withdrawal_nft_key);
 
@@ -465,4 +474,14 @@ fn test_withdraw_compact_nft_info_not_same_error() {
     // run
     let err = context.verify_tx(&tx, MAX_CYCLES).unwrap_err();
     assert_script_error(err, WITHDRAW_COMPACT_NFT_INFO_NOT_SAME);
+}
+
+#[test]
+fn test_withdraw_compact_nft_smt_type_error() {
+    let (mut context, tx) = create_test_context(WithdrawError::CompactNFTSmtTypeError);
+
+    let tx = context.complete_tx(tx);
+    // run
+    let err = context.verify_tx(&tx, MAX_CYCLES).unwrap_err();
+    assert_script_error(err, COMPACT_NFT_SMT_TYPE);
 }
