@@ -54,7 +54,7 @@ fn parse_nft_action(nft_type: &Script) -> Result<Action, Error> {
     } 
 
     let nft_outputs_count = count_cells_by_type(Source::Output, &check_nft_type(nft_type));
-    if nft_inputs_count == 1 && nft_outputs_count == 0 {
+    if nft_outputs_count == 0 {
         return Ok(Action::Destroy);
     }
 
