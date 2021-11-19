@@ -410,7 +410,6 @@ fn test_update_class_data_error() {
     let tx = context.complete_tx(tx);
     // run
     let err = context.verify_tx(&tx, MAX_CYCLES).unwrap_err();
-    println!("{:?}", err);
     let script_cell_index = 0;
     let errors = vec![
         ScriptError::ValidationFailure(ENCODING).input_type_script(script_cell_index),
