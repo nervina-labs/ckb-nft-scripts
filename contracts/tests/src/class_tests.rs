@@ -131,7 +131,7 @@ fn generate_smt_data(
         let key = H256::from(nft_id_bytes);
 
         let characteristic = CharacteristicBuilder::default()
-            .set([Byte::from(0); 8])
+            .set([Byte::from(5); 8])
             .build();
         let receiver_lock = receiver_lock_script
             .as_slice()

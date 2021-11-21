@@ -104,8 +104,7 @@ pub fn verify_claim_transfer_smt(
         withdrawal_nft_keys.extend(&[WITHDRAWAL_SMT_TYPE]);
         withdrawal_nft_keys.extend(owned_nft_key.nft_id().as_slice());
 
-        withdrawal_nft_values.extend(&BYTE22_ZEROS);
-        withdrawal_nft_values.extend(owned_nft_value.as_slice());
+        withdrawal_nft_values.extend(&BYTE32_ZEROS);
 
         let withdrawal_nft_value = WithdrawCompactNFTValueBuilder::default()
             .nft_info(owned_nft_value)

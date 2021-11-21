@@ -105,12 +105,12 @@ fn generate_withdrawal_compact_nft_smt_data(
         owned_nft_keys.push(owned_nft_key);
 
         let characteristic = CharacteristicBuilder::default()
-            .set([Byte::from(0); 8])
+            .set([Byte::from(10); 8])
             .build();
         let owned_nft_value = CompactNFTInfoBuilder::default()
             .characteristic(characteristic)
             .configure(Byte::from(0u8))
-            .state(Byte::from(0u8))
+            .state(Byte::from(3u8))
             .build();
         let mut nft_info_vec = Vec::new();
         nft_info_vec.extend(&BYTE22_ZEROS);
