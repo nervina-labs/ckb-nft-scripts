@@ -10,6 +10,7 @@ use ckb_std::default_alloc;
 mod claim_mint;
 mod claim_transfer;
 mod entry;
+mod update_info;
 mod withdraw_transfer;
 
 ckb_std::entry!(program_entry);

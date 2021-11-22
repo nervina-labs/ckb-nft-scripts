@@ -65,7 +65,7 @@ pub fn verify_claim_transfer_smt(
             .owned_nft_keys()
             .get(index)
             .ok_or(Error::Encoding)?;
-        if let Some(smt_type) = owned_nft_key.smt_type().as_slice().get(0) {
+        if let Some(smt_type) = owned_nft_key.smt_type().as_slice().get(index) {
             if smt_type != &OWNED_SMT_TYPE {
                 return Err(Error::CompactNFTSmtTypeError);
             }
@@ -74,7 +74,7 @@ pub fn verify_claim_transfer_smt(
             .claimed_nft_keys()
             .get(index)
             .ok_or(Error::Encoding)?;
-        if let Some(smt_type) = claimed_nft_key.nft_key().smt_type().as_slice().get(0) {
+        if let Some(smt_type) = claimed_nft_key.nft_key().smt_type().as_slice().get(index) {
             if smt_type != &CLAIMED_SMT_TYPE {
                 return Err(Error::CompactNFTSmtTypeError);
             }

@@ -1,6 +1,7 @@
 use super::claim_mint::verify_claim_mint_smt;
 use super::withdraw_transfer::verify_withdraw_transfer_smt;
 use crate::claim_transfer::verify_claim_transfer_smt;
+use crate::update_info::verify_update_nft_info_smt;
 use ckb_std::high_level::load_cell_data;
 use ckb_std::{
     ckb_constants::Source,
@@ -21,6 +22,7 @@ const TYPE_ARGS_LEN: usize = 20;
 const CLAIM_MINT: u8 = 1;
 const WITHDRAW_TRANSFER: u8 = 2;
 const CLAIM_TRANSFER: u8 = 3;
+const UPDATE_INFO: u8 = 4;
 
 fn check_output_compact_nft_type(compact_nft_type: &Script) -> Result<(), Error> {
     match load_cell_type(0, Source::GroupOutput).map_err(|_e| Error::CompactCellPositionError)? {
@@ -81,6 +83,7 @@ fn verify_compact_nft_smt(compact_nft_type: &Script) -> Result<(), Error> {
             CLAIM_MINT => verify_claim_mint_smt(witness_args_input_type)?,
             WITHDRAW_TRANSFER => verify_withdraw_transfer_smt(witness_args_input_type)?,
             CLAIM_TRANSFER => verify_claim_transfer_smt(compact_nft_type, witness_args_input_type)?,
+            UPDATE_INFO => verify_update_nft_info_smt(witness_args_input_type)?,
             _ => return Err(Error::WitnessTypeParseError),
         }
     } else {

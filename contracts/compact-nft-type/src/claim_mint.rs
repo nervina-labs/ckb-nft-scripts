@@ -55,10 +55,7 @@ pub fn verify_claim_mint_smt(witness_args_input_type: Bytes) -> Result<(), Error
     let claim_entries = ClaimMintCompactNFTEntries::from_slice(&witness_args_input_type[1..])
         .map_err(|_e| Error::WitnessTypeParseError)?;
     let owned_nft_keys = claim_entries.owned_nft_keys();
-    let nft_key = owned_nft_keys
-        .get(0)
-        .ok_or(Error::Encoding)
-        .map_err(|_e| Error::Encoding)?;
+    let nft_key = owned_nft_keys.get(0).ok_or(Error::Encoding)?;
     let class_mint_smt_root = load_mint_smt_root_from_class_cell_dep(&nft_key)?;
 
     let mut mint_nft_keys: Vec<u8> = Vec::new();
@@ -69,7 +66,7 @@ pub fn verify_claim_mint_smt(witness_args_input_type: Bytes) -> Result<(), Error
     for index in 0..owned_nft_keys.len() {
         // Generate owned and claimed smt kv pairs
         let owned_nft_key = owned_nft_keys.get(index).ok_or(Error::Encoding)?;
-        if let Some(smt_type) = owned_nft_key.smt_type().as_slice().get(0) {
+        if let Some(smt_type) = owned_nft_key.smt_type().as_slice().get(index) {
             if smt_type != &OWNED_SMT_TYPE {
                 return Err(Error::CompactNFTSmtTypeError);
             }
@@ -78,7 +75,7 @@ pub fn verify_claim_mint_smt(witness_args_input_type: Bytes) -> Result<(), Error
             .claimed_nft_keys()
             .get(index)
             .ok_or(Error::Encoding)?;
-        if let Some(smt_type) = claimed_nft_key.nft_key().smt_type().as_slice().get(0) {
+        if let Some(smt_type) = claimed_nft_key.nft_key().smt_type().as_slice().get(index) {
             if smt_type != &CLAIMED_SMT_TYPE {
                 return Err(Error::CompactNFTSmtTypeError);
             }

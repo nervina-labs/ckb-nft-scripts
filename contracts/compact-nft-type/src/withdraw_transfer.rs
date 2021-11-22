@@ -54,7 +54,7 @@ pub fn verify_withdraw_transfer_smt(witness_args_input_type: Bytes) -> Result<()
         withdrawal_old_nft_values.extend(&BYTE32_ZEROS);
 
         let owned_nft_key = owned_nft_keys.get(index).ok_or(Error::Encoding)?;
-        if let Some(smt_type) = owned_nft_key.smt_type().as_slice().get(0) {
+        if let Some(smt_type) = owned_nft_key.smt_type().as_slice().get(index) {
             if smt_type != &OWNED_SMT_TYPE {
                 return Err(Error::CompactNFTSmtTypeError);
             }
@@ -63,7 +63,7 @@ pub fn verify_withdraw_transfer_smt(witness_args_input_type: Bytes) -> Result<()
             .withdrawal_nft_keys()
             .get(index)
             .ok_or(Error::Encoding)?;
-        if let Some(smt_type) = withdrawal_nft_key.smt_type().as_slice().get(0) {
+        if let Some(smt_type) = withdrawal_nft_key.smt_type().as_slice().get(index) {
             if smt_type != &WITHDRAWAL_SMT_TYPE {
                 return Err(Error::CompactNFTSmtTypeError);
             }
