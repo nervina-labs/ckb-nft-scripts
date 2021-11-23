@@ -1,6 +1,3 @@
-use crate::validator::{
-    validate_immutable_nft_fields, validate_nft_claim, validate_nft_lock, validate_nft_transfer,
-};
 use alloc::vec::Vec;
 use ckb_std::{
     ckb_constants::Source,
@@ -8,6 +5,9 @@ use ckb_std::{
     high_level::{load_cell_data, load_script},
 };
 use core::result::Result;
+use script_utils::nft_validator::{
+    validate_immutable_nft_fields, validate_nft_claim, validate_nft_lock, validate_nft_transfer,
+};
 use script_utils::{
     class::{Class, CLASS_TYPE_ARGS_LEN},
     error::Error,

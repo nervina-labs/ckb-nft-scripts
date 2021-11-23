@@ -6,7 +6,6 @@
 #![feature(asm)]
 
 mod entry;
-mod validator;
 
 use ckb_std::default_alloc;
 

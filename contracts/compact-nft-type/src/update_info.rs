@@ -1,19 +1,37 @@
 use alloc::vec::Vec;
-use ckb_std::high_level::load_cell_data;
 use ckb_std::{
     ckb_constants::Source,
     ckb_types::{bytes::Bytes, prelude::*},
     dynamic_loading_c_impl::CKBDLContext,
+    high_level::load_cell_data,
 };
 use core::result::Result;
+use nft_smt::common::CompactNFTInfo;
 use nft_smt::update::UpdateCompactNFTEntries;
-use script_utils::constants::OWNED_SMT_TYPE;
 use script_utils::{
     compact_nft::CompactNft,
+    constants::OWNED_SMT_TYPE,
     constants::{BYTE22_ZEROS, BYTE3_ZEROS},
     error::Error,
+    nft::Nft,
+    nft_validator::{validate_immutable_nft_fields, validate_nft_claim, validate_nft_lock},
     smt::LibCKBSmt,
 };
+
+fn validate_nft_info(
+    new_owned_nft_value: &CompactNFTInfo,
+    old_owned_nft_value: &CompactNFTInfo,
+) -> Result<(), Error> {
+    let output_nft = Nft::from_data_without_version(new_owned_nft_value.as_slice())?;
+    let input_nft = Nft::from_data_without_version(old_owned_nft_value.as_slice())?;
+    let nfts = (input_nft, output_nft);
+
+    validate_immutable_nft_fields(&nfts)?;
+    validate_nft_claim(&nfts)?;
+    validate_nft_lock(&nfts)?;
+
+    Ok(())
+}
 
 pub fn verify_update_nft_info_smt(witness_args_input_type: Bytes) -> Result<(), Error> {
     let compact_nft = CompactNft::from_data(&load_cell_data(0, Source::Output)?[..])?;
@@ -42,13 +60,16 @@ pub fn verify_update_nft_info_smt(witness_args_input_type: Bytes) -> Result<(), 
             .new_nft_values()
             .get(index)
             .ok_or(Error::Encoding)?;
-        update_nft_values.extend(&BYTE22_ZEROS);
-        update_nft_values.extend(new_owned_nft_value.as_slice());
-
         let old_owned_nft_value = update_entries
             .old_nft_values()
             .get(index)
             .ok_or(Error::Encoding)?;
+
+        validate_nft_info(&new_owned_nft_value, &old_owned_nft_value)?;
+
+        update_nft_values.extend(&BYTE22_ZEROS);
+        update_nft_values.extend(new_owned_nft_value.as_slice());
+
         update_old_nft_values.extend(&BYTE22_ZEROS);
         update_old_nft_values.extend(old_owned_nft_value.as_slice());
     }

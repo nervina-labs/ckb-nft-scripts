@@ -43,6 +43,25 @@ impl Nft {
         })
     }
 
+    pub fn from_data_without_version(data: &[u8]) -> Result<Self, Error> {
+        if data.len() != NFT_DATA_MIN_LEN - 1 {
+            return Err(Error::NFTDataInvalid);
+        }
+        let mut characteristic = [0u8; 8];
+        characteristic.copy_from_slice(&data[0..8]);
+
+        let configure: u8 = data[8];
+        let state: u8 = data[9];
+        let version = 1;
+
+        Ok(Nft {
+            version,
+            characteristic,
+            configure,
+            state,
+        })
+    }
+
     pub fn allow_claim(&self) -> bool {
         self.configure & 0b0000_0001 == 0b0000_0000
     }

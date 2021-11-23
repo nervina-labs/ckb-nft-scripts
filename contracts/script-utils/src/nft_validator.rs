@@ -1,6 +1,7 @@
+use crate::error::Error;
+use crate::nft::Nft;
 use ckb_std::{ckb_constants::Source, ckb_types::prelude::*, high_level::load_cell_lock};
 use core::result::Result;
-use script_utils::{error::Error, nft::Nft};
 
 type Nfts = (Nft, Nft);
 
