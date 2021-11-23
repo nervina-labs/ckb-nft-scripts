@@ -1,4 +1,4 @@
-use super::*;
+use crate::{assert_script_error, Loader};
 use blake2b_rs::Blake2bBuilder;
 use ckb_testtool::ckb_types::{
     bytes::Bytes,

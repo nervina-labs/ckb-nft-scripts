@@ -1,4 +1,4 @@
-use super::*;
+use crate::{assert_script_error, Loader};
 use ckb_testtool::ckb_types::{
     bytes::Bytes,
     core::{TransactionBuilder, TransactionView},

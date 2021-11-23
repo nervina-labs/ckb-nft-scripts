@@ -1,5 +1,5 @@
-use super::*;
 use crate::constants::{CLASS_TYPE_CODE_HASH, TYPE};
+use crate::{assert_script_error, Loader};
 use ckb_testtool::ckb_types::{
     bytes::Bytes,
     core::{TransactionBuilder, TransactionView},

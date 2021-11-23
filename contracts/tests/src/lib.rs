@@ -8,25 +8,10 @@ use std::str::FromStr;
 mod constants;
 
 #[cfg(test)]
-mod issuer_tests;
+mod m_nft;
 
 #[cfg(test)]
-mod class_tests;
-
-#[cfg(test)]
-mod nft_tests;
-
-#[cfg(test)]
-mod compact_registry_tests;
-
-#[cfg(test)]
-mod compact_nft_mint_tests;
-
-#[cfg(test)]
-mod compact_transfer_withdraw_tests;
-
-#[cfg(test)]
-mod compact_transfer_claim_tests;
+mod compact_nft;
 
 const TEST_ENV_VAR: &str = "CAPSULE_TEST_ENV";
 

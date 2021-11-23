@@ -1,5 +1,5 @@
-use super::*;
 use crate::constants::BYTE4_ZEROS;
+use crate::{assert_script_error, assert_script_errors, Loader};
 use ckb_testtool::ckb_types::{
     bytes::Bytes,
     core::{TransactionBuilder, TransactionView},
