@@ -6,6 +6,7 @@ build-release:
 	capsule build --release
 
 test:
+	cd contracts && cargo fmt
 	cp libs/* build/debug/
 	capsule test
 

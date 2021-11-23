@@ -30,7 +30,6 @@ const COMPACT_NFT_OUT_POINT_INVALID: i8 = 47;
 const WITHDRAW_COMPACT_NFT_INFO_NOT_SAME: i8 = 49;
 const COMPACT_NFT_SMT_TYPE: i8 = 58;
 
-
 #[derive(PartialEq)]
 enum WithdrawError {
     NoError,
