@@ -1,4 +1,5 @@
 use alloc::vec::Vec;
+use ckb_std::high_level::load_cell_lock_hash;
 use ckb_std::{
     ckb_constants::Source,
     ckb_types::{bytes::Bytes, prelude::*},
@@ -6,14 +7,33 @@ use ckb_std::{
     high_level::{load_cell_data, load_input_out_point},
 };
 use core::result::Result;
+use nft_smt::common::{CompactNFTInfo, LockHash};
 use nft_smt::{smt::blake2b_256, transfer::WithdrawTransferCompactNFTEntries};
 use script_utils::constants::{OWNED_SMT_TYPE, WITHDRAWAL_SMT_TYPE};
+use script_utils::nft::Nft;
 use script_utils::{
     compact_nft::CompactNft,
     constants::{BYTE22_ZEROS, BYTE32_ZEROS, BYTE3_ZEROS},
     error::Error,
     smt::LibCKBSmt,
 };
+
+fn check_nft_transferable(owned_nft_value: &CompactNFTInfo, to: LockHash) -> Result<(), Error> {
+    let nft = Nft::from_data_without_version(owned_nft_value.as_slice())?;
+    let input_compact_nft_lock = load_cell_lock_hash(0, Source::GroupInput)?;
+    if &input_compact_nft_lock[0..20] != to.as_slice() {
+        if nft.is_locked() {
+            return Err(Error::LockedNFTCannotTransfer);
+        }
+        if !nft.is_claimed() && !nft.allow_transfer_before_claim() {
+            return Err(Error::NFTCannotTransferBeforeClaim);
+        }
+        if nft.is_claimed() && !nft.allow_transfer_after_claim() {
+            return Err(Error::NFTCannotTransferAfterClaim);
+        }
+    }
+    Ok(())
+}
 
 pub fn verify_withdraw_transfer_smt(witness_args_input_type: Bytes) -> Result<(), Error> {
     let compact_nft = CompactNft::from_data(&load_cell_data(0, Source::Output)?[..])?;
@@ -37,10 +57,14 @@ pub fn verify_withdraw_transfer_smt(witness_args_input_type: Bytes) -> Result<()
         {
             return Err(Error::CompactNFTOutPointInvalid);
         }
+
         let owned_nft_value = withdraw_entries
             .owned_nft_values()
             .get(index)
             .ok_or(Error::Encoding)?;
+
+        check_nft_transferable(&owned_nft_value, withdrawal_nft_value.to())?;
+
         if owned_nft_value.as_slice() != withdrawal_nft_value.nft_info().as_slice() {
             return Err(Error::WithdrawCompactNFTInfoNotSame);
         }

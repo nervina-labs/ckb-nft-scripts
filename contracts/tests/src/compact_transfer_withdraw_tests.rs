@@ -21,12 +21,15 @@ use rand::{thread_rng, Rng};
 const MAX_CYCLES: u64 = 70_000_000;
 
 // error numbers
+const NFT_CANNOT_TRANSFER_BEFORE_CLAIM: i8 = 29;
+const LOCKED_NFT_CANNOT_TRANSFER: i8 = 34;
 const WITNESS_TYPE_PARSE_ERROR: i8 = 38;
 const SMT_PROOF_VERIFY_FAILED: i8 = 40;
 const COMPACT_NFT_SMT_ROOT_ERROR: i8 = 45;
 const COMPACT_NFT_OUT_POINT_INVALID: i8 = 47;
 const WITHDRAW_COMPACT_NFT_INFO_NOT_SAME: i8 = 49;
 const COMPACT_NFT_SMT_TYPE: i8 = 58;
+
 
 #[derive(PartialEq)]
 enum WithdrawError {
@@ -37,6 +40,8 @@ enum WithdrawError {
     CompactNFTSMTRootError,
     CompactNFTOutPointInvalid,
     CompactNFTSmtTypeError,
+    LockedNFTCannotTransfer,
+    NFTCannotTransferBeforeClaim,
 }
 
 const WITHDRAW_TRANSFER: u8 = 2;
@@ -110,10 +115,20 @@ fn generate_withdrawal_compact_nft_smt_data(
         let characteristic = CharacteristicBuilder::default()
             .set([Byte::from(10); 8])
             .build();
+        let state = if withdraw_error == &WithdrawError::LockedNFTCannotTransfer {
+            2u8
+        } else {
+            0u8
+        };
+        let configure = if withdraw_error == &WithdrawError::NFTCannotTransferBeforeClaim {
+            16u8
+        } else {
+            0u8
+        };
         let owned_nft_value = CompactNFTInfoBuilder::default()
             .characteristic(characteristic)
-            .configure(Byte::from(0u8))
-            .state(Byte::from(3u8))
+            .configure(Byte::from(configure))
+            .state(Byte::from(state))
             .build();
         let mut nft_info_vec = Vec::new();
         nft_info_vec.extend(&BYTE22_ZEROS);
@@ -484,4 +499,24 @@ fn test_withdraw_compact_nft_smt_type_error() {
     // run
     let err = context.verify_tx(&tx, MAX_CYCLES).unwrap_err();
     assert_script_error(err, COMPACT_NFT_SMT_TYPE);
+}
+
+#[test]
+fn test_withdraw_locked_compact_nft_cannot_transfer_error() {
+    let (mut context, tx) = create_test_context(WithdrawError::LockedNFTCannotTransfer);
+
+    let tx = context.complete_tx(tx);
+    // run
+    let err = context.verify_tx(&tx, MAX_CYCLES).unwrap_err();
+    assert_script_error(err, LOCKED_NFT_CANNOT_TRANSFER);
+}
+
+#[test]
+fn test_withdraw_unclaimed_compact_nft_cannot_transfer_error() {
+    let (mut context, tx) = create_test_context(WithdrawError::NFTCannotTransferBeforeClaim);
+
+    let tx = context.complete_tx(tx);
+    // run
+    let err = context.verify_tx(&tx, MAX_CYCLES).unwrap_err();
+    assert_script_error(err, NFT_CANNOT_TRANSFER_BEFORE_CLAIM);
 }
