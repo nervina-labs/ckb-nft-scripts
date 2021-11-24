@@ -733,7 +733,6 @@ dependencies = [
  "blake2b-ref 0.3.0",
  "cfg-if 0.1.10",
  "ckb-std",
- "ckb-types 0.101.1",
  "molecule",
  "sparse-merkle-tree",
 ]
@@ -746,6 +745,7 @@ dependencies = [
  "blake2b-ref 0.3.0",
  "cfg-if 0.1.10",
  "ckb-std",
+ "ckb-types 0.101.1",
  "molecule",
  "sparse-merkle-tree",
 ]
@@ -1878,7 +1878,7 @@ version = "0.10.0"
 dependencies = [
  "blake2b-rs 0.2.0",
  "ckb-testtool",
- "compact-nft-smt 0.10.0 (git+https://github.com/nervina-labs/compact-nft-smt?branch=master)",
+ "compact-nft-smt 0.10.0 (git+https://github.com/nervina-labs/compact-nft-smt?branch=update-compact-nft-info)",
  "hex",
  "rand 0.7.3",
 ]

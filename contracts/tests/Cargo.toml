@@ -10,4 +10,4 @@ ckb-testtool = "0.6.1"
 blake2b-rs = "0.2"
 hex = "0.4"
 rand = "0.7"
-nft-smt = {package = "compact-nft-smt", git = "https://github.com/nervina-labs/compact-nft-smt", branch = "master"}
+nft-smt = {package = "compact-nft-smt", git = "https://github.com/nervina-labs/compact-nft-smt", branch = "update-compact-nft-info"}

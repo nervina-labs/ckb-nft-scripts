@@ -1,4 +1,5 @@
 mod compact_nft_mint_tests;
+mod compact_nft_update_info_tests;
 mod compact_registry_tests;
 mod compact_transfer_claim_tests;
 mod compact_transfer_withdraw_tests;
