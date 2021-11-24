@@ -9,4 +9,4 @@ edition = "2018"
 [dependencies]
 ckb-std = "0.9.0"
 script-utils = { path = "../script-utils" }
-nft-smt = {package = "compact-nft-smt", git = "https://github.com/nervina-labs/compact-nft-smt", branch = "update-compact-nft-info", default_features = false, features = ["no-std"] }
+nft-smt = {package = "compact-nft-smt", git = "https://github.com/nervina-labs/compact-nft-smt", branch = "develop", default_features = false, features = ["no-std"] }

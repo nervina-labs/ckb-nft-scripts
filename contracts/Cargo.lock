@@ -728,19 +728,7 @@ dependencies = [
 [[package]]
 name = "compact-nft-smt"
 version = "0.10.0"
-source = "git+https://github.com/nervina-labs/compact-nft-smt?branch=master#d4d3013232d735b50ecb3f1ab142a7df00caf4b8"
-dependencies = [
- "blake2b-ref 0.3.0",
- "cfg-if 0.1.10",
- "ckb-std",
- "molecule",
- "sparse-merkle-tree",
-]
-
-[[package]]
-name = "compact-nft-smt"
-version = "0.10.0"
-source = "git+https://github.com/nervina-labs/compact-nft-smt?branch=update-compact-nft-info#b0a7b8966bc6400f9ba0f93380e421c50c866e4d"
+source = "git+https://github.com/nervina-labs/compact-nft-smt?branch=develop#b0a7b8966bc6400f9ba0f93380e421c50c866e4d"
 dependencies = [
  "blake2b-ref 0.3.0",
  "cfg-if 0.1.10",
@@ -751,11 +739,23 @@ dependencies = [
 ]
 
 [[package]]
+name = "compact-nft-smt"
+version = "0.10.0"
+source = "git+https://github.com/nervina-labs/compact-nft-smt?branch=master#d4d3013232d735b50ecb3f1ab142a7df00caf4b8"
+dependencies = [
+ "blake2b-ref 0.3.0",
+ "cfg-if 0.1.10",
+ "ckb-std",
+ "molecule",
+ "sparse-merkle-tree",
+]
+
+[[package]]
 name = "compact-nft-type"
 version = "0.10.0"
 dependencies = [
  "ckb-std",
- "compact-nft-smt 0.10.0 (git+https://github.com/nervina-labs/compact-nft-smt?branch=update-compact-nft-info)",
+ "compact-nft-smt 0.10.0 (git+https://github.com/nervina-labs/compact-nft-smt?branch=develop)",
  "script-utils",
 ]
 
@@ -1878,7 +1878,7 @@ version = "0.10.0"
 dependencies = [
  "blake2b-rs 0.2.0",
  "ckb-testtool",
- "compact-nft-smt 0.10.0 (git+https://github.com/nervina-labs/compact-nft-smt?branch=update-compact-nft-info)",
+ "compact-nft-smt 0.10.0 (git+https://github.com/nervina-labs/compact-nft-smt?branch=develop)",
  "hex",
  "rand 0.7.3",
 ]
