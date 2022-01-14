@@ -10,7 +10,7 @@ jobs:
       - uses: actions-rs/toolchain@v1
         with:
           profile: minimal
-          toolchain: nightly-2020-09-28
+          toolchain: nightly-2021-08-16
           override: true
 
       - uses: docker-practice/actions-setup-docker@master
@@ -20,7 +20,7 @@ jobs:
 
       - name: Install Capsule
         run: |
-          mkdir -p ./capsule && curl -L https://github.com/nervosnetwork/capsule/releases/download/v0.4.3/capsule_v0.4.3_x86_64-linux.tar.gz | tar xvz -C ./capsule --strip-components=1
+          mkdir -p ./capsule && curl -L https://github.com/nervosnetwork/capsule/releases/download/v0.7.2/capsule_v0.7.2_x86_64-linux.tar.gz | tar xvz -C ./capsule --strip-components=1
           chmod +x ./capsule/capsule
       - name: Build contracts
         run: ./capsule/capsule build
