@@ -9,8 +9,8 @@ use script_utils::{
     class::{Class, CLASS_TYPE_ARGS_LEN},
     error::Error,
     helper::{
-        count_cells_by_type, count_cells_by_type_hash, load_cell_data_by_type_hash,
-        load_output_type_args_ids, check_group_input_witness_is_none_with_type, Action,
+        check_group_input_witness_is_none_with_type, count_cells_by_type, count_cells_by_type_hash,
+        load_cell_data_by_type_hash, load_output_type_args_ids, Action,
     },
     issuer::{Issuer, ISSUER_TYPE_ARGS_LEN},
 };
@@ -25,10 +25,10 @@ fn check_class_type<'a>(class_type: &'a Script) -> impl Fn(&Script) -> bool + 'a
     let class_args: Bytes = class_type.args().unpack();
     move |type_: &Script| {
         let type_args: Bytes = type_.args().unpack();
-        type_.code_hash().as_slice() == class_type.code_hash().as_slice() && 
-        type_.hash_type().as_slice() == class_type.hash_type().as_slice() &&
-        type_args.len() == CLASS_TYPE_ARGS_LEN && 
-        type_args[0..ISSUER_TYPE_ARGS_LEN] == class_args[0..ISSUER_TYPE_ARGS_LEN]
+        type_.code_hash().as_slice() == class_type.code_hash().as_slice()
+            && type_.hash_type().as_slice() == class_type.hash_type().as_slice()
+            && type_args.len() == CLASS_TYPE_ARGS_LEN
+            && type_args[0..ISSUER_TYPE_ARGS_LEN] == class_args[0..ISSUER_TYPE_ARGS_LEN]
     }
 }
 
@@ -58,7 +58,8 @@ fn handle_creation(class_type: &Script) -> Result<(), Error> {
     }
 
     let class_args: Bytes = class_type.args().unpack();
-    let issuer_inputs_count = count_cells_by_type_hash(Source::Input, &check_issuer_id(&class_args));
+    let issuer_inputs_count =
+        count_cells_by_type_hash(Source::Input, &check_issuer_id(&class_args));
     if issuer_inputs_count != 1 {
         return Err(Error::IssuerCellsCountError);
     }

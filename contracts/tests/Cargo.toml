@@ -8,3 +8,4 @@ edition = "2018"
 [dependencies]
 ckb-testtool = "0.6.1"
 hex = "0.4"
+blake2b-rs = "0.2"

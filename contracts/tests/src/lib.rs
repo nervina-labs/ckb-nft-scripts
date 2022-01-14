@@ -1,4 +1,5 @@
-use ckb_tool::ckb_types::bytes::Bytes;
+use ckb_testtool::ckb_error::Error;
+use ckb_testtool::ckb_types::bytes::Bytes;
 use std::env;
 use std::fs;
 use std::path::PathBuf;
@@ -66,17 +67,29 @@ impl Loader {
     }
 }
 
-#[macro_export]
-macro_rules! assert_errors_contain {
-    ($err:expr, $errors:expr) => {
-        type Error = ckb_tool::ckb_error::Error;
-        let err_ = Into::<Error>::into($err).to_string();
-        let result = $errors
-            .into_iter()
-            .any(|error| err_ == Into::<Error>::into(Error::from(error)).to_string());
-        assert!(result);
-    };
-    ($err:expr, $errors:expr,) => {
-        $crate::assert_errors_contain!($err, $errors);
-    };
+pub fn assert_script_error(err: Error, err_code: i8) {
+    let error_string = err.to_string();
+    assert!(
+        error_string.contains(format!("error code {} ", err_code).as_str()),
+        "error_string: {}, expected_error_code: {}",
+        error_string,
+        err_code
+    );
+}
+
+pub fn assert_script_errors(err: Error, err_codes: &[i8]) {
+    let error_string = err.to_string();
+    let mut result = false;
+    let mut err_code_ = 0i8;
+    for err_code in err_codes {
+        if error_string.contains(format!("error code {} ", err_code).as_str()) {
+            result = true;
+            err_code_ = *err_code;
+        }
+    }
+    assert!(
+        result,
+        "error_string: {}, expected_error_code: {}",
+        error_string, err_code_
+    );
 }
