@@ -7,8 +7,8 @@ The NFT Type Scripts implement of [RFC: Multi-purpose NFT Draft Spec](https://ta
 
 ## Pre-requirement
 
-- [capsule](https://github.com/nervosnetwork/capsule) >= 0.4.3
-- [ckb-cli](https://github.com/nervosnetwork/ckb-cli) >= 0.35.0
+- [capsule](https://github.com/nervosnetwork/capsule) >= 0.7.2
+- [ckb-cli](https://github.com/nervosnetwork/ckb-cli) >= 0.101.0
 
 > Note: Capsule uses docker to build contracts and run tests. https://docs.docker.com/get-docker/
 > and docker and ckb-cli must be accessible in the PATH in order for them to be used by Capsule.
