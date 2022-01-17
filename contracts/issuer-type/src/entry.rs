@@ -8,7 +8,10 @@ use ckb_std::{
 use core::result::Result;
 use script_utils::{
     error::Error,
-    helper::{count_cells_by_type, load_output_index_by_type, check_group_input_witness_is_none_with_type, Action},
+    helper::{
+        check_group_input_witness_is_none_with_type, count_cells_by_type,
+        load_output_index_by_type, Action,
+    },
     issuer::{Issuer, ISSUER_TYPE_ARGS_LEN},
 };
 
@@ -17,8 +20,11 @@ fn load_issuer_data(source: Source) -> Result<Vec<u8>, Error> {
 }
 
 fn parse_issuer_action(issuer_type: &Script) -> Result<Action, Error> {
-    let count_cells =
-        |source| count_cells_by_type(source, &|type_: &Script| type_.as_slice() == issuer_type.as_slice());
+    let count_cells = |source| {
+        count_cells_by_type(source, &|type_: &Script| {
+            type_.as_slice() == issuer_type.as_slice()
+        })
+    };
     let issuer_cells_count = (count_cells(Source::Input), count_cells(Source::Output));
     match issuer_cells_count {
         (0, 1) => Ok(Action::Create),

@@ -1,8 +1,8 @@
-version = "0.4.3 13d6f1d"
+version = "0.7.3"
 deployment = "deployment.toml"
 [rust]
 workspace_dir = "contracts"
-toolchain = "nightly-2020-09-28"
+toolchain = "nightly-2021-12-25"
 
 [[contracts]]
 name = "issuer-type"
