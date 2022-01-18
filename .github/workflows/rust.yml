@@ -30,7 +30,7 @@ jobs:
         run: cargo fmt -- --check
 
       - name: Build contracts
-        run: capsule build
+        run: make build
 
       - name: Test contracts
-        run: capsule test
+        run: make test
