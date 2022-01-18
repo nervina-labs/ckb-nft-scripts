@@ -8,8 +8,8 @@
 mod entry;
 mod validator;
 
-use core::arch::asm;
 use ckb_std::default_alloc;
+use core::arch::asm;
 
 ckb_std::entry!(program_entry);
 default_alloc!();

@@ -24,6 +24,10 @@ jobs:
         run: |
           mkdir -p ./capsule && curl -L https://github.com/nervosnetwork/capsule/releases/download/${CAPSULE_VERSION}/capsule_${CAPSULE_VERSION}_x86_64-linux.tar.gz | tar xvz -C ./capsule --strip-components=1
           chmod +x ./capsule/capsule
+
+      - name: Check Rust format
+        run: cargo fmt -- --check
+
       - name: Build contracts
         run: ./capsule/capsule build
 
