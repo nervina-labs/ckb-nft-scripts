@@ -18,13 +18,13 @@ The NFT Type Scripts implement of [RFC: Multi-purpose NFT Draft Spec](https://ta
 Build contracts:
 
 ```sh
-capsule build
+make build
 ```
 
 Run tests:
 
 ```sh
-capsule test
+make test
 ```
 
 ## Deployment
@@ -40,7 +40,7 @@ Update the `deployment.toml` referring to the [Capsule Docs](https://docs.nervos
 The release version of script doesn’t include debug symbols which makes the size smaller.
 
 ```sh
-capsule build --release
+make build-release
 ```
 
 ### 3. Deploy the scripts

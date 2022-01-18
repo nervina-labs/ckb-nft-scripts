@@ -6,8 +6,8 @@
 #![feature(panic_info_message)]
 
 mod entry;
-use core::arch::asm;
 use ckb_std::default_alloc;
+use core::arch::asm;
 
 ckb_std::entry!(program_entry);
 default_alloc!();
