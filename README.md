@@ -29,8 +29,8 @@ make test
 
 ### Tips
 
-Considering that the nft type script depends on the `class_type_code_hash`, you should deploy the class type script firstly and then input the `class_type_code_hash` in the [constants](https://github.com/nervina-labs/ckb-nft-scripts/blob/develop/contracts/script-utils/src/helper.rs#L19), 
-and then deploy the nft type script.
+Considering that the nft type script depends on the `class_type_code_hash`, you should deploy the class type script firstly and then input the `class_type_code_hash` in the [constants](https://github.com/nervina-labs/ckb-nft-scripts/blob/develop/contracts/script-utils/src/helper.rs#L19).
+Finally, build the ckb-nft-scripts again and deploy the nft type script.
 
 ## Deployment
 
